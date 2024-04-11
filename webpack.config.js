@@ -1,0 +1,29 @@
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = function (env, argv) {
+    return {
+        module: {
+            rules: [
+                {
+                    test: /\.(?:js|mjs|cjs)$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: "babel-loader",
+                        options: {
+                            presets: [
+                                ["@babel/preset-env", { targets: "defaults" }],
+                                ["@babel/preset-react", { runtime: "automatic" }],
+                            ],
+                        },
+                    },
+                },
+                {
+                    test: /\.css$/i,
+                    use: ["style-loader", "css-loader", "postcss-loader"],
+                },
+            ],
+        },
+        plugins: [new HtmlWebpackPlugin({ template: "./public/index.html" })],
+    };
+};
