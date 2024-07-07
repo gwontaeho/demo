@@ -1,12 +1,13 @@
 import {
   useCallback,
   useEffect,
+  memo,
   useId,
   useRef,
   useState,
   createContext,
-  useReducer,
   useContext,
+  useLayoutEffect,
 } from "react";
 
 function debounce(func, delay) {
@@ -31,103 +32,110 @@ function throttle(func, delay) {
   };
 }
 
-const data = Array(100)
-  .fill(null)
-  .map((_, index) => {
-    return { index, a: "a", b: "b", c: (Math.random() * 100).toFixed() };
-  });
-
 /**
  * 스키마로 헤더 행 정의
  * 스키마로 행 정의
  */
 const schema = {
   head: [
-    {
-      id: "a",
-      columnCount: 2,
-      rowCount: 4,
-      columnWidths: ["200px", "300px"],
-      cells: [
-        { binding: "a1" },
-        { binding: "a2", rowSpan: 2 },
-        { binding: "a3" },
-        { binding: "a4" },
-        { binding: "a5" },
-        { binding: "a6", columnSpan: 2 },
-      ],
-    },
-    {
-      id: "b",
-      rowCount: 4,
-      cells: [
-        { binding: "bbbb" },
-        { binding: "b" },
-        { binding: "b", rowSpan: 2 },
-      ],
-    },
-    { id: "c", rowCount: 4, cells: [{ binding: "c", rowSpan: 4 }] },
-    { id: "c", rowCount: 4, cells: [{ binding: "c", rowSpan: 4 }] },
+    // {
+    //   id: "a",
+    //   columnCount: 2,
+    //   rowCount: 4,
+    //   columnWidths: ["200px", "300px"],
+    //   cells: [
+    //     { binding: "a1" },
+    //     { binding: "a2", rowSpan: 2 },
+    //     { binding: "a3" },
+    //     { binding: "a4" },
+    //     { binding: "a5" },
+    //     { binding: "a6", columnSpan: 2 },
+    //   ],
+    // },
+    // {
+    //   id: "b",
+    //   rowCount: 4,
+    //   cells: [
+    //     { binding: "bbbb" },
+    //     { binding: "b" },
+    //     { binding: "b", rowSpan: 2 },
+    //   ],
+    // },
+    // { id: "c", rowCount: 4, cells: [{ binding: "c", rowSpan: 4 }] },
+    // { id: "c", rowCount: 4, cells: [{ binding: "c", rowSpan: 4 }] },
+    { id: "single1", columnWidths: ["700px"], cells: [{ binding: "a" }] },
+    { id: "single2", cells: [{ binding: "b" }] },
+    { id: "single3", cells: [{ binding: "c" }] },
   ],
   body: [
-    {
-      rowCount: 2,
-      cells: [
-        { binding: "a", columnSpan: 2 },
-        { binding: "a" },
-        { binding: "a" },
-      ],
-    },
-    { rowCount: 2, cells: [{ binding: "b" }, { binding: "b" }] },
-    { rowCount: 2, cells: [{ binding: "c", rowSpan: 2 }] },
-    { rowCount: 2, cells: [{ binding: "c", rowSpan: 2 }] },
+    // {
+    //   rowCount: 2,
+    //   cells: [
+    //     { binding: "a", columnSpan: 2 },
+    //     { binding: "a" },
+    //     { binding: "a" },
+    //   ],
+    // },
+    // { rowCount: 2, cells: [{ binding: "b" }, { binding: "b" }] },
+    // { rowCount: 2, cells: [{ binding: "c", rowSpan: 2 }] },
+    // { rowCount: 2, cells: [{ binding: "c", rowSpan: 2 }] },
+
+    { cells: [{ binding: "a" }] },
+    { cells: [{ binding: "b" }] },
+    { cells: [{ binding: "c" }] },
   ],
 };
 
-const GridContext = createContext({ startIndex: 0, endIndex: 10 });
+const GridContext = createContext({});
 const useGridContext = () => useContext(GridContext);
-const GridContextProvider = ({ children }) => {
-  const _ = useRef({
-    rowStyles: [],
-    topIndex: 0,
-    startIndex: 0,
-    endIndex: 30,
-    overscanCount: 20,
-    totalDataCount: data.length,
-  });
+const GridContextProvider = ({ children, data }) => {
+  const _ = useRef({});
+  if (Object.keys(_.current).length === 0) {
+    _.current.initalRender = true;
+    _.current.topIndex = 0;
+    _.current.startIndex = 0;
+    _.current.endIndex = 30;
+    _.current.overscanCount = 20;
+    _.current.totalDataCount = data.length;
+    _.current.height = 600;
+    _.current.page = 0;
+    _.current.size = 10;
+    _.current.pagination = true;
+    _.current.rowStyles = [];
+    for (let i = 0; i < data.length; i++)
+      _.current.rowStyles[i] = { height: 40 };
+  }
 
   const [, setRenderingCount] = useState(0);
 
   const render = debounce(() => {
     setRenderingCount((prev) => (prev += 1));
-  }, 500);
+  }, 100);
 
-  const handleScroll = (event) => {
+  const handleScroll = throttle(({ target }) => {
     try {
-      let topIndex = _.current.rowStyles.findIndex(
-        ({ top, height }) => event.target.scrollTop < top + height
+      _.current.topIndex = _.current.rowStyles.findIndex(
+        ({ top, height }) => target.scrollTop < top + height
       );
-
+      const { topIndex, overscanCount, rowStyles, headRef, totalDataCount } =
+        _.current;
       _.current.topIndex = topIndex;
-      _.current.startIndex = topIndex - _.current.overscanCount;
-      _.current.endIndex =
-        _.current.topIndex +
-        _.current.overscanCount +
-        Math.ceil(
-          (event.target.getBoundingClientRect().height -
-            _.current.headRef.getBoundingClientRect().height) /
-            _.current.rowStyles[topIndex].height
-        );
-      if (_.current.startIndex < 0) {
-        _.current.startIndex = 0;
-      }
-      if (_.current.endIndex > 100) {
-        _.current.endIndex = 100;
-      }
-
+      _.current.startIndex = Math.max(topIndex - overscanCount, 0);
+      _.current.endIndex = Math.min(
+        topIndex +
+          overscanCount +
+          Math.ceil(
+            (target.getBoundingClientRect().height -
+              headRef.getBoundingClientRect().height) /
+              rowStyles[topIndex].height
+          ),
+        totalDataCount
+      );
       setRenderingCount((prev) => (prev += 1));
-    } catch (error) {}
-  };
+    } catch (error) {
+      console.log(error);
+    }
+  }, 200);
 
   let headColumnCount = 0;
   let headColumnWidths = [];
@@ -155,138 +163,231 @@ const GridContextProvider = ({ children }) => {
     return props;
   });
 
+  const handleChangeSize = (event) => {
+    _.current.size = event.target.value;
+    render();
+  };
+
+  const handleChangePage = (page) => {
+    _.current.page = page;
+    render();
+  };
+
   const value = {
     _,
+    data,
     headSchema,
     bodySchema,
     headColumnWidths,
     handleScroll,
+    handleChangeSize,
+    handleChangePage,
     render,
   };
 
   return <GridContext.Provider value={value}>{children}</GridContext.Provider>;
 };
 
-export const Grid = () => {
+export const Grid = memo((props) => {
   return (
-    <GridContextProvider>
+    <GridContextProvider {...props}>
       <GridComponent />
     </GridContextProvider>
   );
-};
+});
 
-const GridComponent = () => {
+const GridHead = () => {
   const id = useId();
-
-  const { _, handleScroll, headColumnWidths, headSchema } = useGridContext();
-
-  const test = data.slice(_.current.startIndex, _.current.endIndex);
-
-  const height = _.current.rowStyles.reduce((prev, curr, index) => {
-    curr.top = prev;
-    return prev + (curr.height || 0);
-  }, 0);
-
-  // console.log(_.current.rowStyles);
+  const { _, headSchema, headColumnWidths } = useGridContext();
 
   return (
-    <div className="p-10">
-      <div className="h-[600px] overflow-auto" onScroll={handleScroll}>
-        {/* head */}
-        <div
-          ref={(ref) => {
-            _.current.headRef = ref;
-          }}
-          className="grid border-l border-t sticky top-0 left-0 w-max bg-slate-100 z-[1]"
-          style={{
-            gridTemplateColumns: headColumnWidths.join(" "),
-          }}
-        >
-          {headSchema.map((props, index) => {
-            const { columnCount, rowCount, cells } = props;
-            return (
-              <div
-                key={id + index}
-                className="grid"
-                style={{
-                  gridColumn: `span ${columnCount}`,
-                  gridRow: `span ${rowCount}`,
-                  gridTemplateColumns: "subgrid",
-                  gridTemplateRows: "subgrid",
-                }}
-              >
-                {cells.map((cellProps, cellIndex) => {
-                  const { binding, columnSpan, rowSpan } = cellProps;
-                  return (
-                    <div
-                      key={id + index + cellIndex}
-                      className="min-h-10 border-r border-b break-all"
-                      style={{
-                        gridColumn: `span ${columnSpan}`,
-                        gridRow: `span ${rowSpan}`,
-                      }}
-                    >
-                      {binding}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-        <div
-          ref={(ref) => {
-            _.current.bodyRef = ref;
-          }}
-          className="relative"
-          style={{ height }}
-        >
-          {/* body */}
-          {test.map((item, index) => {
-            return <Row key={id + item.index} item={item} index={index} />;
-          })}
-        </div>
+    <div
+      className="flex bg-slate-100 z-[1] border-l border-t sticky top-0 left-0 w-max"
+      ref={(ref) => {
+        _.current.headRef = ref;
+      }}
+    >
+      <div className="w-10 border-r border-b items-center justify-center flex"></div>
+      <div className="w-10 border-r border-b items-center justify-center flex"></div>
+      <div className="w-10 border-r border-b items-center justify-center flex">
+        <input type="checkbox" />
+      </div>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: headColumnWidths.join(" "),
+        }}
+      >
+        {headSchema.map((props, index) => {
+          const { columnCount, rowCount, cells } = props;
+          return (
+            <div
+              key={id + index}
+              className="grid"
+              style={{
+                gridColumn: `span ${columnCount}`,
+                gridRow: `span ${rowCount}`,
+                gridTemplateColumns: "subgrid",
+                gridTemplateRows: "subgrid",
+              }}
+            >
+              {cells.map((cellProps, cellIndex) => {
+                const { binding, columnSpan, rowSpan } = cellProps;
+                return (
+                  <div
+                    key={id + index + cellIndex}
+                    className="min-h-10 border-r border-b break-all"
+                    style={{
+                      gridColumn: `span ${columnSpan}`,
+                      gridRow: `span ${rowSpan}`,
+                    }}
+                  >
+                    {binding}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
+const GridBody = () => {
+  const id = useId();
+  const { _, data } = useGridContext();
+  const {
+    initalRender,
+    startIndex,
+    endIndex,
+    rowStyles,
+    totalDataCount,
+    pagination,
+    page,
+    size,
+  } = _.current;
+
+  // console.log(data.slice(page * size, page * size + size));
+  // console.log(startIndex, endIndex);
+
+  console.log(page * size);
+
+  const view = data
+    .slice(page * size, page * size + size)
+    .slice(startIndex, endIndex);
+
+  console.log(view);
+
+  const height = rowStyles.reduce((prev, curr) => {
+    curr.top = prev;
+    return prev + curr.height;
+  }, 0);
+
+  console.log(height);
+
+  console.log("a");
+
+  return (
+    <div
+      style={{
+        visibility: initalRender ? "hidden" : undefined,
+        position: "relative",
+        height,
+      }}
+    >
+      {view.map((item, index) => {
+        const dataIndex = Math.min(
+          page * size + startIndex + index,
+          totalDataCount
+        );
+
+        return <Row key={id + dataIndex} item={item} index={dataIndex} />;
+      })}
+    </div>
+  );
+};
+
+const GridPagination = () => {
+  const { _, handleChangeSize, handleChangePage } = useGridContext();
+  const { size, page, totalDataCount } = _.current;
+  const pageCount = Math.ceil(totalDataCount / size);
+  console.log(pageCount);
+
+  return (
+    <div className="h-10 bg-slate-100 flex justify-between items-center px-4">
+      <div>
+        <select defaultValue={size} onChange={handleChangeSize}>
+          <option>10</option>
+          <option>20</option>
+          <option>30</option>
+          <option>40</option>
+          <option>50</option>
+        </select>
+      </div>
+      <div className="[&_button]:min-w-10 [&_button]:p-2 [&_button]:border">
+        <button>{`<`}</button>
+        {Array(pageCount)
+          .fill(null)
+          .map((_, index) => {
+            return (
+              <button onClick={() => handleChangePage(index)}>
+                {index + 1}
+              </button>
+            );
+          })}
+        <button>{`>`}</button>
+      </div>
+    </div>
+  );
+};
+
+const GridComponent = () => {
+  const { _, handleScroll } = useGridContext();
+
+  return (
+    <div>
+      <div
+        onScroll={handleScroll}
+        style={{ overflow: "auto", height: _.current.height }}
+      >
+        <GridHead />
+        <GridBody />
+      </div>
+      <GridPagination />
+    </div>
+  );
+};
+
 const Row = (props) => {
-  const { _, bodySchema, headColumnWidths, render } = useGridContext();
   const { item, index } = props;
-  const tt = index;
 
   const id = useId();
   const rowRef = useRef();
+  const { _, bodySchema, headColumnWidths, render } = useGridContext();
 
-  useEffect(() => {
-    let init = false;
+  useLayoutEffect(() => {
+    let initialCall = true;
     const resizeObserver = new ResizeObserver((entries) => {
-      if (init) {
+      if (initialCall) {
+        initialCall = false;
+      } else {
         for (const entry of entries) {
           try {
-            console.log("resize!");
-            console.log(_.current.startIndex + index);
-            const prevHeight =
-              _.current.rowStyles[_.current.startIndex + index].height;
-            const height = entry.contentBoxSize[0].blockSize;
-
-            if (prevHeight !== height) {
-              const style = { height };
-              _.current.rowStyles[_.current.startIndex + index] = style;
-              render();
+            const prevHeight = _.current.rowStyles[index].height;
+            const currHeight = entry.contentRect.height;
+            if (prevHeight !== currHeight) {
+              const style = { height: currHeight };
+              _.current.rowStyles[index] = style;
             }
+            render();
           } catch (error) {
             console.log(error);
           }
         }
-      } else {
-        init = true;
       }
     });
-
     resizeObserver.observe(rowRef.current);
-
     return () => {
       resizeObserver.unobserve(rowRef.current);
     };
@@ -295,13 +396,13 @@ const Row = (props) => {
   const rowRefCallback = useCallback((ref) => {
     if (ref) {
       rowRef.current = ref;
-
-      const prevHeight =
-        _.current.rowStyles[_.current.startIndex + index]?.height;
-      const height = ref.getBoundingClientRect().height;
-      if (prevHeight !== height) {
-        const style = { height };
-        _.current.rowStyles[_.current.startIndex + index] = style;
+      const currHeight = ref.getBoundingClientRect().height;
+      const prevHeight = _.current.rowStyles[index]?.height;
+      if (prevHeight !== currHeight) {
+        _.current.rowStyles[index].height = currHeight;
+      }
+      if (_.current.initalRender && index === _.current.size - 1) {
+        _.current.initalRender = false;
         render();
       }
     }
@@ -310,45 +411,59 @@ const Row = (props) => {
   return (
     <div
       ref={rowRefCallback}
-      className="grid border-l"
+      className="flex border-l"
       style={{
-        gridTemplateColumns: headColumnWidths.join(" "),
         position: "absolute",
-        top: _.current.rowStyles[_.current.startIndex + index]?.top || 0,
+        top: _.current.rowStyles?.[index]?.top || 0,
       }}
     >
-      {bodySchema.map((columnProps, index) => {
-        const { columnCount, rowCount, cells } = columnProps;
-        return (
-          <div
-            key={id + index}
-            className="grid"
-            style={{
-              gridColumn: `span ${columnCount}`,
-              gridRow: `span ${rowCount}`,
-              gridTemplateColumns: "subgrid",
-              gridTemplateRows: "subgrid",
-            }}
-          >
-            {cells.map((cellProps, cellIndex) => {
-              const { binding, columnSpan, rowSpan } = cellProps;
-              return (
-                <div
-                  key={id + index + cellIndex}
-                  className="min-h-10 border-r border-b break-all"
-                  style={{
-                    gridColumn: `span ${columnSpan}`,
-                    gridRow: `span ${rowSpan}`,
-                  }}
-                >
-                  <textarea />
-                  {_.current.startIndex + tt}
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
+      <div className="w-10 border-r border-b items-center justify-center flex">
+        {index}
+      </div>
+      <div className="w-10 border-r border-b items-center justify-center flex">
+        <input type="radio" />
+      </div>
+      <div className="w-10 border-r border-b items-center justify-center flex">
+        <input type="checkbox" />
+      </div>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: headColumnWidths.join(" "),
+        }}
+      >
+        {bodySchema.map((columnProps, columnIndex) => {
+          const { columnCount, rowCount, cells } = columnProps;
+          return (
+            <div
+              key={id + columnIndex}
+              className="grid"
+              style={{
+                gridColumn: `span ${columnCount}`,
+                gridRow: `span ${rowCount}`,
+                gridTemplateColumns: "subgrid",
+                gridTemplateRows: "subgrid",
+              }}
+            >
+              {cells.map((cellProps, cellIndex) => {
+                const { binding, columnSpan, rowSpan } = cellProps;
+                return (
+                  <div
+                    key={id + columnIndex + cellIndex}
+                    className="min-h-10 border-r border-b break-all flex items-center justify-center"
+                    style={{
+                      gridColumn: `span ${columnSpan}`,
+                      gridRow: `span ${rowSpan}`,
+                    }}
+                  >
+                    {item[binding]}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
