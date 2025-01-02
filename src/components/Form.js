@@ -2,29 +2,18 @@ import { Control } from "./Control";
 import { Button } from "./Button";
 
 const COL_SPAN = {
+  1: "col-span-1",
   2: "col-span-2",
+  3: "col-span-3",
   4: "col-span-4",
+  5: "col-span-5",
   6: "col-span-6",
+  7: "col-span-7",
   8: "col-span-8",
+  9: "col-span-9",
   10: "col-span-10",
+  11: "col-span-11",
   12: "col-span-12",
-};
-
-const MIN_H = {
-  1: "min-h-12",
-  2: "min-h-24",
-  3: "min-h-36",
-  4: "min-h-48",
-};
-
-const DIRECTION = {
-  row: "flex-row",
-  col: "flex-col",
-};
-
-const BORDER_R = {
-  false: "",
-  true: " border-r",
 };
 
 const FormCell = (props) => {
@@ -32,9 +21,9 @@ const FormCell = (props) => {
   return (
     <div
       className={
-        (grid ? "grid grid-cols-subgrid" : "p-1 flex items-center flex-wrap") +
-        " min-h-12" +
-        ` ${COL_SPAN[size]}`
+        "min-h-12" +
+        (grid ? " grid grid-cols-subgrid" : " p-1 flex items-center") +
+        (size ? ` ${COL_SPAN[size]}` : "")
       }
     >
       {children}
@@ -48,7 +37,7 @@ const FormLabel = (props) => {
     <div
       className={
         "p-1 flex items-center min-h-12 bg-gray-100" +
-        ` ${COL_SPAN[size]}` +
+        (size ? ` ${COL_SPAN[size]}` : "") +
         (required ? " after:content-['*'] after:text-red-600" : "")
       }
     >
@@ -58,13 +47,7 @@ const FormLabel = (props) => {
 };
 
 const FormControl = (props) => {
-  const {
-    label,
-    labelSize = label ? 2 : 0,
-    controlSize = 4,
-    required,
-    ...rest
-  } = props;
+  const { label, labelSize = 2, controlSize = 4, required, ...rest } = props;
   return (
     <>
       {label && (
@@ -75,7 +58,7 @@ const FormControl = (props) => {
       <div
         className={
           "p-1 flex items-center min-h-12 [&>*]:w-full" +
-          ` ${COL_SPAN[controlSize]}`
+          (controlSize ? ` ${COL_SPAN[controlSize]}` : "")
         }
       >
         <Control {...rest} />

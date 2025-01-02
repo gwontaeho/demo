@@ -8,11 +8,16 @@ import { ControlDate } from "./ControlDate";
 import { useControl } from "../hooks/useForm";
 
 export const Control = (props) => {
-  const { edit, type, error, ...rest } = useControl(props);
+  const { edit, type, error, renderer, ...rest } = useControl(props);
+
+  const rendererComponent = renderer?.(rest.value, edit);
+
+  if (rendererComponent !== undefined) {
+    return rendererComponent;
+  }
 
   if (edit === false) {
     let value = rest.value;
-
     if (type === "date") {
       if (value instanceof Date) {
         value = `${value.getFullYear()}-${value.getMonth() + 1 > 9 ? "" : "0"}${
@@ -24,12 +29,18 @@ export const Control = (props) => {
         value = value.join(", ");
       }
     }
-
     return <div>{value}</div>;
   }
 
   return (
-    <div className="[&>*]:w-full">
+    <div
+      className={
+        "[&>*]:w-full" +
+        (error
+          ? " [&_input]:border-red-600 [&_select]:border-red-600 [&_textarea]:border-red-600"
+          : "")
+      }
+    >
       {type === "text" ? (
         <ControlText {...rest} />
       ) : type === "number" ? (
