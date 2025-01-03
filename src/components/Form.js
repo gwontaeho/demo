@@ -32,16 +32,17 @@ const FormCell = (props) => {
 };
 
 const FormLabel = (props) => {
-  const { children, size = 2, required } = props;
+  const { children, size = 2, required, ...rest } = props;
   return (
     <div
       className={
         "p-1 flex items-center min-h-12 bg-gray-100" +
         (size ? ` ${COL_SPAN[size]}` : "") +
-        (required ? " after:content-['*'] after:text-red-600" : "")
+        (required ? " after:content-['*'] after:text-red-600" : "") +
+        (rest.$useForm ? " [&>*]:w-full" : "")
       }
     >
-      {children}
+      {rest.$useForm ? <Control {...rest} /> : children}
     </div>
   );
 };

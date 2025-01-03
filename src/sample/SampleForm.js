@@ -108,8 +108,8 @@ export const SampleForm = () => {
   const [test, setTest] = useState(0);
 
   const text = watchValue("text");
-  // const textSchema = watchSchema("checkbox");
-  // console.log(textSchema);
+  const textSchema = watchSchema("text");
+  console.log(textSchema);
 
   useLayoutEffect(() => {
     // setSchemas({ text: { required: false } });
@@ -117,6 +117,7 @@ export const SampleForm = () => {
   }, []);
 
   const textError = watchError("text");
+  // console.log(schema);
 
   return (
     <form>
@@ -134,8 +135,8 @@ export const SampleForm = () => {
         </Form.Row>
 
         <Form.Row>
-          <Form.Control {...schema.text} />
-          <Form.Control {...schema.text2} />
+          <Form.Label {...schema.text} />
+          <Form.Control {...schema.text2} label={null} />
         </Form.Row>
 
         <Form.Row>
@@ -178,7 +179,7 @@ export const SampleForm = () => {
           })
         }
       >
-        set text '123'
+        set text 'asd'
       </Button>
       <Button onClick={() => clearErrors()}>clearErrors</Button>
       <Button onClick={() => clearValues()}>clearValues</Button>
