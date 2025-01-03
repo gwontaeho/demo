@@ -117,7 +117,6 @@ export const SampleForm = () => {
   }, []);
 
   const textError = watchError("text");
-  console.log(textError);
 
   return (
     <form>
@@ -125,9 +124,11 @@ export const SampleForm = () => {
         <Form.Row>
           <Form.Control
             {...schema.date}
-            renderer={(value, edit) => {
-              console.log(value, edit);
-              return "qwe";
+            renderer={(props) => {
+              if (props.edit === false) {
+                console.log(props);
+                return props.text + "asdafsa";
+              }
             }}
           />
         </Form.Row>

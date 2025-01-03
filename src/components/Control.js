@@ -10,26 +10,32 @@ import { useControl } from "../hooks/useForm";
 export const Control = (props) => {
   const { edit, type, error, renderer, ...rest } = useControl(props);
 
-  const rendererComponent = renderer?.(rest.value, edit);
+  const controlValue = rest.value;
+  const controlText =
+    type === "date" && controlValue instanceof Date
+      ? `${controlValue.getFullYear()}-${
+          controlValue.getMonth() + 1 > 9 ? "" : "0"
+        }${controlValue.getMonth() + 1}-${
+          controlValue.getDate() > 9 ? "" : "0"
+        }${controlValue.getDate()}`
+      : type === "checkbox" && Array.isArray(controlValue)
+      ? controlValue.join(", ")
+      : controlValue;
 
-  if (rendererComponent !== undefined) {
+  const rendererComponent =
+    renderer instanceof Function &&
+    renderer({
+      value: controlValue,
+      text: controlText,
+      edit,
+    });
+
+  if (rendererComponent) {
     return rendererComponent;
   }
 
   if (edit === false) {
-    let value = rest.value;
-    if (type === "date") {
-      if (value instanceof Date) {
-        value = `${value.getFullYear()}-${value.getMonth() + 1 > 9 ? "" : "0"}${
-          value.getMonth() + 1
-        }-${value.getDate() > 9 ? "" : "0"}${value.getDate()}`;
-      }
-    } else if (type === "checkbox") {
-      if (Array.isArray(value)) {
-        value = value.join(", ");
-      }
-    }
-    return <div>{value}</div>;
+    return <div>{controlText}</div>;
   }
 
   return (
