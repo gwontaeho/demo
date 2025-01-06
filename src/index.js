@@ -27,11 +27,12 @@ import { Table } from "./components/Table";
 import { api } from "./apis";
 import axios from "axios";
 import { SampleForm } from "./sample/SampleForm";
+import { SampleGrid } from "./sample/SampleGrid";
 
 function App() {
   return (
     <div className="p-8">
-      <SampleForm />
+      <SampleGrid />
     </div>
   );
 }

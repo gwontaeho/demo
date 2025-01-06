@@ -1,8 +1,23 @@
 import { useRef } from "react";
-import utils from "../utils";
 
-export const useGrid = (arg = {}) => {
-  const { defaultSchema } = arg;
+const cloneDeep = (item) => {
+  if (item === null || typeof item !== "object") {
+    return item;
+  }
+  if (Array.isArray(item)) {
+    return item.map(cloneDeep);
+  }
+  const obj = {};
+  for (let key in item) {
+    if (item.hasOwnProperty(key)) {
+      obj[key] = cloneDeep(item[key]);
+    }
+  }
+  return obj;
+};
+
+export const useGrid = (params = {}) => {
+  const { defaultSchema } = params;
 
   const $ = useRef({
     defaultSchema,
@@ -12,14 +27,14 @@ export const useGrid = (arg = {}) => {
   });
 
   const setData = (data) => {
-    $.current.originalData = utils.cloneDeep(data);
-    $.current.data = utils.cloneDeep(data);
-    $.current.dispatch?.({ type: "set_data", payload: $.current.data });
+    $.current.originalData = cloneDeep(data);
+    $.current.data = cloneDeep(data);
+    $.current.dispatch?.({ type: "SET_DATA", payload: $.current.data });
   };
 
   const getData = () => {
     return $.current.data;
   };
 
-  return { grid: { $useGrid: $ }, setData, getData };
+  return { schema: { $useGrid: $.current }, setData, getData };
 };

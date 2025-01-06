@@ -1,5 +1,11 @@
+import { useLayoutEffect } from "react";
+import { useGrid } from "../hooks/useGrid";
+import { Grid } from "../components/Grid";
+
+import utils from "../utils";
+
 export const SampleGrid = () => {
-  const { grid, getData, setData } = useGrid({
+  const { schema, getData, setData } = useGrid({
     defaultSchema: {
       edit: true,
       radio: true,
@@ -9,20 +15,22 @@ export const SampleGrid = () => {
         {
           colCount: 2,
           rowCount: 3,
-          colWidths: ["150px", "250px"],
           cells: [
             { binding: "text", rowSpan: 2, colSpan: 2 },
-            { binding: "text" },
-            { binding: "text" },
+            { binding: "text", width: "300px" },
+            { binding: "text", width: "350px" },
           ],
         },
         {
           rowCount: 3,
-          cells: [{ binding: "number", rowSpan: 3 }],
+          cells: [
+            { binding: "number", width: "100px" },
+            { binding: "number", rowSpan: 2, width: "100px" },
+          ],
         },
         {
           rowCount: 3,
-          cells: [{ binding: "date", rowSpan: 3 }],
+          cells: [{ binding: "date", rowSpan: 3, width: "150px" }],
         },
       ],
       body: [
@@ -44,17 +52,19 @@ export const SampleGrid = () => {
   });
 
   useLayoutEffect(() => {
-    setData(data());
+    setData(utils.mock(1));
   }, []);
+
+  console.log(schema);
 
   return (
     <div>
       <div className="flex items-center gap-4">
         <button onClick={() => console.log(getData())}>get data</button>
-        <button onClick={() => setData(data(30))}>set data</button>
+        <button onClick={() => setData(utils.mock(10))}>set data</button>
       </div>
 
-      <Grid {...grid} />
+      <Grid {...schema} />
     </div>
   );
 };

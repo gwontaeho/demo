@@ -12,6 +12,22 @@ import {
 } from "react";
 import utils from "../utils";
 
+const cloneDeep = (item) => {
+  if (item === null || typeof item !== "object") {
+    return item;
+  }
+  if (Array.isArray(item)) {
+    return item.map(cloneDeep);
+  }
+  const obj = {};
+  for (let key in item) {
+    if (item.hasOwnProperty(key)) {
+      obj[key] = cloneDeep(item[key]);
+    }
+  }
+  return obj;
+};
+
 import { ControlText } from "./ControlText";
 import { ControlNumber } from "./ControlNumber";
 import { ControlRadio } from "./ControlRadio";
@@ -24,50 +40,65 @@ const GridContext = createContext();
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "render":
+    case "RENDER":
       return { ...state };
-    case "set_data":
+    case "SET_DATA":
       return { ...state, data: action.payload, page: 0, size: 10 };
-    case "set_data_item_binding": {
+    case "SET_DATA_ITEM_BINDING": {
       const { nextValue, binding, dataIndex } = action.payload;
       const nextData = [...state.data];
       nextData[dataIndex][binding] = nextValue;
       return { ...state, data: nextData };
     }
-    case "set_page": {
+    case "SET_PAGE": {
       return { ...state, page: action.payload };
     }
-    case "set_size": {
+    case "SET_SIZE": {
       return { ...state, size: action.payload, page: 0 };
     }
   }
 };
 
+const makeHeader = () => {};
+
 const initializer = ($useGrid) => {
   const { edit, height, checkbox, radio, header, body } =
-    $useGrid.current.defaultSchema;
+    $useGrid.defaultSchema;
 
-  const { headerSchema, headerWidths, headerRowCount } = utils
-    .cloneDeep(header)
-    .reduce(
-      (prev, curr) => {
-        curr.colCount ||= 1;
-        curr.rowCount ||= 1;
-        curr.colWidths ||= Array(curr.colCount).fill("200px");
-        prev.headerSchema = prev.headerSchema.concat(curr);
-        prev.headerWidths = prev.headerWidths.concat(curr.colWidths);
-        prev.headerRowCount < curr.rowCount &&
-          (prev.headerRowCount = curr.rowCount);
-        return prev;
-      },
-      { headerSchema: [], headerWidths: [], headerRowCount: 0 }
-    );
+  const { headerSchema, headerWidths, headerRowCount } = cloneDeep(
+    header
+  ).reduce(
+    (prev, curr) => {
+      curr.colCount ||= 1;
+      curr.rowCount ||= 1;
 
-  for (let i = 0; i < radio + checkbox; i++) {
+      const { colWidths } = curr.cells.reduce(
+        (item, cell) => {
+          cell.colSpan ||= 1;
+          cell.rowSpan ||= 1;
+          item.span += cell.colSpan;
+          if (cell.width && cell.colSpan === 1)
+            item.colWidths[item.span - 1] = cell.width;
+          if (item.span >= curr.colCount) item.span = 0;
+          return item;
+        },
+        { colWidths: new Array(curr.colCount).fill("200px"), span: 0 }
+      );
+
+      prev.headerSchema = prev.headerSchema.concat(curr);
+      prev.headerWidths = prev.headerWidths.concat(colWidths);
+      prev.headerRowCount < curr.rowCount &&
+        (prev.headerRowCount = curr.rowCount);
+      return prev;
+    },
+    { headerSchema: [], headerWidths: [], headerRowCount: 0 }
+  );
+
+  for (let i = 0; i < checkbox + radio; i++) {
     headerWidths.unshift("40px");
   }
 
-  const { bodySchema, bodyRowCount } = utils.cloneDeep(body).reduce(
+  const { bodySchema, bodyRowCount } = cloneDeep(body).reduce(
     (prev, curr) => {
       curr.colCount ||= 1;
       curr.rowCount ||= 1;
@@ -109,15 +140,16 @@ export const Grid = (props) => {
   });
 
   const [state, dispatch] = useReducer(reducer, $useGrid, initializer);
-  if ($useGrid.current.dispatch !== dispatch) {
-    $useGrid.current.dispatch = dispatch;
-  }
+
+  useEffect(() => {
+    $useGrid.dispatch = dispatch;
+  }, []);
 
   const { height } = state;
 
   const render = useCallback(
     utils.throttle(() => {
-      dispatch({ type: "render" });
+      dispatch({ type: "RENDER" });
     }, 200),
     []
   );
@@ -132,25 +164,24 @@ export const Grid = (props) => {
         topIndex +
           Math.ceil($.current.gridRef.getBoundingClientRect().height / 40) +
           $.current.overscanCount,
-        $useGrid.current.data.length
+        $useGrid.data.length
       );
       $.current.startIndex = startIndex;
       $.current.endIndex = endIndex;
-      dispatch({ type: "render" });
+      dispatch({ type: "RENDER" });
     }, 200),
     []
   );
 
+  const ref = (ref) => {
+    if (!ref) return;
+    $.current.gridRef = ref;
+  };
+
   return (
     <GridContext.Provider value={{ $grid: $, $useGrid, state, render }}>
       <div className="flex flex-col" style={{ height }}>
-        <div
-          ref={(element) => {
-            element && ($.current.gridRef = element);
-          }}
-          className="flex-1 overflow-auto"
-          onScroll={handleScroll}
-        >
+        <div ref={ref} className="flex-1 overflow-auto" onScroll={handleScroll}>
           <Header />
           <Body />
         </div>
@@ -188,7 +219,7 @@ const Header = memo(() => {
             }}
           >
             {cells.map((cell, cellIndex) => {
-              const { colSpan = 1, rowSpan = 1 } = cell;
+              const { colSpan = 1, rowSpan = 1, binding } = cell;
               const key = `${uuid}-header-cel-${colIndex}-${cellIndex}`;
               return (
                 <div
@@ -199,7 +230,7 @@ const Header = memo(() => {
                     gridRow: `span ${rowSpan}`,
                   }}
                 >
-                  a
+                  {binding}
                 </div>
               );
             })}
@@ -396,8 +427,8 @@ const Control = (props) => {
       nextValue = eventValue;
     }
 
-    $useGrid.current.dispatch({
-      type: "set_data_item_binding",
+    $useGrid.dispatch({
+      type: "SET_DATA_ITEM_BINDING",
       payload: { nextValue, binding, dataIndex },
     });
   };
@@ -428,10 +459,10 @@ const Footer = () => {
   const { page, size, data } = state;
 
   const handleChangePage = (payload) => {
-    $useGrid.current.dispatch({ type: "set_page", payload });
+    $useGrid.dispatch({ type: "SET_PAGE", payload });
   };
   const handleChangeSize = (payload) => {
-    $useGrid.current.dispatch({ type: "set_size", payload });
+    $useGrid.dispatch({ type: "SET_SIZE", payload });
   };
 
   return (
