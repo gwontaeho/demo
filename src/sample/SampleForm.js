@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Button } from "../components/Button";
 import { Form } from "../components/Form";
 import { useForm } from "../hooks/useForm";
+import { Control } from "../components/Control";
 
 export const SampleForm = () => {
   console.log("render");
@@ -107,23 +108,22 @@ export const SampleForm = () => {
 
   const [test, setTest] = useState(0);
 
-  const text = watchValue("text");
-  const textSchema = watchSchema("text");
-  console.log(textSchema);
+  // const text = watchValue("text");
+  // const textSchema = watchSchema("text");
 
-  useLayoutEffect(() => {
-    // setSchemas({ text: { required: false } });
-    setSchema("text", { label: "qwewqew" });
-  }, []);
+  // useLayoutEffect(() => {
+  //   // setSchemas({ text: { required: false } });
+  //   setSchema("text", { label: "qwewqew" });
+  // }, []);
 
-  const textError = watchError("text");
+  // const textError = watchError("text");
   // console.log(schema);
 
   return (
     <form>
       <Form>
         <Form.Row>
-          <Form.Control
+          {/* <Form.Control
             {...schema.date}
             renderer={(props) => {
               if (props.edit === false) {
@@ -131,16 +131,16 @@ export const SampleForm = () => {
                 return props.text + "asdafsa";
               }
             }}
-          />
+          /> */}
         </Form.Row>
 
         <Form.Row>
           <Form.Label {...schema.text} />
-          <Form.Control {...schema.text2} label={null} />
+          <Form.Control {...schema.text} label={null} />
         </Form.Row>
 
         <Form.Row>
-          <Form.Control {...schema.number} />
+          {test % 2 === 0 && <Form.Control {...schema.number} />}
           <Form.Control {...schema.number2} />
         </Form.Row>
 
@@ -185,8 +185,8 @@ export const SampleForm = () => {
       <Button onClick={() => clearValues()}>clearValues</Button>
       <Button onClick={() => setEdit(false)}>set edit all false</Button>
       <Button onClick={() => setEdit(true)}>set edit all true</Button>
-      <Button onClick={() => setEdit("checkbox", false)}>set edit false</Button>
-      <Button onClick={() => setEdit("checkbox", true)}>set edit true</Button>
+      <Button onClick={() => setEdit("text", false)}>set edit false</Button>
+      <Button onClick={() => setEdit("text", true)}>set edit true</Button>
       <Button onClick={() => console.log(validate())}>validate</Button>
       <Button onClick={() => console.log(getValues())}>get values</Button>
       <Button
@@ -211,7 +211,7 @@ export const SampleForm = () => {
         set schemas
       </Button>
       <Button onClick={() => setTest((prev) => ++prev)}>render sample</Button>
-      <Button onClick={() => setFocus("select")}>set focus</Button>
+      <Button onClick={() => setFocus("checkbox")}>set focus</Button>
     </form>
   );
 };

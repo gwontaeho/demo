@@ -1,7 +1,16 @@
 import "./index.css";
+import { StrictMode } from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
-import { createElement, forwardRef, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  createElement,
+  forwardRef,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 // import { Grid } from "./grid/Grid";
 import { useForm as useForm123, useController } from "react-hook-form";
 import { useForm } from "./hooks/useForm";
@@ -29,4 +38,8 @@ function App() {
 
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
-root.render(<App />);
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);

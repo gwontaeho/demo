@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 const clone = (item) => {
   if (item === null || typeof item !== "object") {
@@ -8,6 +8,22 @@ const clone = (item) => {
     return [...item];
   }
   return { ...item };
+};
+
+const cloneDeep = (item) => {
+  if (item === null || typeof item !== "object") {
+    return item;
+  }
+  if (Array.isArray(item)) {
+    return item.map(cloneDeep);
+  }
+  const obj = {};
+  for (let key in item) {
+    if (item.hasOwnProperty(key)) {
+      obj[key] = cloneDeep(item[key]);
+    }
+  }
+  return obj;
 };
 
 const createSchema = (schema) => {
@@ -59,16 +75,16 @@ const useForm = (params = {}) => {
 
   const $ = useRef({
     defaultSchema,
-    refs: {},
+    controls: {},
     errors: {},
     watches: {},
-    setters: {},
     render: () => setRenderCount((prev) => ++prev),
     schema: createSchema(defaultSchema),
     values: createValues(defaultSchema),
     validations: createValidations(defaultSchema),
   });
 
+  // 스키마 생성
   const schema = Object.fromEntries(
     Object.entries($.current.schema).map(([name, item]) => {
       const { label, required } = item;
@@ -85,29 +101,32 @@ const useForm = (params = {}) => {
   );
 
   const setSchema = (name, value, replace) => {
-    const nextSchema =
-      value instanceof Function ? value({ ...$.current.schema[name] }) : value;
+    const nextSchema = cloneDeep(
+      value instanceof Function
+        ? value(cloneDeep($.current.schema[name]))
+        : value
+    );
     if (typeof nextSchema !== "object") return;
-    let render = false;
-    const prevLabel = $.current.schema[name].label;
-    const prevRequired = $.current.schema[name].required;
-    if (replace) {
-      $.current.schema[name] = nextSchema;
-    } else {
-      $.current.schema[name] = { ...$.current.schema[name], ...nextSchema };
-    }
-    $.current.setters[name]?.({
-      type: "SET_SCHEMA",
-      payload: $.current.schema[name],
-    });
+
+    const render =
+      $.current.watches[name]?.schema === true ||
+      ("label" in nextSchema &&
+        nextSchema.label !== $.current.schema[name].label) ||
+      ("required" in nextSchema &&
+        nextSchema.required !== $.current.schema[name].required);
+
+    $.current.schema[name] = replace
+      ? nextSchema
+      : { ...$.current.schema[name], ...nextSchema };
+
     $.current.validations[name] = createValidation($.current.schema[name]);
-    if (
-      ("label" in nextSchema && nextSchema.label !== prevLabel) ||
-      ("required" in nextSchema && nextSchema.required !== prevRequired) ||
-      $.current.watches[name]?.schema === true
-    ) {
-      render = true;
+
+    if ($.current.controls[name]?.length) {
+      $.current.controls[name].forEach(({ dispatch }) => {
+        dispatch({ type: "SET_SCHEMA", payload: $.current.schema[name] });
+      });
     }
+
     if (render) {
       $.current.render();
     }
@@ -115,88 +134,97 @@ const useForm = (params = {}) => {
 
   const setSchemas = (values, replace) => {
     if (typeof values !== "object") return;
+
     let render = false;
+
     for (const name in values) {
       const value = values[name];
-      const nextSchema =
+
+      const nextSchema = cloneDeep(
         value instanceof Function
-          ? value({ ...$.current.schema[name] })
-          : value;
+          ? value(cloneDeep($.current.schema[name]))
+          : value
+      );
       if (typeof nextSchema !== "object") continue;
-      const prevLabel = $.current.schema[name].label;
-      const prevRequired = $.current.schema[name].required;
-      if (replace) {
-        $.current.schema[name] = nextSchema;
-      } else {
-        $.current.schema[name] = {
-          ...$.current.schema[name],
-          ...nextSchema,
-        };
-      }
-      $.current.setters[name]?.({
-        type: "SET_SCHEMA",
-        payload: $.current.schema[name],
-      });
+
+      render =
+        render ||
+        $.current.watches[name]?.schema === true ||
+        ("label" in nextSchema &&
+          nextSchema.label !== $.current.schema[name].label) ||
+        ("required" in nextSchema &&
+          nextSchema.required !== $.current.schema[name].required);
+
+      $.current.schema[name] = replace
+        ? nextSchema
+        : { ...$.current.schema[name], ...nextSchema };
+
       $.current.validations[name] = createValidation($.current.schema[name]);
-      if (
-        render === false &&
-        (("label" in nextSchema && nextSchema.label !== prevLabel) ||
-          ("required" in nextSchema && nextSchema.required !== prevRequired) ||
-          $.current.watches[name]?.schema === true)
-      ) {
-        render = true;
+
+      if ($.current.controls[name]?.length) {
+        $.current.controls[name].forEach(({ dispatch }) => {
+          dispatch({
+            type: "SET_SCHEMA",
+            payload: $.current.schema[name],
+          });
+        });
       }
     }
+
     if (render) {
       $.current.render();
     }
   };
 
   const setEdit = (name, value) => {
-    const setEditByName = (targetName, nextValue) => {
-      $.current.schema[targetName] = {
-        ...$.current.schema[targetName],
-        edit: nextValue,
-      };
-      $.current.setters[targetName]?.({
-        type: "SET_SCHEMA",
-        payload: $.current.schema[targetName],
-      });
-    };
-
     let render = false;
-    if (value === undefined) {
-      const nextValue = Boolean(name);
-      for (const name in $.current.schema) {
-        setEditByName(name, nextValue);
-        if (render === false && $.current.watches[name]?.schema === true) {
-          render = true;
-        }
+
+    const targets =
+      value === undefined ? Object.keys($.current.schema) : [name];
+
+    for (const target of targets) {
+      $.current.schema[target] = {
+        ...$.current.schema[target],
+        edit: Boolean(value === undefined ? name : value),
+      };
+
+      if ($.current.controls[target]?.length) {
+        $.current.controls[target].forEach(({ dispatch }) => {
+          dispatch({
+            type: "SET_SCHEMA",
+            payload: $.current.schema[target],
+          });
+        });
       }
-    } else {
-      const nextValue = Boolean(value);
-      setEditByName(name, nextValue);
-      if ($.current.watches[name]?.schema === true) {
-        render = true;
-      }
+
+      render = render || $.current.watches[name]?.schema === true;
     }
+
     if (render) {
       $.current.render();
     }
   };
 
   const setValue = (name, value) => {
-    let render = false;
-    const nextValue =
-      value instanceof Function ? value(clone($.current.values[name])) : value;
+    const nextValue = cloneDeep(
+      value instanceof Function
+        ? value(cloneDeep($.current.values[name]))
+        : value
+    );
+
     $.current.values[name] = nextValue;
-    $.current.setters[name]?.({
-      type: "SET_VALUE",
-      payload: $.current.values[name],
-    });
-    if ($.current.watches[name]?.value === true) {
-      render = true;
+
+    if ($.current.controls[name]?.length) {
+      $.current.controls[name].forEach(({ dispatch }) => {
+        dispatch({
+          type: "SET_VALUE",
+          payload: $.current.values[name],
+        });
+      });
     }
+
+    const render = $.current.watches[name]?.value === true;
+
     if (render) {
       $.current.render();
     }
@@ -204,58 +232,65 @@ const useForm = (params = {}) => {
 
   const clearValues = () => {
     let render = false;
+
     for (const name in $.current.values) {
       const type = $.current.schema[name].type;
       const nextValue = type === "checkbox" ? [] : type === "date" ? null : "";
       $.current.values[name] = nextValue;
-      $.current.setters[name]?.({
-        type: "SET_VALUE",
-        payload: $.current.values[name],
-      });
-      if (render === false && $.current.watches[name]?.value === true) {
-        render = true;
+
+      if ($.current.controls[name]?.length) {
+        $.current.controls[name].forEach(({ dispatch }) => {
+          dispatch({
+            type: "SET_VALUE",
+            payload: $.current.values[name],
+          });
+        });
       }
+
+      render = render || $.current.watches[name]?.value === true;
     }
+
     if (render) {
       $.current.render();
     }
   };
 
   const setFocus = (name) => {
-    $.current.refs[name]?.focus?.();
+    console.log($.current.controls[name]);
+    $.current.controls[name]?.[0]?.ref?.focus?.();
   };
 
   const resetValues = () => {};
 
   const getValue = (name) => {
-    return $.current.values[name];
+    return cloneDeep($.current.values[name]);
   };
 
   const getValues = () => {
-    return $.current.values;
+    return cloneDeep($.current.values);
   };
 
   const getSchema = (name) => {
-    return $.current.schema[name];
+    return cloneDeep($.current.schema[name]);
   };
 
   const getSchemas = () => {
-    return $.current.schema;
+    return cloneDeep($.current.schema);
   };
 
   const getError = (name) => {
-    return $.current.errors[name] || null;
+    return cloneDeep($.current.errors[name]) || null;
   };
 
   const getErrors = () => {
-    return $.current.errors;
+    return cloneDeep($.current.errors);
   };
 
   const watchValue = (name) => {
     if (!$.current.watches[name]) {
       $.current.watches[name] = {};
     }
-    $.current.watches[name] = { ...$.current.watches[name], value: true };
+    $.current.watches[name].value = true;
     return $.current.values[name];
   };
 
@@ -263,26 +298,28 @@ const useForm = (params = {}) => {
     if (!$.current.watches[name]) {
       $.current.watches[name] = {};
     }
-    $.current.watches[name] = { ...$.current.watches[name], schema: true };
-    return $.current.schema[name];
+    $.current.watches[name].schema = true;
+    return cloneDeep($.current.schema[name]);
   };
 
   const watchError = (name) => {
     if (!$.current.watches[name]) {
       $.current.watches[name] = {};
     }
-    $.current.watches[name] = { ...$.current.watches[name], error: true };
-    return $.current.errors[name] || null;
+    $.current.watches[name].error = true;
+    return cloneDeep($.current.errors[name]) || null;
   };
 
   const clearErrors = () => {
     let render = false;
     $.current.errors = {};
-    for (const name in $.current.setters) {
-      $.current.setters[name]?.({ type: "SET_ERROR", payload: null });
-      if (render === false && $.current.watches[name]?.error === true) {
-        render = true;
+    for (const name in $.current.controls) {
+      if ($.current.controls[name]?.length) {
+        $.current.controls[name].forEach(({ dispatch }) => {
+          dispatch({ type: "SET_ERROR", payload: null });
+        });
       }
+      render = render || $.current.watches[name]?.error === true;
     }
     if (render) {
       $.current.render();
@@ -336,13 +373,15 @@ const useForm = (params = {}) => {
       } else {
         delete $.current.errors[name];
       }
-      $.current.setters[name]?.({
-        type: "SET_ERROR",
-        payload: $.current.errors[name] || null,
-      });
-      if (render === false && $.current.watches[name]?.error === true) {
-        render = true;
+      if ($.current.controls[name]?.length) {
+        $.current.controls[name].forEach(({ dispatch }) => {
+          dispatch({
+            type: "SET_ERROR",
+            payload: $.current.errors[name] || null,
+          });
+        });
       }
+      render = render || $.current.watches[name]?.error === true;
     }
     if (render) {
       $.current.render();
@@ -424,39 +463,31 @@ const createInitialState = ({ $useForm, name }) => {
 };
 
 const useControl = (params = {}) => {
-  const { $useForm, name, ...rest } = params;
-  if (!$useForm) return params;
-
   try {
+    const { $useForm, name, ...rest } = params;
+    if (!$useForm) {
+      throw new Error();
+    }
+
+    const $ = useRef({ ref: null, dispatch: null });
     const [state, dispatch] = useReducer(reducer, params, createInitialState);
-    $useForm.setters[name] = dispatch;
-    useEffect(() => {
-      return () => {
-        delete $useForm.setters[name];
-      };
-    }, []);
-    const { schema, value, error } = state;
 
     const ref = (ref) => {
-      if (ref) {
-        switch (schema.type) {
-          case "radio":
-          case "checkbox": {
-            const prevRef = $useForm.refs[name] || [];
-            if (!prevRef.find((item) => item === ref)) {
-              $useForm.refs[name] = [...prevRef, ref];
-            }
-            break;
+      if (!ref) return;
+      switch (schema.type) {
+        case "radio":
+        case "checkbox": {
+          if (!($.current.ref || []).find((item) => item === ref)) {
+            $.current.ref = [...($.ref || []), ref];
           }
-          default: {
-            if ($useForm.refs[name] !== ref) {
-              $useForm.refs[name] = ref;
-            }
-          }
+          break;
+        }
+        default: {
+          $.current.ref = ref;
         }
       }
-      // ref 지우기
     };
+
     const onChange = (event) => {
       let nextValue;
       switch (schema.type) {
@@ -476,11 +507,29 @@ const useControl = (params = {}) => {
           break;
       }
       $useForm.values[name] = nextValue;
-      dispatch({ type: "SET_VALUE", payload: () => nextValue });
+      $useForm.controls[name].forEach(({ dispatch }) => {
+        dispatch({ type: "SET_VALUE", payload: () => nextValue });
+      });
       if ($useForm.watches[name]?.value === true) {
         $useForm.render();
       }
     };
+
+    useEffect(() => {
+      $.current.dispatch = dispatch;
+      if (!$useForm.controls[name]) {
+        $useForm.controls[name] = [];
+      }
+      $useForm.controls[name].push($.current);
+      return () => {
+        $useForm.controls[name].splice(
+          $useForm.controls[name].findIndex((item) => item === $.current)
+        );
+      };
+    }, []);
+
+    const { schema, value, error } = state;
+
     return {
       error,
       name,
@@ -491,7 +540,7 @@ const useControl = (params = {}) => {
       ...rest,
     };
   } catch (error) {
-    return {};
+    return params;
   }
 };
 

@@ -24,6 +24,8 @@ export const ControlNumber = forwardRef((props, ref) => {
       }
       onChange?.(event);
     }
+
+    // 숫자 정규식 필요
   };
 
   return (
