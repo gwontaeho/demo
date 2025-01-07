@@ -5,7 +5,7 @@ import { Grid } from "../components/Grid";
 import utils from "../utils";
 
 export const SampleGrid = () => {
-  const { schema, getData, setData } = useGrid({
+  const { schema, setHeader, getData, setData } = useGrid({
     defaultSchema: {
       edit: true,
       radio: true,
@@ -16,20 +16,18 @@ export const SampleGrid = () => {
           colCount: 2,
           rowCount: 3,
           cells: [
-            { binding: "text", rowSpan: 2, colSpan: 2 },
-            { binding: "text", width: "300px" },
-            { binding: "text", width: "350px" },
+            { binding: "span 2", rowSpan: 2, colSpan: 2 },
+            { binding: "text" },
+            { binding: "textqwdqw" },
           ],
         },
         {
-          rowCount: 3,
           cells: [
             { binding: "number", width: "100px" },
             { binding: "number", rowSpan: 2, width: "100px" },
           ],
         },
         {
-          rowCount: 3,
           cells: [{ binding: "date", rowSpan: 3, width: "150px" }],
         },
       ],
@@ -42,7 +40,7 @@ export const SampleGrid = () => {
           ],
         },
         {
-          cells: [{ binding: "b", type: "text" }],
+          cells: [{ binding: "b", type: "text", rowSpan: 2 }],
         },
         {
           cells: [{ binding: "c", type: "textarea" }],
@@ -52,16 +50,24 @@ export const SampleGrid = () => {
   });
 
   useLayoutEffect(() => {
-    setData(utils.mock(1));
+    setData(utils.mock(500));
   }, []);
-
-  console.log(schema);
 
   return (
     <div>
       <div className="flex items-center gap-4">
         <button onClick={() => console.log(getData())}>get data</button>
         <button onClick={() => setData(utils.mock(10))}>set data</button>
+        <button
+          onClick={() =>
+            setHeader((prev) => {
+              prev[0].cells[0].binding = "qwe";
+              return prev;
+            })
+          }
+        >
+          set header
+        </button>
       </div>
 
       <Grid {...schema} />

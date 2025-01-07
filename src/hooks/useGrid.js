@@ -21,10 +21,31 @@ export const useGrid = (params = {}) => {
 
   const $ = useRef({
     defaultSchema,
+    schema: defaultSchema,
     originalData: [],
     data: [],
     dispatch: null,
   });
+
+  const setHeader = (value) => {
+    const nextHeader = cloneDeep(
+      value instanceof Function
+        ? value(cloneDeep($.current.schema.header))
+        : value
+    );
+    $.current.schema.header = nextHeader;
+    $.current.dispatch?.({ type: "SET_HEADER", payload: $.current.schema });
+  };
+
+  const setBody = (value) => {};
+
+  const setSchema = () => {};
+
+  const setEdit = () => {};
+
+  const addRow = () => {};
+
+  const removeRow = () => {};
 
   const setData = (data) => {
     $.current.originalData = cloneDeep(data);
@@ -36,5 +57,5 @@ export const useGrid = (params = {}) => {
     return $.current.data;
   };
 
-  return { schema: { $useGrid: $.current }, setData, getData };
+  return { schema: { $useGrid: $.current }, setData, getData, setHeader };
 };
