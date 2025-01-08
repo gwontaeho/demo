@@ -12,6 +12,14 @@ import {
 } from "react";
 import utils from "../utils";
 
+import { ControlText } from "./ControlText";
+import { ControlNumber } from "./ControlNumber";
+import { ControlRadio } from "./ControlRadio";
+import { ControlCheckbox } from "./ControlCheckbox";
+import { ControlSelect } from "./ControlSelect";
+import { ControlTextarea } from "./ControlTextarea";
+import { ControlDate } from "./ControlDate";
+
 const throttle = (func, delay) => {
   let timer;
   return (...args) => {
@@ -24,12 +32,32 @@ const throttle = (func, delay) => {
   };
 };
 
+const debounce = (func, delay) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+};
+
 const uuid = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
     const random = (Math.random() * 16) | 0;
     const value = char === "x" ? random : (random & 0x3) | 0x8;
     return value.toString(16);
   });
+};
+
+const clone = (item) => {
+  if (item === null || typeof item !== "object") {
+    return item;
+  }
+  if (Array.isArray(item)) {
+    return [...item];
+  }
+  return { ...item };
 };
 
 const cloneDeep = (item) => {
@@ -46,45 +74,6 @@ const cloneDeep = (item) => {
     }
   }
   return obj;
-};
-
-import { ControlText } from "./ControlText";
-import { ControlNumber } from "./ControlNumber";
-import { ControlRadio } from "./ControlRadio";
-import { ControlCheckbox } from "./ControlCheckbox";
-import { ControlSelect } from "./ControlSelect";
-import { ControlTextarea } from "./ControlTextarea";
-import { ControlDate } from "./ControlDate";
-
-const GridContext = createContext();
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "RENDER": {
-      return { ...state };
-    }
-    case "SET_SCROLL": {
-      return { ...state, ...action.payload };
-    }
-    case "SET_HEADER": {
-      return { ...state, ...makeHeader(action.payload) };
-    }
-    case "SET_DATA": {
-      return { ...state, data: action.payload, page: 0, size: 10 };
-    }
-    case "SET_DATA_ITEM_BINDING": {
-      const { nextValue, binding, dataIndex } = action.payload;
-      const nextData = [...state.data];
-      nextData[dataIndex][binding] = nextValue;
-      return { ...state, data: nextData };
-    }
-    case "SET_PAGE": {
-      return { ...state, page: action.payload };
-    }
-    case "SET_SIZE": {
-      return { ...state, size: action.payload, page: 0 };
-    }
-  }
 };
 
 const makeHeader = (schema) => {
@@ -144,100 +133,112 @@ const makeBody = (schema) => {
   );
 };
 
-const initializer = ($useGrid) => {
-  const { height, checkbox, radio } = $useGrid.defaultSchema;
-
-  const { headerSchema, headerWidths, headerRowCount } = makeHeader(
-    $useGrid.defaultSchema
-  );
-
-  const { bodySchema, bodyRowCount } = makeBody($useGrid.defaultSchema);
-
+const makeSchema = (schema) => {
+  const { height, radio, checkbox, page = 0, size = 10 } = schema;
+  const { headerSchema, headerWidths, headerRowCount } = makeHeader(schema);
+  const { bodySchema, bodyRowCount } = makeBody(schema);
   return {
-    data: [],
     height,
-    checkbox,
     radio,
+    checkbox,
+    page,
+    size,
     headerSchema,
     headerWidths,
     headerRowCount,
     bodySchema,
     bodyRowCount,
-    page: 0,
-    size: 10,
+  };
+};
+
+const GridContext = createContext();
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "SET_SCHEMA": {
+      return { ...state, ...makeSchema(action.payload) };
+    }
+    case "SET_HEADER": {
+      return { ...state, ...makeHeader(action.payload) };
+    }
+    case "SET_BODY": {
+      return { ...state, ...makeBody(action.payload) };
+    }
+    case "ADD_ROW": {
+      return { ...state, data: clone(action.payload) };
+    }
+    case "REMOVE_ROW": {
+      return { ...state, data: clone(action.payload) };
+    }
+    case "SET_DATA": {
+      return { ...state, data: action.payload, page: 0, size: 10 };
+    }
+    case "SET_DATA_ITEM_BINDING": {
+      const { nextValue, binding, dataIndex } = action.payload;
+      const nextData = [...state.data];
+      nextData[dataIndex][binding] = nextValue;
+      return { ...state, data: nextData };
+    }
+    case "SET_PAGE": {
+      return { ...state, page: action.payload };
+    }
+    case "SET_SIZE": {
+      return { ...state, size: action.payload, page: 0 };
+    }
+  }
+};
+
+const initializer = ($useGrid) => {
+  const { schema, data } = $useGrid;
+  return {
+    data: cloneDeep(data),
+    ...makeSchema(schema),
   };
 };
 
 export const Grid = (props) => {
   const { $useGrid } = props;
-
   const $ = useRef({
-    gridRef: null,
+    keyBase: uuid(),
+    listRef: null,
     rowStyles: [],
     startIndex: 0,
     endIndex: 40,
-    overscanCount: 10,
+    overscanCount: 40,
   });
-
-  const [state, dispatch] = useReducer(reducer, $useGrid, initializer);
-
-  useEffect(() => {
-    $useGrid.dispatch = dispatch;
-  }, []);
-
-  const {
-    height,
-    radio,
-    checkbox,
-    // header
-    headerSchema,
-    headerWidths,
-    headerRowCount,
-    // body
-    data,
-    page,
-    size,
-  } = state;
-
-  const render = useCallback(
-    throttle(() => {
-      dispatch({ type: "RENDER" });
-    }, 200),
-    []
-  );
-
-  const handleScroll = useCallback(
-    throttle((event) => {
-      const topIndex = $.current.rowStyles.findIndex(({ top, height }) => {
-        return event.target.scrollTop < top + height;
-      });
-      const startIndex = Math.max(topIndex - $.current.overscanCount, 0);
-      const endIndex = Math.min(
-        topIndex +
-          Math.ceil($.current.gridRef.getBoundingClientRect().height / 40) +
-          $.current.overscanCount,
-        $useGrid.data.length
-      );
-      $.current.startIndex = startIndex;
-      $.current.endIndex = endIndex;
-      dispatch({ type: "RENDER" });
-    }, 200),
-    []
-  );
+  const [
+    {
+      height,
+      radio,
+      checkbox,
+      // header
+      headerSchema,
+      headerWidths,
+      headerRowCount,
+      // body
+      data,
+      page,
+      size,
+      bodySchema,
+      bodyRowCount,
+    },
+    dispatch,
+  ] = useReducer(reducer, $useGrid, initializer);
 
   const ref = (ref) => {
     if (!ref) return;
-    $.current.gridRef = ref;
+    $.current.listRef = ref;
   };
 
-  console.log($.current.startIndex, $.current.endIndex);
+  useLayoutEffect(() => {
+    $useGrid.dispatch = dispatch;
+  }, []);
 
   return (
-    <GridContext.Provider value={{ $grid: $, $useGrid, state, render }}>
+    <GridContext.Provider value={{ $grid: $, $useGrid }}>
       <div className="flex flex-col" style={{ height }}>
-        <div ref={ref} className="flex-1 overflow-auto" onScroll={handleScroll}>
+        <div ref={ref} className="flex-1 overflow-auto">
           <Header
-            $grid={$}
             radio={radio}
             checkbox={checkbox}
             headerSchema={headerSchema}
@@ -245,133 +246,149 @@ export const Grid = (props) => {
             headerRowCount={headerRowCount}
           />
           <Body
-            $grid={$}
             radio={radio}
             checkbox={checkbox}
             data={data}
             page={page}
             size={size}
             height={height}
+            bodySchema={bodySchema}
+            bodyRowCount={bodyRowCount}
+            headerWidths={headerWidths}
           />
         </div>
-        <Footer />
+        <Footer page={page} size={size} data={data} />
       </div>
     </GridContext.Provider>
   );
 };
 
-const Header = (props) => {
-  const { checkbox, radio, headerSchema, headerWidths, headerRowCount } = props;
-  const keyBase = useRef(uuid()).current;
-  return (
-    <div
-      className="sticky top-0 w-fit grid border-t border-l bg-gray-100 z-[1]"
-      style={{
-        gridTemplateColumns: headerWidths.join(" "),
-        gridTemplateRows: `repeat(${headerRowCount}, minmax(40px, auto))`,
-      }}
-    >
-      {radio && <OptionCell />}
-      {checkbox && <OptionCell />}
-      {headerSchema.map((col, colIndex) => {
-        const { colCount, cells } = col;
-        const key = `${keyBase}-headercol-${colIndex}`;
-        return (
-          <div
-            key={key}
-            className="grid grid-cols-subgrid grid-rows-subgrid"
-            style={{
-              gridColumn: `span ${colCount}`,
-              gridRow: `span ${headerRowCount}`,
-            }}
-          >
-            {cells.map((cell, cellIndex) => {
-              const { colSpan, rowSpan, binding } = cell;
-              const key = `${keyBase}-headercel-${colIndex}-${cellIndex}`;
-              return (
-                <div
-                  key={key}
-                  className="min-h-10 border-r border-b flex items-center justify-center"
-                  style={{
-                    gridColumn: `span ${colSpan}`,
-                    gridRow: `span ${rowSpan}`,
-                  }}
-                >
-                  {binding}
-                </div>
-              );
-            })}
-          </div>
+const Body = memo(
+  (props) => {
+    const {
+      data,
+      page,
+      size,
+      height,
+      radio,
+      checkbox,
+      bodySchema,
+      bodyRowCount,
+      headerWidths,
+    } = props;
+    const { $grid, $useGrid } = useContext(GridContext);
+    const [, setRenderCount] = useState(0);
+
+    const renderBody = useCallback(
+      throttle(() => {
+        setRenderCount((prev) => ++prev);
+      }, 200),
+      []
+    );
+
+    // const renderBody = () => setRenderCount((prev) => ++prev);
+
+    useEffect(() => {
+      const handleScroll = (event) => {
+        const topIndex = $grid.current.rowStyles.findIndex(
+          ({ top, height }) => {
+            return event.target.scrollTop < top + height;
+          }
         );
-      })}
-    </div>
-  );
-};
+        const startIndex = Math.max(topIndex - $grid.current.overscanCount, 0);
+        const endIndex = Math.min(
+          topIndex +
+            Math.ceil(event.target.getBoundingClientRect().height / 40) +
+            $grid.current.overscanCount,
+          $useGrid.data.length
+        );
+        $grid.current.startIndex = startIndex;
+        $grid.current.endIndex = endIndex;
+        renderBody();
+      };
 
-const Body = (props) => {
-  const { $grid, data, page, size, height } = props;
-  const keyBase = useRef(uuid()).current;
+      $grid.current.listRef.addEventListener("scroll", handleScroll);
 
-  const $ = useRef({ height: 0 });
+      return () => {
+        $grid.current.listRef.removeEventListener("scroll", handleScroll);
+      };
+    }, []);
 
-  const chunked = [];
-  const chunkCount = Math.ceil(data.length / size);
-  for (let i = 0; i < chunkCount; i++) {
-    chunked.push(data.slice(i * size, (i + 1) * size));
-  }
-
-  const paged = chunked[page] || [];
-
-  let rows;
-  rows = height
-    ? paged.slice($grid.current.startIndex, $grid.current.endIndex)
-    : paged;
-
-  $grid.current.rowStyles.reduce((prev, curr, index) => {
-    curr.top = prev;
-    const next = prev + curr.height;
-    if (index === size - 1) {
-      $.current.height = next;
+    const chunked = [];
+    const chunkCount = Math.ceil(data.length / size);
+    for (let i = 0; i < chunkCount; i++) {
+      chunked.push(data.slice(i * size, (i + 1) * size));
     }
-    return next;
-  }, 0);
 
-  if (height !== undefined) {
-    $.current.height = undefined;
-  }
+    const paged = chunked[page] || [];
+    const rows = height
+      ? paged.slice($grid.current.startIndex, $grid.current.endIndex)
+      : paged;
 
-  console.log(rows);
+    const bodyHeight = $grid.current.rowStyles.reduce((prev, curr) => {
+      curr.top = prev;
+      return prev + curr.height;
+    }, 0);
 
-  return (
-    <div className="relative w-fit" style={{ height: $.current.height }}>
-      {rows.map((item, index) => {
-        const dataIndex = page * size + $grid.current.startIndex + index;
-        const viewIndex = $grid.current.startIndex + index;
-        const key = `${keyBase}-bodyrow-${dataIndex}`;
+    return (
+      <div className="relative w-fit" style={{ height: bodyHeight }}>
+        {rows.map((item, index) => {
+          const dataIndex = page * size + $grid.current.startIndex + index;
+          const viewIndex = $grid.current.startIndex + index;
+          const key = `${$grid.current.keyBase}-bodyrow-${dataIndex}`;
+          return (
+            <Row
+              key={key}
+              rowKey={key}
+              item={item}
+              dataIndex={dataIndex}
+              viewIndex={viewIndex}
+              radio={radio}
+              checkbox={checkbox}
+              bodySchema={bodySchema}
+              bodyRowCount={bodyRowCount}
+              headerWidths={headerWidths}
+              renderBody={renderBody}
+            />
+          );
+        })}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    const prevKeys = Object.keys(prevProps);
+    const nextKeys = Object.keys(nextProps);
+    return (
+      prevKeys.length === nextKeys.length &&
+      prevKeys.every((key) => {
         return (
-          <Row
-            key={key}
-            rowKey={key}
-            item={item}
-            dataIndex={dataIndex}
-            viewIndex={viewIndex}
-          />
+          nextProps.hasOwnProperty(key) === true &&
+          prevProps[key] === nextProps[key]
         );
-      })}
-    </div>
-  );
-};
+      })
+    );
+  }
+);
 
 const Row = (props) => {
-  const { rowKey, item, dataIndex, viewIndex } = props;
-  const { $grid, $useGrid, state, render } = useContext(GridContext);
-  const { checkbox, radio, headerWidths, bodySchema, bodyRowCount } = state;
+  const {
+    rowKey,
+    item,
+    dataIndex,
+    viewIndex,
+    radio,
+    checkbox,
+    headerWidths,
+    bodySchema,
+    bodyRowCount,
+    renderBody,
+  } = props;
+  const { $grid, $useGrid } = useContext(GridContext);
+
   const $ = useRef({ rowRef: null });
   const top = $grid.current.rowStyles[viewIndex]?.top;
 
-  // const [renderCount, setRenderCount] = useState(0)
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (!$grid.current.rowStyles[viewIndex]) {
@@ -381,7 +398,7 @@ const Row = (props) => {
         const prevHeight = $grid.current.rowStyles[viewIndex].height;
         if (currHeight !== prevHeight) {
           $grid.current.rowStyles[viewIndex].height = currHeight;
-          render();
+          renderBody();
         }
       }
     });
@@ -410,7 +427,8 @@ const Row = (props) => {
     >
       {radio && (
         <OptionCell>
-          <input type="radio" />
+          {dataIndex}
+          {/* <input type="radio" /> */}
         </OptionCell>
       )}
       {checkbox && (
@@ -480,7 +498,7 @@ const Control = (props) => {
     return <div>{formatted}</div>;
   }
 
-  rest.value = value;
+  rest.value = value || "";
   rest.onChange = (event) => {
     const eventValue = event.target.value;
     const eventChecked = event.target.checked;
@@ -524,11 +542,92 @@ const Control = (props) => {
   );
 };
 
-const Footer = () => {
-  const { $useGrid, state } = useContext(GridContext);
-  const { page, size, data } = state;
+const Header = memo(
+  (props) => {
+    const { checkbox, radio, headerSchema, headerWidths, headerRowCount } =
+      props;
+    const { $grid } = useContext(GridContext);
+
+    return (
+      <div
+        className="sticky top-0 w-fit grid border-t border-l bg-gray-100 z-[1]"
+        style={{
+          gridTemplateColumns: headerWidths.join(" "),
+          gridTemplateRows: `repeat(${headerRowCount}, minmax(40px, auto))`,
+        }}
+      >
+        {radio && <OptionCell />}
+        {checkbox && <OptionCell />}
+        {headerSchema.map((col, colIndex) => {
+          const { colCount, cells } = col;
+          const colKey = `${$grid.current.keyBase}-headercol-${colIndex}`;
+          return (
+            <div
+              key={colKey}
+              className="grid grid-cols-subgrid grid-rows-subgrid"
+              style={{
+                gridColumn: `span ${colCount}`,
+                gridRow: `span ${headerRowCount}`,
+              }}
+            >
+              {cells.map((cell, cellIndex) => {
+                const { colSpan, rowSpan, binding } = cell;
+                const celKey = `${colKey}-headercel-${cellIndex}`;
+                return (
+                  <div
+                    key={celKey}
+                    className="min-h-10 border-r border-b flex items-center justify-center"
+                    style={{
+                      gridColumn: `span ${colSpan}`,
+                      gridRow: `span ${rowSpan}`,
+                    }}
+                  >
+                    {binding}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    const prevKeys = Object.keys(prevProps);
+    const nextKeys = Object.keys(nextProps);
+
+    if (
+      !(
+        prevKeys.length === nextKeys.length &&
+        prevKeys.every((key) => {
+          return (
+            nextProps.hasOwnProperty(key) === true &&
+            prevProps[key] === nextProps[key]
+          );
+        })
+      )
+    ) {
+      console.log("render header");
+    }
+
+    return (
+      prevKeys.length === nextKeys.length &&
+      prevKeys.every((key) => {
+        return (
+          nextProps.hasOwnProperty(key) === true &&
+          prevProps[key] === nextProps[key]
+        );
+      })
+    );
+  }
+);
+
+const Footer = (props) => {
+  const { page, size, data } = props;
+  const { $grid, $useGrid } = useContext(GridContext);
 
   const handleChangePage = (payload) => {
+    $grid.current.listRef.scrollTop = 0;
     $useGrid.dispatch({ type: "SET_PAGE", payload });
   };
   const handleChangeSize = (payload) => {
@@ -536,7 +635,7 @@ const Footer = () => {
   };
 
   return (
-    <div className="h-12 bg-gray-100 px-2 flex items-center gap-8">
+    <div className="min-h-12 bg-gray-100 px-2 flex items-center gap-8">
       <Sizination size={size} onChange={handleChangeSize} />
       <Pagination
         page={page}
@@ -553,7 +652,7 @@ const Pagination = (props) => {
   const uuid = useRef(utils.uuid()).current;
   const [cursor, setCursor] = useState(0);
   const chunked = [];
-  const pageCount = Math.ceil(count / perPage);
+  const pageCount = Math.ceil(count / perPage) || 1;
   const chunkCount = Math.ceil(pageCount / chunk);
   const pages = [...new Array(pageCount).keys()];
   for (let i = 0; i < chunkCount; i++)
@@ -574,11 +673,21 @@ const Pagination = (props) => {
     onChange?.(value);
   };
 
+  const isOverPage = pageCount < page + 1;
+
   useEffect(() => {
-    if (cursor !== 0) {
-      setCursor(0);
+    if (isOverPage) {
+      handleClickPage(page - 1);
     }
-  }, [chunkCount]);
+  }, [isOverPage]);
+
+  const isOverCursor = chunkCount < cursor + 1;
+
+  useEffect(() => {
+    if (isOverCursor) {
+      setCursor((prev) => prev - 1);
+    }
+  }, [isOverCursor]);
 
   return (
     <div className="flex gap-1">
@@ -615,7 +724,7 @@ const Pagination = (props) => {
 const Sizination = (props) => {
   const { onChange } = props;
   const uuid = useRef(utils.uuid()).current;
-  const list = [10, 20, 30, 40, 50, 100];
+  const list = [10, 20, 30, 40, 50, 100, 1000];
   const handleChange = (event) => {
     onChange?.(event.target.value);
   };
