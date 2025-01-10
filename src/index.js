@@ -30,6 +30,8 @@ import { SampleForm } from "./sample/SampleForm";
 import { SampleGrid } from "./sample/SampleGrid";
 
 function App() {
+  console.log(window.name.length === 41, window.name.indexOf("-link"));
+  console.log(window.name.slice(0, -5));
   return (
     <div className="p-8">
       <SampleGrid />
@@ -40,7 +42,7 @@ function App() {
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+  // <StrictMode>
+  <App />
+  // </StrictMode>
 );
