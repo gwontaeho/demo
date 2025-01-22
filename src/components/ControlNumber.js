@@ -4,28 +4,37 @@ export const ControlNumber = forwardRef((props, ref) => {
   const { onChange, thousandsSeparator, decimalScale, ...rest } = props;
 
   const handleChange = (event) => {
-    if (!isNaN(event.target.value.replaceAll(",", ""))) {
-      if (event.target.value === "") {
-      } else {
-        const splitted = event.target.value.replaceAll(",", "").split(".");
-        let integer = splitted[0];
-        let decimal = splitted[1];
-        if (thousandsSeparator) {
-          integer = Number(integer).toLocaleString();
-        }
-        if (decimal === undefined) {
-          decimal = "";
-        } else if (decimalScale === undefined) {
-          decimal = `.${decimal}`;
-        } else if (decimalScale) {
-          decimal = `.${decimal.slice(0, decimalScale)}`;
-        }
-        event.target.value = integer + decimal;
-      }
-      onChange?.(event);
+    event.target.value = event.target.value.replace(/[^0-9.]+/g, "");
+    const lastPoint = event.target.value.lastIndexOf(".");
+
+    if (lastPoint !== -1) {
+      event.target.value =
+        event.target.value.slice(0, lastPoint).replaceAll(".", "") +
+        event.target.value.slice(lastPoint);
     }
 
-    // 숫자 정규식 필요
+    if (typeof decimalScale === "number") {
+      const point = event.target.value.indexOf(".");
+      if (point !== -1) {
+        if (decimalScale === 0) {
+          event.target.value = event.target.value.replaceAll(".", "");
+        } else {
+          event.target.value = event.target.value.slice(
+            0,
+            point + 1 + decimalScale
+          );
+        }
+      }
+    }
+
+    if (thousandsSeparator === true) {
+      const [integer, decimal] = event.target.value.split(".");
+      event.target.value =
+        integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
+        (decimal === undefined ? "" : `.${decimal}`);
+    }
+
+    onChange?.(event);
   };
 
   return (

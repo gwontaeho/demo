@@ -1,7 +1,7 @@
 import { forwardRef, useId } from "react";
 
 export const ControlCheckbox = forwardRef((props, ref) => {
-  const { options, value, ...rest } = props;
+  const { options, value, defaultValue, ...rest } = props;
   const id = useId();
 
   return (
@@ -14,7 +14,8 @@ export const ControlCheckbox = forwardRef((props, ref) => {
               ref={ref}
               type="checkbox"
               value={item.value}
-              checked={value.includes(item.value)}
+              checked={value?.includes(item.value)}
+              defaultChecked={defaultValue?.includes(item.value)}
             />
             {item.label}
           </label>

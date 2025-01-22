@@ -65,16 +65,6 @@ export const SampleForm = () => {
           { value: "c,", label: "c" },
           { value: "d", label: "d" },
           { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
         ],
       },
       textarea: {
@@ -90,15 +80,6 @@ export const SampleForm = () => {
           { value: "a", label: "a" },
           { value: "b", label: "b" },
           { value: "c", label: "c" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
-          { value: "d", label: "d" },
           { value: "d", label: "d" },
           { value: "d", label: "d" },
         ],
@@ -133,6 +114,20 @@ export const SampleForm = () => {
             }}
           /> */}
         </Form.Row>
+
+        <Control
+          type="checkbox"
+          options={[
+            { value: "a", label: "a" },
+            { value: "b", label: "b" },
+            { value: "c", label: "c" },
+            { value: "d", label: "d" },
+            { value: "d", label: "d" },
+          ]}
+          onChange={(e) => {
+            console.log(e);
+          }}
+        />
 
         <Form.Row>
           <Form.Label {...schema.text} />

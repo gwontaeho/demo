@@ -1,7 +1,6 @@
+const random = (max) => Math.floor(Math.random() * (max + 1));
 const mock = (num) => {
-  const random = (max) => Math.floor(Math.random() * (max + 1));
-
-  return Array(num || 100)
+  return Array(num ?? 100)
     .fill(null)
     .map((_, index) => {
       return {
@@ -18,7 +17,14 @@ const mock = (num) => {
           // "immutable",
           // "abstract",
         ][random(4)],
-        number: Math.random() * 1000,
+        number: Number((Math.random() * 1000).toFixed(0)),
+        checkbox: [
+          [1, 2, 3],
+          [4, 5, 3],
+          [2, 5],
+          [2, 3],
+          [1, 3],
+        ][random(4)],
       };
     });
 };
@@ -159,31 +165,45 @@ const date = (value) => {
       switch (key) {
         case "day":
         case "D":
-          this.value = new Date(this.value.setDate(this.value.getDate() + amount));
+          this.value = new Date(
+            this.value.setDate(this.value.getDate() + amount)
+          );
           break;
         case "week":
         case "w":
-          this.value = new Date(this.value.setDate(this.value.getDate() + 7 * amount));
+          this.value = new Date(
+            this.value.setDate(this.value.getDate() + 7 * amount)
+          );
           break;
         case "month":
         case "M":
-          this.value = new Date(this.value.setMonth(this.value.getMonth() + amount));
+          this.value = new Date(
+            this.value.setMonth(this.value.getMonth() + amount)
+          );
           break;
         case "year":
         case "Y":
-          this.value = new Date(this.value.setFullYear(this.value.getFullYear() + amount));
+          this.value = new Date(
+            this.value.setFullYear(this.value.getFullYear() + amount)
+          );
           break;
         case "hour":
         case "H":
-          this.value = new Date(this.value.setHours(this.value.getHours() + amount));
+          this.value = new Date(
+            this.value.setHours(this.value.getHours() + amount)
+          );
           break;
         case "minute":
         case "m":
-          this.value = new Date(this.value.setMinutes(this.value.getMinutes() + amount));
+          this.value = new Date(
+            this.value.setMinutes(this.value.getMinutes() + amount)
+          );
           break;
         case "second":
         case "s":
-          this.value = new Date(this.value.setSeconds(this.value.getSeconds() + amount));
+          this.value = new Date(
+            this.value.setSeconds(this.value.getSeconds() + amount)
+          );
           break;
       }
       return this;
