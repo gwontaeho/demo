@@ -24,6 +24,74 @@ const cloneDeep = (item) => {
   return obj;
 };
 
+const makeHeader = (schema) => {
+  const { radio, checkbox, header } = schema;
+  const { headerWidths, headerRowCount } = header.reduce(
+    (prev, curr) => {
+      curr.show ??= true;
+      curr.colCount ??= 1;
+      curr.rowCount ??= 1;
+      const { colWidths } = curr.cells.reduce(
+        (item, cell) => {
+          cell.colSpan ??= 1;
+          cell.rowSpan ??= 1;
+          item.colSpan += cell.colSpan;
+          if (cell.width && cell.colSpan === 1)
+            item.colWidths[item.colSpan - 1] = cell.width;
+          if (item.colSpan >= curr.colCount) item.colSpan = 0;
+          return item;
+        },
+        {
+          colWidths: new Array(curr.colCount).fill("200px"),
+          colSpan: 0,
+          rowCount: 0,
+        }
+      );
+      prev.headerWidths = prev.headerWidths.concat(colWidths);
+      prev.headerRowCount < curr.rowCount &&
+        (prev.headerRowCount = curr.rowCount);
+      return prev;
+    },
+    { headerWidths: [], headerRowCount: 0 }
+  );
+  for (let i = 0; i < checkbox + radio; i++) {
+    headerWidths.unshift("32px");
+  }
+  return { headerWidths, headerRowCount };
+};
+
+const makeBody = (schema) => {
+  const { edit, body, header } = schema;
+  const { bodyRowCount } = body.reduce(
+    (prev, curr, index) => {
+      curr.show = header[index].show;
+      curr.colCount ??= 1;
+      curr.rowCount ??= 1;
+      curr.cells.forEach((item) => {
+        item.colSpan ??= 1;
+        item.rowSpan ??= 1;
+        item.edit = edit;
+      });
+      prev.bodyRowCount < curr.rowCount && (prev.bodyRowCount = curr.rowCount);
+      return prev;
+    },
+    { bodyRowCount: 0 }
+  );
+  return { bodyRowCount };
+};
+
+const makeSchema = (schema) => {
+  schema.edit ??= false;
+  schema.radio ??= false;
+  schema.checkbox ??= false;
+  const { headerWidths, headerRowCount } = makeHeader(schema);
+  const { bodyRowCount } = makeBody(schema);
+  schema.headerWidths = headerWidths;
+  schema.headerRowCount = headerRowCount;
+  schema.bodyRowCount = bodyRowCount;
+  return schema;
+};
+
 /**
  * @typedef {Object} HeaderCell
  * @property {string} binding
@@ -58,6 +126,7 @@ const cloneDeep = (item) => {
  * @property {boolean} edit
  * @property {boolean} radio
  * @property {boolean} checkbox
+ * @property {boolean|'external'} pagination
  * @property {string|number} height
  * @property {Array<HeaderColumn>} header
  * @property {Array<BodyColumn>} body
@@ -71,297 +140,405 @@ const cloneDeep = (item) => {
 export const useGrid = (params = {}) => {
   const { defaultSchema } = params;
 
-  const $ = useRef({
-    keyBase: uuid(),
-    defaultSchema: cloneDeep(defaultSchema),
-    schema: cloneDeep(defaultSchema),
+  return useRef(
+    new (class {
+      #schema = makeSchema(cloneDeep(defaultSchema));
 
-    data: [],
-    originalData: [],
-    addedData: [],
-    removedData: [],
-    updatedData: [],
-    checkboxData: [],
-    radioData: null,
+      #key = uuid();
+      #dataKey = uuid();
+      #data = [];
+      #originalData = [];
+      #addedData = [];
+      #removedData = [];
+      #updatedData = [];
+      #checkboxData = [];
+      #radioData = null;
+      #dataCount = 0;
 
-    dataCount: 0,
+      #onPageChange = null;
+      #onSizeChange = null;
+      #renderer = null;
 
-    renderGrid: null,
-    renderHeader: null,
-    renderBody: null,
-    renderFooter: null,
+      #renderGrid = null;
+      #renderHeader = null;
+      #renderBody = null;
+      #renderFooter = null;
 
-    onPageChange: null,
-    onSizeChange: null,
+      schema = { useGrid: this };
 
-    renderer: null,
-  }).current;
+      initialize = (type, forceUpdate) => {
+        switch (type) {
+          case "Grid":
+            this.#renderGrid = forceUpdate;
+            return () => {
+              this.#renderGrid = null;
+            };
+          case "Header":
+            this.#renderHeader = forceUpdate;
+            return () => {
+              this.#renderHeader = null;
+            };
+          case "Body":
+            this.#renderBody = forceUpdate;
+            return () => {
+              this.#renderBody = null;
+            };
+          case "Footer":
+            this.#renderFooter = forceUpdate;
+            return () => {
+              this.#renderFooter = null;
+            };
+        }
+      };
 
-  const setSchema = (value) => {
-    // 스키마를 검증하는 로직 필요
-    const nextSchema = cloneDeep(
-      value instanceof Function ? value(cloneDeep($.schema)) : value
-    );
-    $.schema = nextSchema;
-    $.renderGrid?.();
-    $.renderHeader?.();
-    $.renderBody?.();
-    $.renderFooter?.();
-  };
+      renderGrid = () => {
+        this.#renderGrid();
+      };
 
-  const setHeader = (value) => {
-    // 스키마를 검증하는 로직 필요
-    const nextHeader = cloneDeep(
-      value instanceof Function ? value(cloneDeep($.schema.header)) : value
-    );
-    $.schema.header = nextHeader;
-    $.renderHeader?.();
-    $.renderBody?.();
-  };
+      renderBody = () => {
+        this.#renderBody();
+      };
 
-  const setBody = (value) => {
-    // 스키마를 검증하는 로직 필요
-    const nextBody = cloneDeep(
-      value instanceof Function ? value(cloneDeep($.schema.body)) : value
-    );
-    $.schema.body = nextBody;
-    $.renderBody?.();
-  };
+      renderHeader = () => {
+        this.#renderHeader();
+      };
 
-  const setEdit = (value) => {
-    // 전체, 컬럼
-    if (typeof value !== "boolean" || $.schema.edit === value) return;
-    $.schema.edit = value;
-    $.renderBody?.();
-  };
+      getKey = () => {
+        return this.#key;
+      };
 
-  const setShow = (id, value) => {
-    // 헤더, 바디 id
-    if (typeof value !== "boolean") return;
-    const target = $.schema.header.find((item) => item.id === id);
-    if (!target || (target.show ?? true) === value) return;
-    target.show = value;
-    $.renderHeader?.();
-    $.renderBody?.();
-  };
+      getDataKey = () => {
+        return this.#dataKey;
+      };
 
-  // ok
-  const addRow = () => {
-    if ($.schema.pagination === "external") return;
-    const addedData = {};
-    $.data.push(addedData);
-    $.addedData.push(addedData);
-    $.dataCount = $.data.length;
-    $.renderBody?.();
-    $.renderFooter?.();
-  };
+      getSchema = () => {
+        return cloneDeep(this.#schema);
+      };
 
-  // ok
-  const removeRow = (index) => {
-    if ($.schema.pagination === "external") return;
-    const removed = $.data.splice(index, 1);
-    if (!removed.length) return;
-    const target = removed[0];
-    $.removedData.push(target);
-    const addedIndex = $.addedData.findIndex((item) => item === target);
-    if (addedIndex !== -1) $.addedData.splice(addedIndex, 1);
-    $.dataCount = $.data.length;
-    $.renderBody?.();
-    $.renderFooter?.();
-  };
+      getDataCount = () => {
+        return this.#dataCount;
+      };
 
-  // ok
-  const setPage = (value) => {
-    if (
-      !$.schema.pagination ||
-      typeof value !== "number" ||
-      $.schema.page === value
-    )
-      return;
-    $.schema.page = value;
-    if ($.schema.pagination !== "external") $.renderBody?.();
-    $.renderFooter?.();
-  };
+      // ttt
+      setSchema = (value) => {
+        const schema = cloneDeep(
+          typeof value === "function" ? value(cloneDeep(this.#schema)) : value
+        );
+        this.#schema = makeSchema(schema);
+        this.#renderGrid?.();
+        this.#renderHeader?.();
+        this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  // ok
-  const setSize = (value) => {
-    if (
-      !$.schema.pagination ||
-      typeof value !== "number" ||
-      $.schema.size === value
-    )
-      return;
-    $.schema.page = 0;
-    $.schema.size = value;
-    if ($.schema.pagination !== "external") $.renderBody?.();
-    $.renderFooter?.();
-  };
+      // ttt
+      setHeader = (value) => {
+        // 스키마를 검증하는 로직 필요
+        const nextHeader = cloneDeep(
+          typeof value === "function"
+            ? value(cloneDeep(this.#schema.header))
+            : value
+        );
+        this.#schema.header = nextHeader;
+        this.#schema = makeSchema(this.#schema);
+        this.#renderHeader?.();
+        this.#renderBody?.();
+      };
 
-  // ok
-  const getPage = () => {
-    return $.schema.page;
-  };
+      // ttt
+      setBody = (value) => {
+        // 스키마를 검증하는 로직 필요
+        const nextBody = cloneDeep(
+          typeof value === "function"
+            ? value(cloneDeep(this.#schema.body))
+            : value
+        );
+        this.#schema.body = nextBody;
+        this.#schema = makeSchema(this.#schema);
+        this.#renderBody?.();
+      };
 
-  // ok
-  const getSize = () => {
-    return $.schema.size;
-  };
+      // ok
+      // ttt
+      setHeight = (value) => {
+        if (this.#schema.height === value) return;
+        this.#schema.height = value;
+        this.#renderGrid?.();
+        this.#renderBody?.();
+      };
 
-  // ok
-  const setData = (data, dataCount) => {
-    $.keyBase = uuid();
-    $.originalData = cloneDeep(data);
-    $.data = cloneDeep(data);
-    $.addedData = [];
-    $.removedData = [];
-    $.updatedData = [];
-    $.checkboxData = [];
-    $.radioData = null;
-    $.dataCount = dataCount ?? $.data.length;
-    $.renderBody?.();
-    $.renderFooter?.();
-  };
+      // ok
+      // ttt
+      setRadio = (value) => {
+        if (
+          typeof value !== "boolean" ||
+          (this.#schema.radio ?? false) === value
+        )
+          return;
+        this.#schema.radio = value;
+        this.#renderHeader?.();
+        this.#renderBody?.();
+      };
 
-  // ok
-  const getData = () => {
-    return cloneDeep($.data);
-  };
+      setRadioData = (index) => {
+        if (typeof index !== "number") return;
+        this.#radioData = index === undefined ? null : this.#data[index];
+        this.#renderBody?.();
+      };
 
-  // ok
-  const getCheckboxData = () => {
-    return cloneDeep($.checkboxData);
-  };
+      setCheckboxData = () => {};
 
-  // ok
-  const getRadioData = () => {
-    return cloneDeep($.radioData);
-  };
+      // ok
+      // ttt
+      setCheckbox = (value) => {
+        if (
+          typeof value !== "boolean" ||
+          (this.#schema.checkbox ?? false) === value
+        )
+          return;
+        this.#schema.checkbox = value;
+        this.#renderHeader?.();
+        this.#renderBody?.();
+      };
 
-  const getAddedData = () => {
-    return cloneDeep($.addedData);
-  };
+      // ttt
+      setEdit = (value) => {
+        // 전체, 컬럼
+        if (typeof value !== "boolean" || this.#schema.edit === value) return;
+        this.#schema.edit = value;
+        this.#schema = makeSchema(this.#schema);
+        this.#renderBody?.();
+      };
 
-  const getOriginData = () => {
-    return cloneDeep($.originalData);
-  };
+      // ttt
+      setShow = (id, value) => {
+        // 헤더, 바디 id
+        if (typeof value !== "boolean") return;
+        const target = this.#schema.header.find((item) => item.id === id);
+        if (!target || (target.show ?? true) === value) return;
+        target.show = value;
+        this.#renderHeader?.();
+        this.#renderBody?.();
+      };
 
-  const getRemovedData = () => {
-    return cloneDeep($.removedData);
-  };
+      // ok
+      // ttt
+      addRow = () => {
+        if (this.#schema.pagination === "external") return;
+        const addedData = {};
+        this.#data.push(addedData);
+        this.#addedData.push(addedData);
+        this.#dataCount = this.#data.length;
+        this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  const getUpdatedData = () => {
-    return cloneDeep($.updatedData);
-  };
+      // ok
+      // ttt
+      removeRow = (index) => {
+        if (this.#schema.pagination === "external") return;
+        const removed = this.#data.splice(index, 1);
+        if (!removed.length) return;
+        const target = removed[0];
+        this.#removedData.push(target);
+        const addedIndex = this.#addedData.findIndex((item) => item === target);
+        if (addedIndex !== -1) this.#addedData.splice(addedIndex, 1);
+        this.#dataCount = this.#data.length;
+        this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  // ok
-  const upRow = (index) => {
-    if (index < 1) return;
-    const target = $.data[index];
-    $.data[index] = $.data[index - 1];
-    $.data[index - 1] = target;
-    $.renderBody?.();
-  };
+      // ok
+      // ttt
+      setPage = (value) => {
+        if (
+          !this.#schema.pagination ||
+          typeof value !== "number" ||
+          this.#schema.page === value
+        )
+          return;
+        this.#schema.page = value;
+        if (this.#schema.pagination !== "external") this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  // ok
-  const downRow = (index) => {
-    if (index + 1 > $.data.length - 1) return;
-    const target = $.data[index];
-    $.data[index] = $.data[index + 1];
-    $.data[index + 1] = target;
-    $.renderBody?.();
-  };
+      // ok
+      // ttt
+      setSize = (value) => {
+        if (
+          !this.#schema.pagination ||
+          typeof value !== "number" ||
+          this.#schema.size === value
+        )
+          return;
+        this.#schema.page = 0;
+        this.#schema.size = value;
+        if (this.#schema.pagination !== "external") this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  const validate = () => {};
+      // ttt
+      getPagination = () => {
+        return this.#schema.pagination;
+      };
 
-  // ok
-  const setHeight = (value) => {
-    if ($.schema.height === value) return;
-    $.schema.height = value;
-    $.renderGrid?.();
-    $.renderBody?.();
-  };
+      // ok
+      // ttt
+      getPage = () => {
+        return this.#schema.page;
+      };
 
-  // ok
-  const setRadio = (value) => {
-    if (typeof value !== "boolean" || ($.schema.radio ?? false) === value)
-      return;
-    $.schema.radio = value;
-    $.renderHeader?.();
-    $.renderBody?.();
-  };
+      // ok
+      // ttt
+      getSize = () => {
+        return this.#schema.size;
+      };
 
-  // ok
-  const setCheckbox = (value) => {
-    if (typeof value !== "boolean" || ($.schema.checkbox ?? false) === value)
-      return;
-    $.schema.checkbox = value;
-    $.renderHeader?.();
-    $.renderBody?.();
-  };
+      // ok
+      // ttt
+      setData = (data, dataCount) => {
+        this.#key = uuid();
+        this.#originalData = cloneDeep(data);
+        this.#data = cloneDeep(data);
+        this.#addedData = [];
+        this.#removedData = [];
+        this.#updatedData = [];
+        this.#checkboxData = [];
+        this.#radioData = null;
+        this.#dataCount = dataCount ?? this.#data.length;
+        this.#renderBody?.();
+        this.#renderFooter?.();
+      };
 
-  const setSort = (key) => {
-    if (key) {
-      $.schema.sort = key;
-    } else {
-      delete $.schema.sort;
-    }
-    $.renderBody?.();
-  };
+      setRowData = (index, value) => {
+        const row = this.#data[index];
+        const nextValue = cloneDeep(
+          typeof value === "function" ? cloneDeep(row) : value
+        );
+        Object.keys(row).forEach((key) => delete row[key]);
+        Object.assign(row, nextValue);
+        this.#renderBody?.();
+      };
 
-  const setGroup = (key) => {
-    if (key) {
-      $.schema.group = key;
-    } else {
-      delete $.schema.group;
-    }
-    $.renderBody?.();
-  };
+      isRadioData = (index) => {
+        return this.#data[index] === this.#radioData;
+      };
 
-  const setOnPageChange = (callback) => {
-    if (!(callback instanceof Function)) return;
-    $.onPageChange = callback;
-  };
+      isCheckboxData = (index) => {
+        return this.#checkboxData.includes(this.#data[index]);
+      };
 
-  const setOnSizeChange = (callback) => {
-    if (!(callback instanceof Function)) return;
-    $.onSizeChange = callback;
-  };
+      getTest = (index) => {
+        return this.#data[index];
+      };
 
-  const setRenderer = (renderer) => {
-    // 렌더러 검증 로직 필요
-    $.renderer = renderer;
-  };
+      getHeight = () => {
+        return this.#schema.height;
+      };
 
-  return {
-    schema: { $useGrid: $ },
-    setData,
-    getData,
-    setSchema,
-    setHeader,
-    setBody,
-    setEdit,
-    addRow,
-    removeRow,
-    setPage,
-    setSize,
-    getPage,
-    getSize,
-    setHeight,
-    getOriginData,
-    getAddedData,
-    getRemovedData,
-    getUpdatedData,
-    getRadioData,
-    getCheckboxData,
-    upRow,
-    downRow,
-    setSort,
-    setGroup,
-    setShow,
-    setRadio,
-    setCheckbox,
-    setOnPageChange,
-    setOnSizeChange,
-    setRenderer,
-  };
+      // ok
+      // ttt
+      getData = () => {
+        return cloneDeep(this.#data);
+      };
+
+      // ok
+      // ttt
+      getCheckboxData = () => {
+        return cloneDeep(this.#checkboxData);
+      };
+
+      // ok
+      // ttt
+      getRadioData = () => {
+        return cloneDeep(this.#radioData);
+      };
+
+      // ttt
+      getAddedData = () => {
+        return cloneDeep(this.#addedData);
+      };
+
+      // ttt
+      getOriginData = () => {
+        return cloneDeep(this.#originalData);
+      };
+
+      // ttt
+      getRemovedData = () => {
+        return cloneDeep(this.#removedData);
+      };
+
+      // ttt
+      getUpdatedData = () => {
+        return cloneDeep(this.#updatedData);
+      };
+
+      getEdit = () => {
+        return this.#schema.edit;
+      };
+
+      // ok
+      // ttt
+      upRow = (index) => {
+        if (index < 1) return;
+        const target = this.#data[index];
+        this.#data[index] = this.#data[index - 1];
+        this.#data[index - 1] = target;
+        this.#renderBody?.();
+      };
+
+      // ok
+      // ttt
+      downRow = (index) => {
+        if (index + 1 > this.#data.length - 1) return;
+        const target = this.#data[index];
+        this.#data[index] = this.#data[index + 1];
+        this.#data[index + 1] = target;
+        this.#renderBody?.();
+      };
+
+      // ttt
+      setSort = (key) => {
+        if (key) {
+          this.#schema.sort = key;
+        } else {
+          delete this.#schema.sort;
+        }
+        this.#renderBody?.();
+
+        // if (sort) {
+        //   data.sort((a, b) => b[sort] - a[sort]);
+        // }
+      };
+
+      // ttt
+      setGroup = (key) => {
+        if (key) {
+          this.#schema.group = key;
+        } else {
+          delete this.#schema.group;
+        }
+        this.#renderBody?.();
+      };
+
+      // ttt
+      setOnPageChange = (callback) => {
+        if (!(typeof callback === "function")) return;
+        this.#onPageChange = callback;
+      };
+
+      // ttt
+      setOnSizeChange = (callback) => {
+        if (!(typeof callback === "function")) return;
+        this.#onSizeChange = callback;
+      };
+
+      // ttt
+      setRenderer = (renderer) => {
+        // 렌더러 검증 로직 필요
+        this.#renderer = renderer;
+      };
+    })()
+  ).current;
 };

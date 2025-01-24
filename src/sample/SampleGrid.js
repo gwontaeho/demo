@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useReducer } from "react";
 import { useGrid } from "../hooks/useGrid";
 import { Grid } from "../components/Grid";
 
 import utils from "../utils";
+import { useForm } from "react-hook-form";
 
 export const SampleGrid = () => {
   const {
     schema,
+    setSchema,
     setHeader,
     getData,
     setData,
@@ -27,22 +29,25 @@ export const SampleGrid = () => {
     setShow,
     setRadio,
     setCheckbox,
-    setOnSizeChange,
-    setOnPageChange,
-    setRenderer,
+    renderGrid,
+    renderBody,
+    renderHeader,
+    // setOnSizeChange,
+    // setOnPageChange,
+    // setRenderer,
   } = useGrid({
     defaultSchema: {
       pagination: true,
       page: 0,
       size: 10,
-      edit: false,
+      // edit: true,
       radio: true,
       checkbox: true,
       height: "500px",
       header: [
         { id: "test12", cells: [{ binding: "text" }] },
         { cells: [{ binding: "number", width: "100px" }] },
-        { cells: [{ binding: "date", width: "150px" }] },
+        // { cells: [{ binding: "date", width: "150px" }] },
       ],
       body: [
         { cells: [{ id: "custom-cell" }] },
@@ -50,36 +55,38 @@ export const SampleGrid = () => {
           cells: [
             {
               binding: "text",
-              type: "text",
+              type: "textarea",
 
               // decimalScale: 2,
               // thousandsSeparator: true,
             },
           ],
         },
-        {
-          cells: [
-            {
-              binding: "checkbox",
-              type: "checkbox",
-              options: [
-                { value: 1, label: "1" },
-                { value: 2, label: "2" },
-                { value: 3, label: "3" },
-                { value: 4, label: "4" },
-                { value: 5, label: "5" },
-              ],
-            },
-          ],
-        },
+        // {
+        //   cells: [
+        //     {
+        //       binding: "checkbox",
+        //       type: "checkbox",
+        //       options: [
+        //         { value: 1, label: "1" },
+        //         { value: 2, label: "2" },
+        //         { value: 3, label: "3" },
+        //         { value: 4, label: "4" },
+        //         { value: 5, label: "5" },
+        //       ],
+        //     },
+        //   ],
+        // },
       ],
     },
   });
 
+  // console.log(schema);
+
   const [test, setTest] = useState(0);
 
   useEffect(() => {
-    setData(utils.mock(10), 40);
+    setData(utils.mock(999));
   }, []);
 
   const fetchData = (value) =>
@@ -154,6 +161,12 @@ export const SampleGrid = () => {
       },
     },
     {
+      name: "set height : undefined",
+      onClick: () => {
+        setHeight();
+      },
+    },
+    {
       name: "up : 2",
       onClick: () => {
         upRow(2);
@@ -189,6 +202,24 @@ export const SampleGrid = () => {
         setSize(20);
       },
     },
+    {
+      name: "render grid",
+      onClick: () => {
+        renderGrid();
+      },
+    },
+    {
+      name: "render body",
+      onClick: () => {
+        renderBody();
+      },
+    },
+    {
+      name: "render header",
+      onClick: () => {
+        renderHeader();
+      },
+    },
   ];
 
   const handleChangePage = async (value) => {
@@ -199,46 +230,75 @@ export const SampleGrid = () => {
     console.log(value);
   };
 
-  setOnSizeChange((value) => {
-    console.log(getPage());
-    console.log(test);
-    console.log(value, "asd");
-  });
+  // setOnSizeChange((value) => {
+  //   console.log(getPage());
+  //   console.log(test);
+  //   console.log(value, "asd");
+  // });
 
-  setOnPageChange((value) => {
-    // console.log(test);
-    console.log(value, "asd");
+  // setOnPageChange((value) => {
+  //   // console.log(test);
+  //   console.log(value, "asd");
 
-    // const d = await fetchData(value);
-    setData(utils.mock(1));
-  });
+  //   // const d = await fetchData(value);
+  //   setData(utils.mock(1));
+  // });
 
-  setRenderer({
-    body: {
-      "custom-cell": (params) => {
-        const { data, setData } = params;
+  // setRenderer({
+  //   body: {
+  //     "custom-cell": (params) => {
+  //       const { data, setData } = params;
 
-        return (
-          <div>
-            {/* {data.number} */}
-            <button
-              onClick={() =>
-                setData((prev) => {
-                  prev.text = "asd";
-                  return { number: 1, text: "a" };
-                })
-              }
-            >
-              {test}
-            </button>
-          </div>
-        );
-      },
-    },
-  });
+  //       return (
+  //         <div>
+  //           {/* {data.number} */}
+  //           <button
+  //             onClick={() =>
+  //               setData((prev) => {
+  //                 prev.text = "asd";
+  //                 return { number: 1, text: "a" };
+  //               })
+  //             }
+  //           >
+  //             {test}
+  //           </button>
+  //         </div>
+  //       );
+  //     },
+  //   },
+  // });
+
+  const aaa = useRef(
+    new (class {
+      abc = "4";
+
+      setAbc() {
+        this.abc = 7;
+      }
+    })()
+  ).current;
+
+  // console.log(schema);
+
+  const [, forceUpdate] = useReducer(() => ({}));
 
   return (
     <div>
+      <div onClick={forceUpdate}>force</div>
+      <div
+        onClick={() => {
+          aaa.setAbc();
+        }}
+      >
+        gogot
+      </div>
+      <div
+        onClick={() => {
+          console.log(aaa.abc);
+        }}
+      >
+        gogo
+      </div>
       <div className="grid grid-cols-10 gap-1 mb-10">
         {tests.map(({ name, onClick }) => {
           return (
