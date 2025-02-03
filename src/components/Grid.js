@@ -19,6 +19,8 @@ import { ControlSelect } from "./ControlSelect";
 import { ControlTextarea } from "./ControlTextarea";
 import { ControlDate } from "./ControlDate";
 
+const GridContext = createContext();
+
 const deepEqual = (a, b) => {
   if (a === b) return true;
   if (
@@ -101,13 +103,27 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const GridContext = createContext();
+const useInitialize = (type) => {
+  const { useGrid, grid } = useContext(GridContext);
+  const forceUpdate = useReducer(() => ({}))[1];
+  useLayoutEffect(() => {
+    const deinitializeUseGrid = useGrid.initialize(type, forceUpdate);
+    const deinitializeGrid = grid.initialize(type, forceUpdate);
+    return () => {
+      deinitializeUseGrid();
+      deinitializeGrid();
+    };
+  }, []);
+  return { grid, useGrid, forceUpdate };
+};
 
 const GridContextProvider = (props) => {
   const { children, useGrid } = props;
 
   const grid = useRef(
     new (class {
+      key = uuid();
+
       overscanCount = 40;
       rowMinHeight = 32;
       scrollerRef = null;
@@ -151,14 +167,8 @@ const GridContextProvider = (props) => {
         this.scrollerRef = ref;
       };
 
-      getRowMetrics = () => {
-        return useGrid.getEdit()
-          ? this.rowMetricsEditable
-          : this.rowMetricsNonEditable;
-      };
-
       setRowHeight = (index, height) => {
-        const rowMetrics = this.getRowMetrics();
+        const rowMetrics = this.#getRowMetrics();
         const rowMetric = (rowMetrics[index] ??= {});
         if (rowMetric.height === height) {
           return false;
@@ -168,59 +178,30 @@ const GridContextProvider = (props) => {
         }
       };
 
-      getScrollTop = () => {
-        return this.scrollerRef?.scrollTop ?? 0;
+      readjust = debounce(() => {
+        this.#calculateRowTops();
+        this.renderBody?.();
+      }, 100);
+
+      getRows = () => {
+        return this.#index(this.#slice(this.#paginate(useGrid.getData())));
       };
 
-      getRowTop = (index) => {
-        return this.getRowMetrics()[index]?.top;
+      // ### Private ### //
+
+      #getRowMetrics = () => {
+        return useGrid.getEdit()
+          ? this.rowMetricsEditable
+          : this.rowMetricsNonEditable;
       };
 
-      getRowHeight = (index) => {
-        return this.getRowMetrics()[index]?.height;
-      };
-
-      calculateRowTops = () => {
-        this.getRowMetrics()
+      #calculateRowTops = () => {
+        this.#getRowMetrics()
           .slice(0, useGrid.getPagination() ? useGrid.getSize() : undefined)
           .reduce((prev, curr) => {
             curr.top = prev;
             return prev + curr.height;
           }, 0);
-      };
-
-      readjust = debounce(() => {
-        this.calculateRowTops();
-        this.renderBody?.();
-      }, 100);
-
-      getIndexTop = () => {
-        return Math.max(
-          this.getRowMetrics().findIndex(({ top }) => {
-            return this.getScrollTop() <= top;
-          }),
-          0
-        );
-      };
-
-      getIndexStart = () => {
-        return Math.max(this.getIndexTop() - this.overscanCount, 0);
-      };
-
-      getIndexEnd = (rowsCount) => {
-        const height = Number(
-          String(useGrid.getHeight()).replaceAll(" ", "").replace("px", "")
-        );
-        return Math.min(
-          this.getIndexTop() +
-            Math.ceil(height / this.rowMinHeight) +
-            this.overscanCount,
-          rowsCount
-        );
-      };
-
-      getRows = () => {
-        return this.#index(this.#slice(this.#paginate(useGrid.getData())));
       };
 
       #paginate = (data) => {
@@ -232,27 +213,52 @@ const GridContextProvider = (props) => {
           : data.slice(page * size, (page + 1) * size);
       };
 
+      #getIndexTop = () => {
+        return Math.max(
+          this.#getRowMetrics().findIndex(({ top }) => {
+            return this.scrollerRef?.scrollTop ?? 0 <= top;
+          }),
+          0
+        );
+      };
+
+      #getIndexStart = () => {
+        return Math.max(this.#getIndexTop() - this.overscanCount, 0);
+      };
+
+      #getIndexEnd = (rowsCount) => {
+        const height = Number(
+          String(useGrid.getHeight()).replaceAll(" ", "").replace("px", "")
+        );
+        return Math.min(
+          this.#getIndexTop() +
+            Math.ceil(height / this.rowMinHeight) +
+            this.overscanCount,
+          rowsCount
+        );
+      };
+
       #slice = (data) => {
         return useGrid.getHeight() === undefined
           ? data
-          : data.slice(this.getIndexStart(), this.getIndexEnd(data.length));
+          : data.slice(this.#getIndexStart(), this.#getIndexEnd(data.length));
       };
 
       #index = (data) => {
         const page = useGrid.getPage();
         const size = useGrid.getSize();
-        const rowMetrics = this.getRowMetrics();
+        const rowMetrics = this.#getRowMetrics();
         return data.map((data, index) => {
           const viewIndex =
             useGrid.getHeight() === undefined
               ? index
-              : index + this.getIndexStart();
+              : index + this.#getIndexStart();
           const dataIndex =
             !useGrid.getPagination() || useGrid.getPagination() === "external"
               ? viewIndex
               : viewIndex + page * size;
           const { top, height } = rowMetrics[viewIndex] || {};
-          const key = `${useGrid.getDataKey()}-bodyrow-${dataIndex}`;
+          const key = `${this.key}:b:${dataIndex}`;
           return {
             key,
             data,
@@ -273,20 +279,6 @@ const GridContextProvider = (props) => {
   return (
     <GridContext.Provider value={contextValue}>{children}</GridContext.Provider>
   );
-};
-
-const useInitialize = (type) => {
-  const { useGrid, grid } = useContext(GridContext);
-  const forceUpdate = useReducer(() => ({}))[1];
-  useLayoutEffect(() => {
-    const deinitializeUseGrid = useGrid.initialize(type, forceUpdate);
-    const deinitializeGrid = grid.initialize(type, forceUpdate);
-    return () => {
-      deinitializeUseGrid();
-      deinitializeGrid();
-    };
-  }, []);
-  return { grid, useGrid, forceUpdate };
 };
 
 const GridComponent = memo(() => {
@@ -313,7 +305,8 @@ const GridComponent = memo(() => {
 
 const Header = memo(() => {
   console.log("Grid Header");
-  const { useGrid } = useInitialize("Header");
+  const { useGrid, grid } = useInitialize("Header");
+  const key = grid.key;
   const schema = useGrid.getSchema();
   const { radio, checkbox, header, headerWidths, headerRowCount } = schema;
   return (
@@ -328,7 +321,7 @@ const Header = memo(() => {
       {checkbox && <OptionCell />}
       {header.map((col, colIndex) => {
         const { colCount, cells } = col;
-        const colKey = `${useGrid.getKey()}-headercol-${colIndex}`;
+        const colKey = `${key}:h:${colIndex}`;
         return (
           <div
             key={colKey}
@@ -340,7 +333,7 @@ const Header = memo(() => {
           >
             {cells.map((cell, cellIndex) => {
               const { colSpan, rowSpan, binding } = cell;
-              const celKey = `${colKey}-headercel-${cellIndex}`;
+              const celKey = `${colKey}:${cellIndex}`;
               return (
                 <div
                   key={celKey}
@@ -490,7 +483,7 @@ const Row = memo(
         {radio && (
           <OptionCell>
             <input
-              name={`${useGrid.getKey()}-radio`}
+              name={`${grid.key}:r`}
               type="radio"
               defaultChecked={radioChecked}
               onChange={handleRadio}
@@ -508,10 +501,10 @@ const Row = memo(
         )}
         {body.map((col, colIndex) => {
           const { colCount, cells } = col;
-          const key = `${rowKey}-bodycol-${colIndex}`;
+          const colKey = `${rowKey}:${colIndex}`;
           return (
             <div
-              key={key}
+              key={colKey}
               className="grid grid-cols-subgrid grid-rows-subgrid"
               style={{
                 gridColumn: `span ${colCount}`,
@@ -520,7 +513,7 @@ const Row = memo(
             >
               {cells.map((cell, cellIndex) => {
                 const { id, colSpan, rowSpan, binding, ...rest } = cell;
-                const key = `${rowKey}-bodycel-${colIndex}-${cellIndex}`;
+                const celKey = `${colKey}:${cellIndex}`;
 
                 const defaultValue = rowData[binding];
                 // const renderer = $useGrid.renderer?.body?.[id]?.({
@@ -568,7 +561,7 @@ const Row = memo(
 
                 return (
                   <div
-                    key={key}
+                    key={celKey}
                     className="border-r border-b flex items-center p-1"
                     style={{
                       gridColumn: `span ${colSpan}`,
@@ -666,7 +659,7 @@ const Footer = memo(() => {
 
 const Pagination = (props) => {
   const { page, count = 0, perPage = 10, chunk = 10, onChange } = props;
-  const keyBase = useRef(uuid()).current;
+  const { grid } = useContext(GridContext);
   const [cursor, setCursor] = useState(0);
   const chunked = [];
   const pageCount = Math.ceil(count / perPage) || 1;
@@ -685,9 +678,6 @@ const Pagination = (props) => {
     if (cursor < chunkCount - 1) {
       setCursor((prev) => (prev += 1));
     }
-  };
-  const handlePageClick = (value) => {
-    onChange?.(value);
   };
 
   const isOverPage = pageCount < page + 1;
@@ -714,7 +704,7 @@ const Pagination = (props) => {
         onClick={handlePrevClick}
       >{`<`}</button>
       {list?.map((value) => {
-        const key = `${keyBase}-pagination-${value}`;
+        const key = `${grid.key}:p:${value}`;
         return (
           <button
             key={key}
@@ -723,7 +713,7 @@ const Pagination = (props) => {
               "text-sm border rounded w-8 h-8" +
               (page === value ? " font-semibold" : "")
             }
-            onClick={() => handlePageClick(value)}
+            onClick={() => onChange?.(value)}
           >
             {value + 1}
           </button>
@@ -740,7 +730,7 @@ const Pagination = (props) => {
 
 const Sizination = (props) => {
   const { size, onChange } = props;
-  const keyBase = useRef(uuid()).current;
+  const { grid } = useContext(GridContext);
   const list = [10, 20, 30, 40, 50, 100, 1000];
   const handleChange = (event) => {
     onChange?.(Number(event.target.value));
@@ -752,7 +742,7 @@ const Sizination = (props) => {
       onChange={handleChange}
     >
       {list.map((value) => {
-        const key = `${keyBase}-sizination-${value}`;
+        const key = `${grid.key}:s:${value}`;
         return (
           <option key={key} value={value}>
             {value}

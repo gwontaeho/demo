@@ -6,6 +6,7 @@ import utils from "../utils";
 import { useForm } from "react-hook-form";
 
 export const SampleGrid = () => {
+  console.log("Grid");
   const {
     schema,
     setSchema,

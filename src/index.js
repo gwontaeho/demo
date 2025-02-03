@@ -28,10 +28,14 @@ import { api } from "./apis";
 import axios from "axios";
 import { SampleForm } from "./sample/SampleForm";
 import { SampleGrid } from "./sample/SampleGrid";
+import { SampleModal } from "./sample/SampleModal";
+import { ModalContextProvider } from "./hooks/useModal";
 
 function App() {
+  console.log("APP");
   return (
     <div className="p-8">
+      <SampleModal />
       {/* <SampleForm /> */}
       <SampleGrid />
     </div>
@@ -41,7 +45,9 @@ function App() {
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  // <StrictMode>
-  <App />
-  // </StrictMode>
+  <StrictMode>
+    <ModalContextProvider>
+      <App />
+    </ModalContextProvider>
+  </StrictMode>
 );
