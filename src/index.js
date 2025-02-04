@@ -30,6 +30,7 @@ import { SampleForm } from "./sample/SampleForm";
 import { SampleGrid } from "./sample/SampleGrid";
 import { SampleModal } from "./sample/SampleModal";
 import { ModalContextProvider } from "./hooks/useModal";
+import { ToastContextProvider } from "./hooks/useToast";
 
 function App() {
   console.log("APP");
@@ -47,7 +48,9 @@ const root = createRoot(domNode);
 root.render(
   <StrictMode>
     <ModalContextProvider>
-      <App />
+      <ToastContextProvider>
+        <App />
+      </ToastContextProvider>
     </ModalContextProvider>
   </StrictMode>
 );
