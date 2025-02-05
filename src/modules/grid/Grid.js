@@ -11,13 +11,13 @@ import {
   useReducer,
 } from "react";
 
-import { ControlText } from "./ControlText";
-import { ControlNumber } from "./ControlNumber";
-import { ControlRadio } from "./ControlRadio";
-import { ControlCheckbox } from "./ControlCheckbox";
-import { ControlSelect } from "./ControlSelect";
-import { ControlTextarea } from "./ControlTextarea";
-import { ControlDate } from "./ControlDate";
+import { ControlText } from "../../components/ControlText";
+import { ControlNumber } from "../../components/ControlNumber";
+import { ControlRadio } from "../../components/ControlRadio";
+import { ControlCheckbox } from "../../components/ControlCheckbox";
+import { ControlSelect } from "../../components/ControlSelect";
+import { ControlTextarea } from "../../components/ControlTextarea";
+import { ControlDate } from "../../components/ControlDate";
 
 const GridContext = createContext();
 

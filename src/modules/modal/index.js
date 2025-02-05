@@ -11,37 +11,6 @@ const uuid = () => {
 
 const ModalContext = createContext();
 
-export const ModalContextProvider = ({ children }) => {
-  const modal = useRef({
-    setModals: null,
-  }).current;
-  return (
-    <ModalContext.Provider value={modal}>
-      <ModalContainer />
-      {children}
-    </ModalContext.Provider>
-  );
-};
-
-export const useModal = () => {
-  const modal = useContext(ModalContext);
-
-  const openModal = (params = {}) => {
-    const { id = uuid(), content, type } = params;
-    modal.setModals((prev) => {
-      const next = prev.filter((item) => item.id !== id);
-      next.push({ id, content });
-      return next;
-    });
-  };
-
-  const closeModal = (id) => {
-    modal.setModals(id ? (prev) => prev.filter((item) => item.id !== id) : []);
-  };
-
-  return { openModal, closeModal };
-};
-
 const ModalContainer = () => {
   const modal = useContext(ModalContext);
   const [modals, setModals] = useState([]);
@@ -51,7 +20,7 @@ const ModalContainer = () => {
 
   if (!modals.length) return null;
   return createPortal(
-    <div className="fixed w-screen h-screen top-0 left-0 flex items-center justify-center">
+    <div className="fixed w-screen h-screen top-0 left-0 flex items-center justify-center bg-black/5">
       {modals.map((props) => {
         return <Modal key={props.id} {...props} />;
       })}
@@ -64,8 +33,8 @@ const Modal = (props) => {
   const { id, content } = props;
   const { closeModal } = useModal();
   return (
-    <div className="absolute w-[400px] h-[200px] border rounded-lg shadow overflow-hidden">
-      <div className="h-[40px] bg-gray-50 border-b flex items-center justify-between px-2">
+    <div className="absolute w-[400px] h-[200px] border rounded-lg shadow overflow-hidden bg-gray-50">
+      <div className="h-[40px] border-b flex items-center justify-between px-2">
         <div></div>
         <button type="button" onClick={() => closeModal(id)}>
           <svg
@@ -88,3 +57,36 @@ const Modal = (props) => {
     </div>
   );
 };
+
+const ModalProvider = ({ children }) => {
+  const modal = useRef({
+    setModals: null,
+  }).current;
+  return (
+    <ModalContext.Provider value={modal}>
+      <ModalContainer />
+      {children}
+    </ModalContext.Provider>
+  );
+};
+
+const useModal = () => {
+  const modal = useContext(ModalContext);
+
+  const openModal = (params = {}) => {
+    const { id = uuid(), content, type } = params;
+    modal.setModals((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      next.push({ id, content });
+      return next;
+    });
+  };
+
+  const closeModal = (id) => {
+    modal.setModals(id ? (prev) => prev.filter((item) => item.id !== id) : []);
+  };
+
+  return { openModal, closeModal };
+};
+
+export { ModalProvider, useModal };

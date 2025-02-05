@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect } from "react";
-import { useModal } from "../hooks/useModal";
-import { useToast } from "../hooks/useToast";
+import { useModal } from "../modules/modal";
+import { useToast } from "../modules/toast";
 
 export const SampleModal = () => {
   console.log("Modal");
@@ -8,7 +8,7 @@ export const SampleModal = () => {
   const { openToast } = useToast();
 
   useEffect(() => {
-    openModal({ content: <div>qwdqwd</div> });
+    // openModal({ content: <div>qwdqwd</div> });
   }, []);
 
   useLayoutEffect(() => {

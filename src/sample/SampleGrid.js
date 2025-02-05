@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef, useReducer } from "react";
-import { useGrid } from "../hooks/useGrid";
-import { Grid } from "../components/Grid";
+import { useGrid } from "../modules/grid";
+import { Grid } from "../modules/grid";
 
 import utils from "../utils";
-import { useForm } from "react-hook-form";
 
 export const SampleGrid = () => {
   console.log("Grid");

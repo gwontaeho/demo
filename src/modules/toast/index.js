@@ -11,37 +11,6 @@ const uuid = () => {
 
 const ToastContext = createContext();
 
-export const ToastContextProvider = ({ children }) => {
-  const toast = useRef({
-    setToasts: null,
-  }).current;
-  return (
-    <ToastContext.Provider value={toast}>
-      <ToastContainer />
-      {children}
-    </ToastContext.Provider>
-  );
-};
-
-export const useToast = () => {
-  const toast = useContext(ToastContext);
-
-  const openToast = (params = {}) => {
-    const { id = uuid(), content, type } = params;
-    toast.setToasts((prev) => {
-      const next = prev.filter((item) => item.id !== id);
-      next.push({ id, content });
-      return next;
-    });
-  };
-
-  const closeToast = (id) => {
-    toast.setToasts(id ? (prev) => prev.filter((item) => item.id !== id) : []);
-  };
-
-  return { openToast, closeToast };
-};
-
 const ToastContainer = () => {
   const toast = useContext(ToastContext);
   const [toasts, setToasts] = useState([]);
@@ -75,3 +44,36 @@ const Toast = (props) => {
 
   return <div className="border h-[40px] w-[200px]">{content}</div>;
 };
+
+const ToastProvider = ({ children }) => {
+  const toast = useRef({
+    setToasts: null,
+  }).current;
+  return (
+    <ToastContext.Provider value={toast}>
+      <ToastContainer />
+      {children}
+    </ToastContext.Provider>
+  );
+};
+
+const useToast = () => {
+  const toast = useContext(ToastContext);
+
+  const openToast = (params = {}) => {
+    const { id = uuid(), content, type } = params;
+    toast.setToasts((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      next.push({ id, content });
+      return next;
+    });
+  };
+
+  const closeToast = (id) => {
+    toast.setToasts(id ? (prev) => prev.filter((item) => item.id !== id) : []);
+  };
+
+  return { openToast, closeToast };
+};
+
+export { ToastProvider, useToast };
