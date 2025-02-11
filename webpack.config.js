@@ -1,4 +1,3 @@
-const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = function (env, argv) {
@@ -26,5 +25,13 @@ module.exports = function (env, argv) {
       ],
     },
     plugins: [new HtmlWebpackPlugin({ template: "./public/index.html" })],
+    // 번들
+    output: {
+      publicPath: "/",
+    },
+    // 라우터
+    devServer: {
+      historyApiFallback: true,
+    },
   };
 };
