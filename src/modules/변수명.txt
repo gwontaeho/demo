@@ -1,0 +1,11 @@
+active
+visible
+disabled
+editable
+
+pending
+fulfilled
+rejected
+
+createdAt
+updatedAt

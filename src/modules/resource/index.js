@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useRef } from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -16,35 +16,99 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const ResourceContext = createContext(
-  new (class {
-    #resources = {};
+const ResourceContext = createContext();
 
-    initialize = (parmas) => {
-      parmas.forEach((item) => {
-        const { key } = item;
-        if (!this.#resources[key]) {
-          this.fetchResource(key);
-        }
-      });
-    };
+const ResourceProvider = ({ children }) => {
+  const _resource = useRef(
+    new (class {
+      #resources = {};
 
-    getResource = (key) => {
-      return cloneDeep(this.#resources[key]);
-    };
-
-    fetchResource = async (key) => {
-      try {
-        const response = await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve({ key, value: [] });
-          }, 1000);
+      initialize = (params) => {
+        params.forEach(async (item) => {
+          const { key } = item;
+          const target = this.#resources[key];
+          if (target === undefined) {
+            this.#resources[key] = this.#createResource(key);
+            const { value, status } = await this.#fetchResource(key);
+            this.#setResource(key, value, status);
+          } else if (target.status !== "pending" && false) {
+            // 갱신 필요시
+            target.status = "pending";
+            Object.assign(target, createPromise());
+            const { value, status } = await this.#fetchResource(key);
+            this.#setResource(key, value, status);
+          }
         });
-        console.log(response);
-      } catch (error) {}
-    };
-  })()
-);
+      };
+
+      #createResource = (key) => {
+        return Object.assign(
+          {
+            key,
+            value: null,
+            updatedAt: null,
+            status: "pending",
+          },
+          this.#createPromise()
+        );
+      };
+
+      #createPromise = () => {
+        let promise;
+        let resolve;
+        promise = new Promise((_) => {
+          resolve = _;
+        });
+        return { promise, resolve };
+      };
+
+      #setResource = (key, value, status) => {
+        switch (status) {
+          case "fulfilled": {
+            this.#resources[key].value = value;
+            this.#resources[key].status = status;
+            this.#resources[key].updatedAt = new Date();
+            this.#resources[key].resolve();
+            break;
+          }
+          case "rejected": {
+            this.#resources[key].status = status;
+            this.#resources[key].resolve();
+            break;
+          }
+        }
+      };
+
+      #fetchResource = async (key) => {
+        let value;
+        let status;
+        try {
+          const _ = await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve([]);
+            }, 1000);
+          });
+          value = _;
+          status = "fulfilled";
+        } catch (error) {
+          status = "rejected";
+        }
+        return { key, value, status };
+      };
+
+      getResource = async (key) => {
+        await this.#resources[key].promise;
+        return cloneDeep(this.#resources[key]);
+      };
+    })()
+  ).current;
+
+  return (
+    <ResourceContext.Provider value={_resource}>
+      {children}
+    </ResourceContext.Provider>
+  );
+};
 
 const useResource = (params) => {
   const { initialize, getResource } = useContext(ResourceContext);
@@ -52,4 +116,4 @@ const useResource = (params) => {
   return { getResource };
 };
 
-export { useResource };
+export { ResourceProvider, useResource };
