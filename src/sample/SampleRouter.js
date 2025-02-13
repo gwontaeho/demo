@@ -76,14 +76,41 @@ const Router5 = () => {
 };
 
 const Test = () => {
-  console.log("test");
-  return <div>qwdw</div>;
+  let navigate = useNavigate();
+  navigate = "a";
+  return (
+    <div>
+      <div
+        onClick={() => {
+          console.log(navigate);
+        }}
+      >
+        qwdw
+      </div>
+    </div>
+  );
+};
+
+const Test2 = () => {
+  const navigate = useNavigate();
+  return (
+    <div>
+      <div
+        onClick={() => {
+          console.log(navigate);
+        }}
+      >
+        qwdw
+      </div>
+    </div>
+  );
 };
 
 export const SampleRouter = () => {
   return (
     <div>
       <Test />
+      <Test2 />
       <Routes>
         <Route path="/" element={<Router1 />} />
         <Route path="/aa" element={<Router2 />} />

@@ -22,10 +22,10 @@ function App() {
   console.log("APP");
   return (
     <div className="p-8">
-      <SampleResource />
+      {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
-      {/* <SampleRouter /> */}
+      <SampleRouter />
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}

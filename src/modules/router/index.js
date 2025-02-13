@@ -47,10 +47,10 @@ const RouterProvider = ({ children }) => {
 
       initialize = (forceUpdate) => {
         if (this.#renderRouter !== forceUpdate) {
-          this.#renderRouter = forceUpdate;
           if (this.#onPopstate) {
             window.removeEventListener("popstate", this.#onPopstate);
           }
+          this.#renderRouter = forceUpdate;
           this.#onPopstate = () => {
             this.setParams({});
             this.#renderRouter();
@@ -79,6 +79,7 @@ const RouterProvider = ({ children }) => {
       };
     })()
   ).current;
+  console.log("provider");
 
   return (
     <RouterContext.Provider value={_router}>
