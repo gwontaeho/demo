@@ -26,15 +26,14 @@ const ResourceProvider = ({ children }) => {
       initialize = (params) => {
         params.forEach(async (item) => {
           const { key } = item;
-          const target = this.#resources[key];
-          if (target === undefined) {
+          if (this.#resources[key] === undefined) {
             this.#resources[key] = this.#createResource(key);
             const { value, status } = await this.#fetchResource(key);
             this.#setResource(key, value, status);
-          } else if (target.status !== "pending" && false) {
+          } else if (this.#resources[key].status !== "pending" && false) {
             // 갱신 필요시
-            target.status = "pending";
-            Object.assign(target, createPromise());
+            this.#resources[key].status = "pending";
+            Object.assign(this.#resources[key], createPromise());
             const { value, status } = await this.#fetchResource(key);
             this.#setResource(key, value, status);
           }
@@ -67,7 +66,7 @@ const ResourceProvider = ({ children }) => {
           case "fulfilled": {
             this.#resources[key].value = value;
             this.#resources[key].status = status;
-            this.#resources[key].updatedAt = new Date();
+            this.#resources[key].updatedAt = new Date().getTime();
             this.#resources[key].resolve();
             break;
           }
@@ -97,6 +96,8 @@ const ResourceProvider = ({ children }) => {
       };
 
       getResource = async (key) => {
+        // 타임아웃 추가해야함
+        // Promise.race()를 사용하여 timeout
         await this.#resources[key].promise;
         return cloneDeep(this.#resources[key]);
       };
