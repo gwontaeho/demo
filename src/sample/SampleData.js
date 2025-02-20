@@ -12,13 +12,18 @@ export const SampleData = () => {
     });
   };
 
-  const {} = useData(mockApi, {
+  const { data, fetchData } = useData(mockApi, {
     interval: 0,
     timeout: 2000,
-    deps: [],
-    onSuccess: () => {},
+    // key: ["asd", "wfwf"],
+    // enabled: test === 3,
+    onSuccess: () => {
+      console.log("asd");
+    },
     onError: () => {},
   });
+
+  console.log(data);
 
   return (
     <div>

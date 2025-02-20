@@ -16,33 +16,56 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const useData = (source, config) => {
+const useData = (source, config = {}) => {
   const forceUpdate = useReducer(() => ({}))[1];
-
-  const { setSource, fetchData, getData } = useRef(
+  const { setSource, setConfig, fetchData, fetchDataWithKey, getData } = useRef(
     new (class {
-      #status = "pending";
+      #key = null;
       #data = null;
       #source = null;
+      #config = null;
       #render = forceUpdate;
-
       setSource = (source) => {
         this.#source = source;
       };
-      fetchData = () => {
-        this.#source?.();
+      setConfig = (config) => {
+        this.#config = config;
+      };
+      fetchData = async () => {
+        try {
+          this.#data = await this.#source?.();
+          this.#render?.();
+          this.#config.onSuccess?.();
+        } catch (error) {
+          this.#config.onError?.();
+        }
+      };
+      fetchDataWithKey = async (key) => {
+        const stringified = JSON.stringify(key);
+        if (this.#key === stringified) return;
+        this.#key = stringified;
+        try {
+          this.#data = await this.#source?.();
+          this.#render?.();
+          this.#config.onSuccess?.();
+        } catch (error) {
+          this.#config.onError?.();
+        }
       };
       getData = () => {
         return cloneDeep(this.#data);
       };
     })()
   ).current;
-
   setSource(source);
+  setConfig(config);
+
+  const enabled = config.enabled ?? true;
+  const key = Array.isArray(config.key) ? config.key : [config.key];
 
   useEffect(() => {
-    console.log("aa");
-  }, []);
+    if (enabled) fetchDataWithKey(key);
+  }, [enabled, ...key]);
 
   const data = getData();
 
