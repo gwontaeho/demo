@@ -11,6 +11,7 @@ import { SampleRouter } from "./sample/SampleRouter";
 import { SampleTab } from "./sample/SampleTab";
 import { SampleTree } from "./sample/SampleTree";
 import { SampleResource } from "./sample/SampleResource";
+import { SampleData } from "./sample/SampleData";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
@@ -22,10 +23,11 @@ function App() {
   console.log("APP");
   return (
     <div className="p-8">
+      <SampleData />
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
-      <SampleRouter />
+      {/* <SampleRouter /> */}
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
