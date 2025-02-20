@@ -55,16 +55,23 @@ const useData = (source, config = {}) => {
       getData = () => {
         return cloneDeep(this.#data);
       };
+      startInterval = () => {};
     })()
   ).current;
   setSource(source);
   setConfig(config);
 
-  const enabled = config.enabled ?? true;
   const key = Array.isArray(config.key) ? config.key : [config.key];
+  const enabled = config.enabled ?? true;
+  const timeout = config.timeout;
+  const interval = config.interval;
+
+  useEffect(() => {}, []);
 
   useEffect(() => {
-    if (enabled) fetchDataWithKey(key);
+    if (enabled) {
+      fetchDataWithKey(key);
+    }
   }, [enabled, ...key]);
 
   const data = getData();
