@@ -6,6 +6,7 @@ export const SampleData = () => {
 
   const mockApi = () => {
     return new Promise((resolve) => {
+      
       setTimeout(() => {
         resolve(["a"]);
       }, 2000);
