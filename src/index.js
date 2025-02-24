@@ -12,6 +12,7 @@ import { SampleTab } from "./sample/SampleTab";
 import { SampleTree } from "./sample/SampleTree";
 import { SampleResource } from "./sample/SampleResource";
 import { SampleData } from "./sample/SampleData";
+import { SampleControl } from "./sample/SampleControl";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
@@ -19,11 +20,18 @@ import { StoreProvider } from "./modules/store";
 import { ModalProvider } from "./modules/modal";
 import { ToastProvider } from "./modules/toast";
 
+import { useForm } from "react-hook-form";
+
 function App() {
   console.log("APP");
+
+  const a = useForm();
+  console.log(a.register("a").ref);
+
   return (
     <div className="p-8">
-      <SampleData />
+      <SampleControl />
+      {/* <SampleData /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}

@@ -1,0 +1,150 @@
+import { forwardRef } from "react";
+
+const uuid = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const random = (Math.random() * 16) | 0;
+    const value = char === "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
+
+const ControlText = forwardRef((props, ref) => {
+  const { ...rest } = props;
+  return (
+    <input
+      ref={ref}
+      type="text"
+      className="border h-8 px-2 bg-slate-50"
+      autoComplete="off"
+      {...rest}
+    />
+  );
+});
+
+const ControlNumber = forwardRef((props, ref) => {
+  const { onChange, thousandsSeparator, decimalScale, ...rest } = props;
+
+  const handleChange = (event) => {
+    event.target.value = event.target.value.replace(/[^0-9.]+/g, "");
+    const lastPoint = event.target.value.lastIndexOf(".");
+    if (lastPoint !== -1) {
+      event.target.value =
+        event.target.value.slice(0, lastPoint).replaceAll(".", "") +
+        event.target.value.slice(lastPoint);
+    }
+    if (typeof decimalScale === "number") {
+      const point = event.target.value.indexOf(".");
+      if (point !== -1) {
+        if (decimalScale === 0) {
+          event.target.value = event.target.value.replaceAll(".", "");
+        } else {
+          event.target.value = event.target.value.slice(
+            0,
+            point + 1 + decimalScale
+          );
+        }
+      }
+    }
+    if (thousandsSeparator === true) {
+      const [integer, decimal] = event.target.value.split(".");
+      event.target.value =
+        integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
+        (decimal === undefined ? "" : `.${decimal}`);
+    }
+    onChange?.(event);
+  };
+
+  return (
+    <input
+      ref={ref}
+      type="text"
+      autoComplete="off"
+      className="border h-8 px-2 bg-slate-50"
+      onChange={handleChange}
+      {...rest}
+    />
+  );
+});
+
+const ControlTextarea = forwardRef((props, ref) => {
+  const { ...rest } = props;
+  return (
+    <textarea
+      ref={ref}
+      className="block border min-h-8 px-2 bg-slate-50"
+      {...rest}
+    />
+  );
+});
+
+const ControlSelect = forwardRef((props, ref) => {
+  const { options } = props;
+  return (
+    <select ref={ref} className="border h-8 bg-slate-50">
+      <option value=""></option>
+      {options?.map((item) => {
+        return (
+          <option key={uuid()} value={item.value}>
+            {item.label}
+          </option>
+        );
+      })}
+    </select>
+  );
+});
+
+const ControlRadio = forwardRef((props, ref) => {
+  const { options } = props;
+  return (
+    <div className="flex flex-wrap gap-x-4">
+      {options?.map((item) => {
+        return (
+          <label key={uuid()}>
+            <input ref={ref} type="radio" value={item.value} />
+            {item.label}
+          </label>
+        );
+      })}
+    </div>
+  );
+});
+
+const ControlCheckbox = forwardRef((props, ref) => {
+  const { options } = props;
+  return (
+    <div className="flex gap-x-4 flex-wrap">
+      {options?.map((item) => {
+        return (
+          <label key={uuid()}>
+            <input ref={ref} type="checkbox" value={item.value} />
+            {item.label}
+          </label>
+        );
+      })}
+    </div>
+  );
+});
+
+const Control = (props) => {
+  const { type, message, errorMessage, ...rest } = props;
+
+  return (
+    <div>
+      {type === "text" ? (
+        <ControlText {...rest} />
+      ) : type === "number" ? (
+        <ControlNumber {...rest} />
+      ) : type === "select" ? (
+        <ControlSelect {...rest} />
+      ) : type === "radio" ? (
+        <ControlRadio {...rest} />
+      ) : type === "checkbox" ? (
+        <ControlCheckbox {...rest} />
+      ) : type === "textarea" ? (
+        <ControlTextarea {...rest} />
+      ) : null}
+    </div>
+  );
+};
+
+export { Control };
