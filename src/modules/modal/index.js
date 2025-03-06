@@ -15,7 +15,8 @@ const Modal = (props) => {
   const { id, content } = props;
   const { closeModal } = useModal();
   return (
-    <div className="absolute w-[400px] h-[200px] border rounded-lg shadow overflow-hidden bg-gray-50">
+    <div className="absolute flex flex-col w-[400px] h-[200px] border rounded-lg shadow overflow-hidden bg-gray-50">
+      {/* header */}
       <div className="h-[40px] border-b flex items-center justify-between px-2">
         <div></div>
         <button type="button" onClick={() => closeModal(id)}>
@@ -35,7 +36,12 @@ const Modal = (props) => {
           </svg>
         </button>
       </div>
-      <div className="p-1">{content}</div>
+      {/* content */}
+      <div className="flex-1 p-1">{content}</div>
+      {/* footer */}
+      <div className="h-[40px] border-t flex items-center justify-between px-2">
+        <div></div>
+      </div>
     </div>
   );
 };
