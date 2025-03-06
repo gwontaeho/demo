@@ -26,11 +26,12 @@ function App() {
   console.log("APP");
 
   const a = useForm();
-  console.log(a.register("a").ref);
+
+  console.log(a.register("a").onChange);
 
   return (
     <div className="p-8">
-      <SampleControl />
+      {/* <SampleControl /> */}
       {/* <SampleData /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
@@ -39,7 +40,7 @@ function App() {
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
-      {/* <SampleForm /> */}
+      <SampleForm />
       {/* <SampleGrid /> */}
     </div>
   );
