@@ -23,7 +23,9 @@ const Toast = (props) => {
     };
   }, []);
 
-  return <div className="border h-[40px] w-[200px]">{content}</div>;
+  return (
+    <div className="border shadow rounded h-[40px] w-[200px]">{content}</div>
+  );
 };
 
 const ToastContainer = () => {
@@ -32,7 +34,7 @@ const ToastContainer = () => {
   initialize(setToasts);
   if (!toasts.length) return null;
   return createPortal(
-    <div className="fixed right-0 bottom-0">
+    <div className="fixed right-0 bottom-0 p-4 flex flex-col gap-1">
       {toasts.map((props) => {
         return <Toast key={props.id} {...props} />;
       })}
