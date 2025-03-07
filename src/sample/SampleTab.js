@@ -32,9 +32,9 @@ export const SampleTab = () => {
 
       {test && (
         <Tab ref={ref}>
-          <Tab.Panel name="aa">a</Tab.Panel>
-          <Tab.Panel name="bb">b</Tab.Panel>
-          <Tab.Panel name="cc">c</Tab.Panel>
+          <Tab.Panel>a</Tab.Panel>
+          <Tab.Panel>b</Tab.Panel>
+          <Tab.Panel>c</Tab.Panel>
         </Tab>
       )}
     </div>

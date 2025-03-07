@@ -50,7 +50,6 @@ const useTab = (params = {}) => {
       if (param === undefined) {
         return _data.current;
       }
-      console.log("HH!");
       _tab.current = { ...param };
     },
     setActive: (...params) => {
@@ -79,7 +78,7 @@ const Tab = forwardRef((props, ref) => {
   const [hiddenItems, setHiddenItems] = useState(_data.current.hidden);
   const [disabledItems, setDisabledItems] = useState(_data.current.disabled);
 
-  const [schema, setSchema] = useState(
+  const [schema] = useState(
     () => _data.current.name ?? children.map(({ props: { name = "" } }) => name)
   );
 
