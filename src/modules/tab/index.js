@@ -1,4 +1,4 @@
-import { useRef, useReducer, useState, forwardRef, useEffect } from "react";
+import { useRef, useState, forwardRef, useEffect } from "react";
 
 const uuid = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
@@ -24,38 +24,40 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const makeSchema = (schema) => {
-  return schema.map((item, index) => {
-    const { visible = true, disabled = false } = item;
-    return {
-      ...item,
-      visible,
-      disabled,
-      active:
-        index ===
-        Math.max(
-          schema.findIndex(({ active }) => {
-            return active === true;
-          }),
-          0
-        ),
-    };
-  });
-};
-
 const useTab = (params = {}) => {
   const { defaultSchema } = params;
+
+  const _data = useRef(null);
+  if (_data.current === null) {
+    let active = 0;
+    let name = [];
+    let hidden = [];
+    let disabled = [];
+    if (defaultSchema) {
+      defaultSchema.forEach((item, index) => {
+        if (item.active) active = index;
+        if (item.name) name.push(item.name);
+        if (item.hidden) hidden.push(index);
+        if (item.disabled) disabled.push(index);
+      });
+    }
+    _data.current = { name, active, hidden, disabled };
+  }
 
   const _tab = useRef(null);
   const _useTab = useRef({
     ref: (param) => {
+      if (param === undefined) {
+        return _data.current;
+      }
+      console.log("HH!");
       _tab.current = { ...param };
     },
     setActive: (...params) => {
       _tab.current?.setActive?.(...params);
     },
-    setVisible: (...params) => {
-      _tab.current?.setVisible?.(...params);
+    setHidden: (...params) => {
+      _tab.current?.setHidden?.(...params);
     },
     setDisabled: (...params) => {
       _tab.current?.setDisabled?.(...params);
@@ -68,25 +70,31 @@ const useTab = (params = {}) => {
 const Tab = forwardRef((props, ref) => {
   const { children } = props;
 
-  const [activeItem, setActiveItem] = useState(0);
-  const [visibleItems, setVisibleItems] = useState([]);
-  const [disabledItems, setDisabledItems] = useState([]);
+  const _data = useRef(null);
+  if (_data.current === null && typeof ref === "function") {
+    _data.current = ref();
+  }
 
-  const [schema, setSchema] = useState(() => {
-    return makeSchema(children.map(({ props: { name = "" } }) => ({ name })));
-  });
+  const [activeItem, setActiveItem] = useState(_data.current.active);
+  const [hiddenItems, setHiddenItems] = useState(_data.current.hidden);
+  const [disabledItems, setDisabledItems] = useState(_data.current.disabled);
+
+  const [schema, setSchema] = useState(
+    () => _data.current.name ?? children.map(({ props: { name = "" } }) => name)
+  );
 
   const _tab = useRef({
     key: uuid(),
     setActive: (index) => {
+      _data.current.active = index;
       setActiveItem(index);
     },
-    setVisible: (index, value) => {
-      setVisibleItems((prev) => {
+    setHidden: (index, value) => {
+      setHiddenItems((prev) => {
         if (value && !prev.includes(index)) {
-          return [...prev, index];
+          return (_data.current.hidden = [...prev, index]);
         } else if (!value && prev.includes(index)) {
-          return prev.filter((item) => !item);
+          return (_data.current.hidden = prev.filter((item) => item !== index));
         } else {
           return prev;
         }
@@ -95,9 +103,11 @@ const Tab = forwardRef((props, ref) => {
     setDisabled: (index, value) => {
       setDisabledItems((prev) => {
         if (value && !prev.includes(index)) {
-          return [...prev, index];
+          return (_data.current.disabled = [...prev, index]);
         } else if (!value && prev.includes(index)) {
-          return prev.filter((item) => !item);
+          return (_data.current.disabled = prev.filter(
+            (item) => item !== index
+          ));
         } else {
           return prev;
         }
@@ -117,8 +127,8 @@ const Tab = forwardRef((props, ref) => {
   return (
     <div>
       <div role="tablist" className="border-b">
-        {schema.map(({ name }, index) => {
-          if (visibleItems.includes(index)) return null;
+        {schema.map((name, index) => {
+          if (hiddenItems.includes(index)) return null;
           const active = activeItem === index;
           const disabled = disabledItems.includes(index);
           return (
