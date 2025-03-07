@@ -1,4 +1,4 @@
-import { useRef, useReducer } from "react";
+import { useRef, useReducer, useState, forwardRef, useEffect } from "react";
 
 const uuid = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
@@ -25,98 +25,109 @@ const cloneDeep = (item) => {
 };
 
 const makeSchema = (schema) => {
-  const activeIndex = Math.max(
-    schema.findIndex(({ active }) => {
-      return active === true;
-    }),
-    0
-  );
-
   return schema.map((item, index) => {
     const { visible = true, disabled = false } = item;
-    return { ...item, active: index === activeIndex, visible, disabled };
+    return {
+      ...item,
+      visible,
+      disabled,
+      active:
+        index ===
+        Math.max(
+          schema.findIndex(({ active }) => {
+            return active === true;
+          }),
+          0
+        ),
+    };
   });
 };
 
 const useTab = (params = {}) => {
   const { defaultSchema } = params;
 
-  const _useTab = useRef(
-    new (class {
-      schema = { _useTab: this };
+  const _tab = useRef(null);
+  const _useTab = useRef({
+    ref: (param) => {
+      _tab.current = { ...param };
+    },
+    setActive: (...params) => {
+      _tab.current?.setActive?.(...params);
+    },
+    setVisible: (...params) => {
+      _tab.current?.setVisible?.(...params);
+    },
+    setDisabled: (...params) => {
+      _tab.current?.setDisabled?.(...params);
+    },
+  });
 
-      #schema = makeSchema(cloneDeep(defaultSchema));
-      #renderTab = null;
-
-      initialize = (forceUpdate) => {
-        if (this.#renderTab !== forceUpdate) {
-          this.#renderTab = forceUpdate;
-        }
-      };
-
-      getSchema = () => {
-        return cloneDeep(this.#schema);
-      };
-
-      setSchema = (schema) => {
-        this.#schema = makeSchema(cloneDeep(schema));
-        this.#renderTab?.();
-      };
-
-      setVisible = (target, value) => {
-        if (this.#schema[target].visible === value) return;
-        this.#schema[target].visible = value;
-        this.#renderTab?.();
-      };
-
-      setDisabled = (target, value) => {
-        if (this.#schema[target].disabled === value) return;
-        this.#schema[target].disabled = value;
-        this.#renderTab?.();
-      };
-
-      setActive = (target) => {
-        if (this.getActive() === target) return;
-        for (const index in this.#schema) {
-          this.#schema[index].active = Number(index) === target;
-        }
-        this.#renderTab?.();
-      };
-
-      getActive = () => {
-        return this.#schema.findIndex(({ active }) => {
-          return active === true;
-        });
-      };
-    })()
-  ).current;
-
-  return _useTab;
+  return { ..._useTab.current };
 };
 
-const Tab = ({ _useTab, children }) => {
-  const { initialize, getActive, getSchema, setActive } = _useTab;
-  const _tab = useRef({ key: uuid() }).current;
-  const forceUpdate = useReducer(() => ({}))[1];
-  initialize(forceUpdate);
+const Tab = forwardRef((props, ref) => {
+  const { children } = props;
 
-  const active = getActive();
-  const schema = getSchema();
+  const [activeItem, setActiveItem] = useState(0);
+  const [visibleItems, setVisibleItems] = useState([]);
+  const [disabledItems, setDisabledItems] = useState([]);
 
-  const panel = children[active];
+  const [schema, setSchema] = useState(() => {
+    return makeSchema(children.map(({ props: { name = "" } }) => ({ name })));
+  });
+
+  const _tab = useRef({
+    key: uuid(),
+    setActive: (index) => {
+      setActiveItem(index);
+    },
+    setVisible: (index, value) => {
+      setVisibleItems((prev) => {
+        if (value && !prev.includes(index)) {
+          return [...prev, index];
+        } else if (!value && prev.includes(index)) {
+          return prev.filter((item) => !item);
+        } else {
+          return prev;
+        }
+      });
+    },
+    setDisabled: (index, value) => {
+      setDisabledItems((prev) => {
+        if (value && !prev.includes(index)) {
+          return [...prev, index];
+        } else if (!value && prev.includes(index)) {
+          return prev.filter((item) => !item);
+        } else {
+          return prev;
+        }
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (typeof ref === "function") {
+      const { key, ...rest } = _tab.current;
+      ref(rest);
+    }
+  }, []);
+
+  const panel = children[activeItem];
 
   return (
     <div>
       <div role="tablist" className="border-b">
-        {schema.map(({ name, active, visible, disabled }, index) => {
-          if (!visible) return null;
+        {schema.map(({ name }, index) => {
+          if (visibleItems.includes(index)) return null;
+          const active = activeItem === index;
+          const disabled = disabledItems.includes(index);
           return (
             <button
               role="tab"
               type="button"
               disabled={disabled}
-              key={`${_tab.key}:${index}`}
-              onClick={() => setActive(index)}
+              key={`${_tab.current.key}:${index}`}
+              onClick={() => _tab.current.setActive(index)}
               className={
                 "rounded-t border border-b-2 h-8 px-4" +
                 (active ? " border-black" : " border-transparent") +
@@ -131,7 +142,7 @@ const Tab = ({ _useTab, children }) => {
       <div className="p-4">{panel}</div>
     </div>
   );
-};
+});
 
 const Panel = ({ children }) => {
   return <>{children}</>;

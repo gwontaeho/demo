@@ -31,11 +31,11 @@ function App() {
       {/* <SampleData /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
-      {/* <SampleTab /> */}
+      <SampleTab />
       {/* <SampleRouter /> */}
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
-      <SampleModal />
+      {/* <SampleModal /> */}
       {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
     </div>

@@ -1,7 +1,7 @@
 import { Tab, useTab } from "../modules/tab";
 
 export const SampleTab = () => {
-  const { schema, setActive, setSchema, setVisible, setDisabled } = useTab({
+  const { ref, setActive, setVisible, setDisabled } = useTab({
     defaultSchema: [
       { name: "aaa" },
       { name: "bb", disabled: true },
@@ -11,7 +11,7 @@ export const SampleTab = () => {
 
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex gap-2">
+      <div className="flex gap-2 [&>button]:border [&>button]:p-1">
         <button onClick={() => setActive(0)}>set index 0</button>
         <button onClick={() => setActive(1)}>set index 1</button>
         <button onClick={() => setActive(2)}>set index 2</button>
@@ -33,10 +33,11 @@ export const SampleTab = () => {
           set schema
         </button>
       </div>
-      <Tab {...schema}>
-        <Tab.Panel>a</Tab.Panel>
-        <Tab.Panel>b</Tab.Panel>
-        <Tab.Panel>c</Tab.Panel>
+
+      <Tab ref={ref}>
+        <Tab.Panel name="aa">a</Tab.Panel>
+        <Tab.Panel name="bb">b</Tab.Panel>
+        <Tab.Panel name="cc">c</Tab.Panel>
       </Tab>
     </div>
   );
