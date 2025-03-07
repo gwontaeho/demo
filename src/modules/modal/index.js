@@ -62,8 +62,9 @@ const ModalContainer = () => {
 };
 
 const ModalProvider = ({ children }) => {
-  const _modal = useRef(
-    new (class {
+  const _modal = useRef(null);
+  if (_modal.current === null) {
+    _modal.current = new (class {
       #setModals = null;
       initialize = (param) => {
         if (param !== this.#setModals) {
@@ -83,11 +84,11 @@ const ModalProvider = ({ children }) => {
           id ? (prev) => prev.filter((item) => item.id !== id) : []
         );
       };
-    })()
-  ).current;
+    })();
+  }
 
   return (
-    <ModalContext.Provider value={_modal}>
+    <ModalContext.Provider value={_modal.current}>
       <ModalContainer />
       {children}
     </ModalContext.Provider>

@@ -44,8 +44,9 @@ const ToastContainer = () => {
 };
 
 const ToastProvider = ({ children }) => {
-  const _toast = useRef(
-    new (class {
+  const _toast = useRef(null);
+  if (_toast.current === null) {
+    _toast.current = new (class {
       #setToasts = null;
       initialize = (param) => {
         if (param !== this.#setToasts) {
@@ -65,10 +66,10 @@ const ToastProvider = ({ children }) => {
           id ? (prev) => prev.filter((item) => item.id !== id) : []
         );
       };
-    })()
-  ).current;
+    })();
+  }
   return (
-    <ToastContext.Provider value={_toast}>
+    <ToastContext.Provider value={_toast.current}>
       <ToastContainer />
       {children}
     </ToastContext.Provider>
