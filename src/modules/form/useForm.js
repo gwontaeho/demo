@@ -26,35 +26,16 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const createValues = (schema) => {
-  return Object.fromEntries(
-    Object.entries(schema).map(([name, item]) => {
-      const { defaultValue } = item;
-      let value;
-      switch (item.type) {
-        case "checkbox":
-          value = defaultValue || [];
-          break;
-        case "date":
-          value = defaultValue || null;
-          break;
-        default:
-          value = defaultValue || "";
-      }
-      return [name, value];
-    })
-  );
-};
-
 const useForm = (params = {}) => {
-  const { defaultSchema } = params;
+  const { defaultSchema, defaultValues = {} } = params;
   const forceUpdate = useReducer(() => ({}))[1];
-  const _useForm = useRef(
-    new (class {
+  const _useForm = useRef(null);
+  if (_useForm.current === null) {
+    _useForm.current = new (class {
       #refs = {};
-      #values = {};
       #errors = {};
       #schema = cloneDeep(defaultSchema);
+      #values = cloneDeep(defaultValues);
       #render = forceUpdate;
 
       #isHTMLElement = (param) => {
@@ -86,11 +67,26 @@ const useForm = (params = {}) => {
             if (!this.#refs[name].includes(ref)) {
               this.#refs[name].push(ref);
             }
+            if (this.#isRadio(ref)) {
+              if (this.#values[name] === ref.value) {
+                ref.checked = true;
+              }
+            }
+            if (this.#isCheckbox(ref)) {
+              if (
+                Array.isArray(this.#values[name]) &&
+                this.#values[name].includes(ref.value)
+              ) {
+                ref.checked = true;
+              }
+            }
           } else {
             if (this.#refs[name] !== ref) {
               this.#refs[name] = ref;
-            } else {
-              console.log("같음");
+
+              if (this.#values[name]) {
+                ref.value = this.#values[name];
+              }
             }
           }
         }
@@ -169,84 +165,76 @@ const useForm = (params = {}) => {
 
       validate = () => {
         const errors = {};
-
         for (const key in this.#schema) {
           const error = {};
-
           const value = this.#values[key];
-
           const { required, validate, minLength, maxLength, min, max } =
             this.#getValidation(this.#schema[key]);
-
           if (required === true) {
             if (!value) {
               error["required"] = { message: "An error occurred (required)" };
             }
           }
-
           if (typeof validate === "function") {
             if (!validate(cloneDeep(value))) {
               error["validate"] = { message: "An error occurred (validate)" };
             }
           }
-
           if (typeof minLength === "number") {
             if (value.length < minLength) {
               error["minLength"] = { message: "An error occurred (minLength)" };
             }
           }
-
           if (typeof maxLength === "number") {
             if (value.length > maxLength) {
               error["maxLength"] = { message: "An error occurred (maxLength)" };
             }
           }
-
           if (typeof min === "number") {
             if (value < min) {
               error["min"] = { message: "An error occurred (min)" };
             }
           }
-
           if (typeof max === "number") {
             if (value < max) {
               error["max"] = { message: "An error occurred (max)" };
             }
           }
-
           if (Object.keys(error).length) {
             errors[key] = error;
           }
         }
-
         this.#errors = errors;
+        this.#render();
       };
 
-      getValues = () => {
-        return cloneDeep(this.#values);
+      getValues = (name) => {
+        const values = cloneDeep(this.#values);
+        return name ? values[name] : values;
       };
 
-      getValue = (name) => {
-        return cloneDeep(this.#values[name]);
+      getErrors = (name) => {
+        const errors = cloneDeep(this.#errors);
+        return name ? errors[name] : errors;
       };
 
-      getErrors = () => {
-        return cloneDeep(this.#errors);
+      setEditable = (name, value) => {
+        if (value === undefined) {
+          for (const key in this.#schema) {
+            this.#schema[key].editable = name;
+          }
+        } else {
+          this.#schema[name] = value;
+        }
       };
-
-      getError = (name) => {
-        return cloneDeep(this.#errors[name]);
-      };
-
-      setEditable = (name, value) => {};
 
       test = () => {
         console.log(this.#schema);
       };
-    })()
-  ).current;
+    })();
+  }
 
-  return { ..._useForm };
+  return { ..._useForm.current };
 };
 
 export { useForm };

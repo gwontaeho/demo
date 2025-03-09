@@ -32,6 +32,7 @@ const ControlNumber = forwardRef((props, ref) => {
         event.target.value.slice(0, lastPoint).replaceAll(".", "") +
         event.target.value.slice(lastPoint);
     }
+
     if (typeof decimalScale === "number") {
       const point = event.target.value.indexOf(".");
       if (point !== -1) {
@@ -45,6 +46,7 @@ const ControlNumber = forwardRef((props, ref) => {
         }
       }
     }
+
     if (thousandsSeparator === true) {
       const [integer, decimal] = event.target.value.split(".");
       event.target.value =
@@ -79,12 +81,13 @@ const ControlTextarea = forwardRef((props, ref) => {
 
 const ControlSelect = forwardRef((props, ref) => {
   const { options, onChange } = props;
+  const _key = useRef({ key: uuid() }).current;
   return (
     <select ref={ref} className="border h-8 bg-slate-50" onChange={onChange}>
       <option value=""></option>
-      {options?.map((item) => {
+      {options?.map((item, index) => {
         return (
-          <option key={uuid()} value={item.value}>
+          <option key={_key.key + ":" + index} value={item.value}>
             {item.label}
           </option>
         );
@@ -95,13 +98,12 @@ const ControlSelect = forwardRef((props, ref) => {
 
 const ControlRadio = forwardRef((props, ref) => {
   const { options, name, onChange } = props;
-  const _key = useRef(uuid()).current;
-
+  const _key = useRef({ key: uuid() }).current;
   return (
     <div className="flex flex-wrap gap-x-4">
       {options?.map((item, index) => {
         return (
-          <label key={_key + ":" + index}>
+          <label key={_key.key + ":" + index}>
             <input
               ref={ref}
               type="radio"
@@ -119,13 +121,12 @@ const ControlRadio = forwardRef((props, ref) => {
 
 const ControlCheckbox = forwardRef((props, ref) => {
   const { options, name, onChange } = props;
-  const _key = useRef(uuid()).current;
-
+  const _key = useRef({ key: uuid() }).current;
   return (
     <div className="flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {
         return (
-          <label key={_key + ":" + index}>
+          <label key={_key.key + ":" + index}>
             <input
               ref={ref}
               type="checkbox"

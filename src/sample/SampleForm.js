@@ -18,64 +18,79 @@ export const SampleForm = () => {
     setSchema,
     setFocus,
     getValues,
-    getValue,
     getErrors,
     validate,
   } = useForm({
     defaultSchema: {
       text: { type: "text", required: true },
-      number: { type: "number" },
+      number: { type: "number", thousandsSeparator: true },
       textarea: { type: "textarea" },
       select: { type: "select" },
       radio: { type: "radio" },
       checkbox: { type: "checkbox" },
     },
+    defaultValues: {
+      // text: "a",
+      number: 4,
+      textarea: "bb",
+      select: "b",
+      radio: "a",
+      checkbox: ["a", "b"],
+    },
   });
 
   const forceUpdate = useReducer(() => ({}))[1];
 
+  const [aaa, setAaa] = useState(true);
+
   return (
     <div>
-      <Control {...register("text")} />
-      <Control {...register("number")} />
-      <Control {...register("textarea")} />
-      <Control {...register("select")} options={options} />
-      <Control {...register("radio")} options={options} />
-      <Control {...register("checkbox")} options={options} />
+      <button onClick={() => setAaa((prev) => !prev)}>gogo</button>
+      {aaa && (
+        <div>
+          <Control {...register("text")} />
+          <Control {...register("number")} />
+          <Control {...register("textarea")} />
+          <Control {...register("select")} options={options} />
+          <Control {...register("radio")} options={options} />
+          <Control {...register("checkbox")} options={options} />
 
-      <div className="grid grid-cols-4 gap-4">
-        <button onClick={forceUpdate}>render</button>
-
-        <button onClick={validate}>validate</button>
-
-        <button onClick={() => setValue("checkbox", ["a", "b"])}>
-          set value text
-        </button>
-
-        <button onClick={() => setFocus("text")}>focusText</button>
-
-        <button
-          onClick={() =>
-            setSchema("text", (prev) => {
-              console.log(prev);
-              return { ...prev, type: "number" };
-            })
-          }
-        >
-          setSchema
-        </button>
-
-        <button
-          onClick={() =>
-            setSchema("text", (prev) => {
-              console.log(prev);
-              return { ...prev, type: "text" };
-            })
-          }
-        >
-          setSchema2
-        </button>
-      </div>
+          <div className="grid grid-cols-4 gap-4">
+            <button onClick={forceUpdate}>render</button>
+            <button onClick={validate}>validate</button>
+            <button onClick={() => setValue("checkbox", ["a", "b"])}>
+              set value text
+            </button>
+            <button onClick={() => setFocus("text")}>focusText</button>
+            <button onClick={() => console.log(getValues())}>get values</button>
+            <button
+              onClick={() =>
+                setSchema("text", (prev) => {
+                  console.log(prev);
+                  return { ...prev, type: "number" };
+                })
+              }
+            >
+              setSchema
+            </button>
+            <button
+              onClick={() =>
+                setSchema("text", (prev) => {
+                  console.log(prev);
+                  return { ...prev, type: "text" };
+                })
+              }
+            >
+              setSchema2
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
+};
+
+const Test44 = () => {
+  console.log("fff");
+  return <div>22</div>;
 };
