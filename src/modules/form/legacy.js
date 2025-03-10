@@ -36,8 +36,6 @@ const useForm = (params = {}) => {
       #errors = {};
       #schema = cloneDeep(defaultSchema);
       #values = cloneDeep(defaultValues);
-      #renders = {};
-
       #render = forceUpdate;
 
       #isHTMLElement = (param) => {
@@ -60,56 +58,80 @@ const useForm = (params = {}) => {
         );
       };
 
-      #initialize = (name, forceUpdate) => {
-        this.#renders[name] ??= [];
-        this.#renders[name].includes(forceUpdate) ||
-          this.#renders[name].push(forceUpdate);
-        return {
-          ref: (ref) => {
-            if (this.#isHTMLElement(ref)) {
-              if (this.#isRadio(ref) || this.#isCheckbox(ref)) {
-                Array.isArray(this.#refs[name]) || (this.#refs[name] = []);
-                this.#refs[name].includes(ref) || this.#refs[name].push(ref);
-              } else {
-                this.#refs[name] !== ref && (this.#refs[name] = ref);
+      #ref = (ref) => {
+        if (this.#isHTMLElement(ref)) {
+          const name = ref.name;
+          if (this.#isRadio(ref) || this.#isCheckbox(ref)) {
+            if (!Array.isArray(this.#refs[name])) {
+              this.#refs[name] = [];
+            }
+            if (!this.#refs[name].includes(ref)) {
+              this.#refs[name].push(ref);
+            }
+            if (this.#isRadio(ref)) {
+              if (this.#values[name] === ref.value) {
+                ref.checked = true;
               }
             }
-          },
-          onChange: (event) => {
-            if (this.#isHTMLElement(event?.target)) {
-              if (this.#isCheckbox(event.target)) {
-                Array.isArray(this.#values[name]) || (this.#values[name] = []);
-                event.target.checked
-                  ? this.#values[name].push(event.target.value)
-                  : this.#values[name].splice(
-                      this.#values[name].findIndex(
-                        (item) => item === event.target.value
-                      ),
-                      1
-                    );
-              } else {
-                this.#values[name] = event.target.value;
+            if (this.#isCheckbox(ref)) {
+              if (
+                Array.isArray(this.#values[name]) &&
+                this.#values[name].includes(ref.value)
+              ) {
+                ref.checked = true;
               }
+            }
+          } else {
+            if (this.#refs[name] !== ref) {
+              this.#refs[name] = ref;
+
+              if (this.#values[name]) {
+                ref.value = this.#values[name];
+              }
+            }
+          }
+        }
+      };
+
+      #onChange = (event) => {
+        if (this.#isHTMLElement(event?.target)) {
+          const name = event.target.name;
+          if (this.#isCheckbox(event.target)) {
+            if (!Array.isArray(this.#values[name])) {
+              this.#values[name] = [];
+            }
+            if (event.target.checked) {
+              this.#values[name].push(event.target.value);
             } else {
-              this.#values[name] = event;
+              this.#values[name].splice(
+                this.#values[name].findIndex(
+                  (item) => item === event.target.value
+                ),
+                1
+              );
             }
-            this.#renders[name] &&
-              this.#renders[name].forEach((render) => render());
-          },
-          get: () => {
-            return {
-              value: this.#values[name],
-              ...this.#schema[name],
-              ...(this.#errors[name] && {
-                errorMessage: Object.values(this.#errors[name])[0].message,
-              }),
-            };
-          },
-        };
+          } else {
+            this.#values[name] = event.target.value;
+          }
+        } else {
+          this.#values[name] = event;
+        }
+      };
+
+      #getValidation = (schema) => {
+        const { required, validate, minLength, maxLength, min, max } = schema;
+        return { required, validate, minLength, maxLength, min, max };
       };
 
       register = (name) => {
-        return { name, initialize: this.#initialize };
+        const obj = {};
+        obj.name = name;
+        obj.ref = this.#ref;
+        obj.onChange = this.#onChange;
+        if (this.#schema[name]) Object.assign(obj, this.#schema[name]);
+        if (this.#errors[name])
+          obj.errorMessage = Object.values(this.#errors[name])[0].message;
+        return obj;
       };
 
       setSchema = (name, value) => {
@@ -151,7 +173,7 @@ const useForm = (params = {}) => {
           const error = {};
           const value = this.#values[key];
           const { required, validate, minLength, maxLength, min, max } =
-            this.#schema[key];
+            this.#getValidation(this.#schema[key]);
           if (required === true) {
             if (!value) {
               error["required"] = { message: "An error occurred (required)" };
@@ -220,19 +242,8 @@ const useForm = (params = {}) => {
   return { ..._useForm.current };
 };
 
-const useControl = (props) => {
-  const { name, initialize, ...rest } = props;
-  const forceUpdate = useReducer(() => ({}))[1];
-  const _useControl = useRef(null);
-  typeof initialize === "function" &&
-    (_useControl.current ??= initialize(name, forceUpdate));
-
-  if (_useControl.current === null) {
-    return props;
-  } else {
-    const { ref, onChange, get } = _useControl.current;
-    return { ref, onChange, ...get(), ...rest };
-  }
+const useControl = () => {
+  return {};
 };
 
-export { useForm, useControl };
+export { useForm };

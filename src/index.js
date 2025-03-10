@@ -25,6 +25,9 @@ import { useForm } from "react-hook-form";
 function App() {
   console.log("APP");
 
+  const a = useForm();
+  // console.log(a.register);
+
   return (
     <div className="p-8">
       {/* <SampleControl /> */}

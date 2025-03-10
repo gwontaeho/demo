@@ -1,5 +1,4 @@
 import { forwardRef, useRef } from "react";
-import { useControl } from "../form";
 
 const uuid = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
@@ -144,9 +143,9 @@ const ControlCheckbox = forwardRef((props, ref) => {
 });
 
 const Control = forwardRef((props, ref) => {
-  const { type, message, errorMessage, ...rest } = useControl(props);
+  const { editable = true, type, message, errorMessage, ...rest } = props;
 
-  console.log(rest);
+  console.log(editable);
 
   return (
     <div>
