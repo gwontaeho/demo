@@ -98,7 +98,7 @@ const ControlSelect = forwardRef((props, ref) => {
 });
 
 const ControlRadio = forwardRef((props, ref) => {
-  const { options, name, onChange } = props;
+  const { value, options, name, onChange } = props;
   const _key = useRef({ key: uuid() }).current;
   return (
     <div className="flex flex-wrap gap-x-4">
@@ -108,8 +108,9 @@ const ControlRadio = forwardRef((props, ref) => {
             <input
               ref={ref}
               type="radio"
-              value={item.value}
               name={name}
+              value={item.value}
+              checked={value === item.value}
               onChange={onChange}
             />
             {item.label}
@@ -121,7 +122,7 @@ const ControlRadio = forwardRef((props, ref) => {
 });
 
 const ControlCheckbox = forwardRef((props, ref) => {
-  const { options, name, onChange } = props;
+  const { value, options, name, onChange } = props;
   const _key = useRef({ key: uuid() }).current;
   return (
     <div className="flex gap-x-4 flex-wrap">
@@ -131,8 +132,9 @@ const ControlCheckbox = forwardRef((props, ref) => {
             <input
               ref={ref}
               type="checkbox"
-              value={item.value}
               name={name}
+              value={item.value}
+              checked={value.includes(item.value)}
               onChange={onChange}
             />
             {item.label}
@@ -144,9 +146,19 @@ const ControlCheckbox = forwardRef((props, ref) => {
 });
 
 const Control = forwardRef((props, ref) => {
-  const { type, message, errorMessage, ...rest } = useControl(props);
+  const {
+    type,
+    message,
+    errorMessage,
+    editable = true,
+    ...rest
+  } = useControl(props);
 
-  console.log(rest);
+  if (!editable) {
+    const value = rest.value;
+    const text = type === "checkbox" ? value.join(", ") : value;
+    return <div>{text}</div>;
+  }
 
   return (
     <div>
@@ -154,14 +166,14 @@ const Control = forwardRef((props, ref) => {
         <ControlText ref={ref} {...rest} />
       ) : type === "number" ? (
         <ControlNumber ref={ref} {...rest} />
+      ) : type === "textarea" ? (
+        <ControlTextarea ref={ref} {...rest} />
       ) : type === "select" ? (
         <ControlSelect ref={ref} {...rest} />
       ) : type === "radio" ? (
         <ControlRadio ref={ref} {...rest} />
       ) : type === "checkbox" ? (
         <ControlCheckbox ref={ref} {...rest} />
-      ) : type === "textarea" ? (
-        <ControlTextarea ref={ref} {...rest} />
       ) : null}
 
       {message && <div>{message}</div>}

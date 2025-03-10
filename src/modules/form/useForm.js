@@ -37,8 +37,12 @@ const useForm = (params = {}) => {
       #schema = cloneDeep(defaultSchema);
       #values = cloneDeep(defaultValues);
       #renders = {};
+      #renderForm = forceUpdate;
 
-      #render = forceUpdate;
+      #renderControl = (name) => {
+        this.#renders[name] &&
+          this.#renders[name].forEach((render) => render());
+      };
 
       #isHTMLElement = (param) => {
         return param instanceof HTMLElement;
@@ -93,8 +97,7 @@ const useForm = (params = {}) => {
             } else {
               this.#values[name] = event;
             }
-            this.#renders[name] &&
-              this.#renders[name].forEach((render) => render());
+            this.#renderControl(name);
           },
           get: () => {
             return {
@@ -118,27 +121,12 @@ const useForm = (params = {}) => {
             ? value(cloneDeep(this.#schema[name]))
             : value
         );
-        this.#render();
+        this.#renderControl(name);
       };
 
       setValue = (name, value) => {
         this.#values[name] = cloneDeep(value);
-        if (this.#refs[name]) {
-          if (Array.isArray(this.#refs[name])) {
-            this.#refs[name].forEach((item) => {
-              if (this.#isCheckbox(item)) {
-                if (Array.isArray(value)) {
-                  item.checked = value.includes(item.value);
-                }
-              }
-              if (this.#isRadio(item)) {
-                item.checked = item.value === value;
-              }
-            });
-          } else {
-            this.#refs[name].value = value;
-          }
-        }
+        this.#renderControl(name);
       };
 
       setFocus = (name) => {
@@ -187,7 +175,7 @@ const useForm = (params = {}) => {
           }
         }
         this.#errors = errors;
-        this.#render();
+        this.#renderForm();
       };
 
       getValues = (name) => {
@@ -205,10 +193,11 @@ const useForm = (params = {}) => {
           for (const key in this.#schema) {
             this.#schema[key].editable = name;
           }
+          this.#renderForm();
         } else {
           this.#schema[name] = value;
+          this.#renderControl(name);
         }
-        this.#render();
       };
 
       test = () => {

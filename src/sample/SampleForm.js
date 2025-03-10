@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useState, useReducer } from "react";
-import { Button } from "../components/Button";
-import { Form } from "../components/Form";
+
 import { useForm, useControl } from "../modules/form";
 import { Control } from "../modules/control";
 
@@ -49,11 +48,11 @@ export const SampleForm = () => {
         {show && (
           <div>
             <Control {...register("text")} />
-            {/* <Control {...register("number")} /> */}
-            {/* <Control {...register("textarea")} /> */}
-            {/* <Control {...register("select")} options={options} /> */}
-            {/* <Control {...register("radio")} options={options} /> */}
-            {/* <Control {...register("checkbox")} options={options} /> */}
+            <Control {...register("number")} />
+            <Control {...register("textarea")} />
+            <Control {...register("select")} options={options} />
+            <Control {...register("radio")} options={options} />
+            <Control {...register("checkbox")} options={options} />
           </div>
         )}
 
@@ -69,8 +68,7 @@ export const SampleForm = () => {
           <button
             onClick={() =>
               setSchema("text", (prev) => {
-                console.log(prev);
-                return { ...prev, type: "number" };
+                return { ...prev, type: "textarea" };
               })
             }
           >
@@ -79,7 +77,6 @@ export const SampleForm = () => {
           <button
             onClick={() =>
               setSchema("text", (prev) => {
-                console.log(prev);
                 return { ...prev, type: "text" };
               })
             }
