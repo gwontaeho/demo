@@ -121,13 +121,7 @@ const useForm = (params = {}) => {
     };
 
     register = (name) => {
-      const { label, required } = this.#schema[name];
-      return {
-        name,
-        initialize: this.#initialize,
-        ...(label && { label }),
-        ...(required && { required }),
-      };
+      return { name, initialize: this.#initialize };
     };
 
     setSchema = (name, value) => {
@@ -222,30 +216,24 @@ const useForm = (params = {}) => {
       }
     };
 
-    getLabel = (name) => {
-      const { label, required } = this.#schema[name];
-      return { label, required };
-    };
+    getLabel = () => {};
   })();
 
   return { ..._useForm.current };
 };
 
 const useControl = (props) => {
-  const { name, initialize, ...rest1 } = props;
-
+  const { name, initialize, ...rest } = props;
   const forceUpdate = useReducer(() => ({}))[1];
   const _useControl = useRef(null);
   typeof initialize === "function" &&
     (_useControl.current ??= initialize(name, forceUpdate));
 
-  useEffect(() => {}, []);
-
   if (_useControl.current === null) {
     return props;
   } else {
     const { ref, onChange, get } = _useControl.current;
-    return { ref, onChange, ...get(), ...rest1 };
+    return { ref, onChange, ...get(), ...rest };
   }
 };
 

@@ -9,7 +9,6 @@ import {
   memo,
   useCallback,
   useReducer,
-  forwardRef,
 } from "react";
 
 // import { ControlText } from "../../components/ControlText";
@@ -118,174 +117,169 @@ const useInitialize = (type) => {
   return { grid, useGrid, forceUpdate };
 };
 
-const GridContextProvider = forwardRef((props, ref) => {
+const GridContextProvider = (props) => {
   const { children, useGrid } = props;
 
-  const _data = useRef(null);
-  ref && (_data.current = ref());
+  const grid = useRef(
+    new (class {
+      key = uuid();
 
-  const _api = useRef({
-    getData: () => {},
-  });
+      overscanCount = 40;
+      rowMinHeight = 32;
+      scrollerRef = null;
+      rowMetricsEditable = [];
+      rowMetricsNonEditable = [];
+      renderGrid = null;
+      renderHeader = null;
+      renderBody = null;
+      renderFooter = null;
 
-  const _grid = useRef(null);
-  _grid.current ??= new (class {
-    key = uuid();
-    overscanCount = 40;
-    rowMinHeight = 32;
-    scrollerRef = null;
-    rowMetricsEditable = [];
-    rowMetricsNonEditable = [];
-    renderGrid = null;
-    renderHeader = null;
-    renderBody = null;
-    renderFooter = null;
+      initialize = (type, forceUpdate) => {
+        switch (type) {
+          case "Grid":
+            this.renderGrid = forceUpdate;
+            return () => {
+              this.renderGrid = null;
+            };
+          case "Header":
+            this.renderHeader = forceUpdate;
+            return () => {
+              this.renderHeader = null;
+            };
+          case "Body":
+            this.renderBody = forceUpdate;
+            return () => {
+              this.renderBody = null;
+            };
+          case "Footer":
+            this.renderFooter = forceUpdate;
+            return () => {
+              this.renderFooter = null;
+            };
+        }
+      };
 
-    initialize = (type, forceUpdate) => {
-      switch (type) {
-        case "Grid":
-          this.renderGrid = forceUpdate;
-          return () => {
-            this.renderGrid = null;
+      handleScroll = throttle(() => {
+        grid.renderBody?.();
+      }, 100);
+
+      scrollerRefCallback = (ref) => {
+        this.scrollerRef = ref;
+      };
+
+      setRowHeight = (index, height) => {
+        const rowMetrics = this.#getRowMetrics();
+        const rowMetric = (rowMetrics[index] ??= {});
+        if (rowMetric.height === height) {
+          return false;
+        } else {
+          rowMetric.height = height;
+          return true;
+        }
+      };
+
+      readjust = debounce(() => {
+        this.#calculateRowTops();
+        this.renderBody?.();
+      }, 100);
+
+      getRows = () => {
+        return this.#index(this.#slice(this.#paginate(useGrid.getData())));
+      };
+
+      // ### Private ### //
+
+      #getRowMetrics = () => {
+        return useGrid.getEdit()
+          ? this.rowMetricsEditable
+          : this.rowMetricsNonEditable;
+      };
+
+      #calculateRowTops = () => {
+        this.#getRowMetrics()
+          .slice(0, useGrid.getPagination() ? useGrid.getSize() : undefined)
+          .reduce((prev, curr) => {
+            curr.top = prev;
+            return prev + curr.height;
+          }, 0);
+      };
+
+      #paginate = (data) => {
+        const page = useGrid.getPage();
+        const size = useGrid.getSize();
+        return !useGrid.getPagination() ||
+          useGrid.getPagination() === "external"
+          ? data
+          : data.slice(page * size, (page + 1) * size);
+      };
+
+      #getIndexTop = () => {
+        return Math.max(
+          this.#getRowMetrics().findIndex(({ top }) => {
+            return (this.scrollerRef?.scrollTop ?? 0) <= top;
+          }),
+          0
+        );
+      };
+
+      #getIndexStart = () => {
+        return Math.max(this.#getIndexTop() - this.overscanCount, 0);
+      };
+
+      #getIndexEnd = (rowsCount) => {
+        const height = Number(
+          String(useGrid.getHeight()).replaceAll(" ", "").replace("px", "")
+        );
+        return Math.min(
+          this.#getIndexTop() +
+            Math.ceil(height / this.rowMinHeight) +
+            this.overscanCount,
+          rowsCount
+        );
+      };
+
+      #slice = (data) => {
+        return useGrid.getHeight() === undefined
+          ? data
+          : data.slice(this.#getIndexStart(), this.#getIndexEnd(data.length));
+      };
+
+      #index = (data) => {
+        const page = useGrid.getPage();
+        const size = useGrid.getSize();
+        const rowMetrics = this.#getRowMetrics();
+        return data.map((data, index) => {
+          const viewIndex =
+            useGrid.getHeight() === undefined
+              ? index
+              : index + this.#getIndexStart();
+          const dataIndex =
+            !useGrid.getPagination() || useGrid.getPagination() === "external"
+              ? viewIndex
+              : viewIndex + page * size;
+          const { top, height } = rowMetrics[viewIndex] || {};
+          const key = `${this.key}:b:${dataIndex}`;
+          return {
+            key,
+            data,
+            top,
+            height,
+            viewIndex,
+            dataIndex,
           };
-        case "Header":
-          this.renderHeader = forceUpdate;
-          return () => {
-            this.renderHeader = null;
-          };
-        case "Body":
-          this.renderBody = forceUpdate;
-          return () => {
-            this.renderBody = null;
-          };
-        case "Footer":
-          this.renderFooter = forceUpdate;
-          return () => {
-            this.renderFooter = null;
-          };
-      }
-    };
-
-    handleScroll = throttle(() => {
-      this.renderBody?.();
-    }, 100);
-
-    scrollerRefCallback = (ref) => {
-      this.scrollerRef = ref;
-    };
-
-    setRowHeight = (index, height) => {
-      const rowMetrics = this.#getRowMetrics();
-      const rowMetric = (rowMetrics[index] ??= {});
-      if (rowMetric.height === height) {
-        return false;
-      } else {
-        rowMetric.height = height;
-        return true;
-      }
-    };
-
-    readjust = debounce(() => {
-      this.#calculateRowTops();
-      this.renderBody?.();
-    }, 100);
-
-    getRows = () => {
-      return this.#index(this.#slice(this.#paginate(useGrid.getData())));
-    };
-
-    // ### Private ### //
-
-    #getRowMetrics = () => {
-      return useGrid.getEdit()
-        ? this.rowMetricsEditable
-        : this.rowMetricsNonEditable;
-    };
-
-    #calculateRowTops = () => {
-      this.#getRowMetrics()
-        .slice(0, useGrid.getPagination() ? useGrid.getSize() : undefined)
-        .reduce((prev, curr) => {
-          curr.top = prev;
-          return prev + curr.height;
-        }, 0);
-    };
-
-    #paginate = (data) => {
-      const page = useGrid.getPage();
-      const size = useGrid.getSize();
-      return !useGrid.getPagination() || useGrid.getPagination() === "external"
-        ? data
-        : data.slice(page * size, (page + 1) * size);
-    };
-
-    #getIndexTop = () => {
-      return Math.max(
-        this.#getRowMetrics().findIndex(({ top }) => {
-          return (this.scrollerRef?.scrollTop ?? 0) <= top;
-        }),
-        0
-      );
-    };
-
-    #getIndexStart = () => {
-      return Math.max(this.#getIndexTop() - this.overscanCount, 0);
-    };
-
-    #getIndexEnd = (rowsCount) => {
-      const height = Number(
-        String(useGrid.getHeight()).replaceAll(" ", "").replace("px", "")
-      );
-      return Math.min(
-        this.#getIndexTop() +
-          Math.ceil(height / this.rowMinHeight) +
-          this.overscanCount,
-        rowsCount
-      );
-    };
-
-    #slice = (data) => {
-      return useGrid.getHeight() === undefined
-        ? data
-        : data.slice(this.#getIndexStart(), this.#getIndexEnd(data.length));
-    };
-
-    #index = (data) => {
-      const page = useGrid.getPage();
-      const size = useGrid.getSize();
-      const rowMetrics = this.#getRowMetrics();
-      return data.map((data, index) => {
-        const viewIndex =
-          useGrid.getHeight() === undefined
-            ? index
-            : index + this.#getIndexStart();
-        const dataIndex =
-          !useGrid.getPagination() || useGrid.getPagination() === "external"
-            ? viewIndex
-            : viewIndex + page * size;
-
-        const { top, height } = rowMetrics[viewIndex] || {};
-        const key = `${this.key}:b:${dataIndex}:`;
-        return {
-          key,
-          data,
-          top,
-          height,
-          viewIndex,
-          dataIndex,
-        };
-      });
-    };
-  })();
+        });
+      };
+    })()
+  ).current;
 
   const contextValue = useMemo(() => {
-    return { grid: _grid.current, useGrid };
+    return { grid, useGrid };
   }, []);
 
   return (
     <GridContext.Provider value={contextValue}>{children}</GridContext.Provider>
   );
-});
+};
 
 const GridComponent = memo(() => {
   console.log("Grid");
@@ -767,10 +761,10 @@ const OptionCell = ({ children }) => {
   );
 };
 
-export const Grid = forwardRef((props, ref) => {
+export const Grid = (props) => {
   return (
-    <GridContextProvider ref={ref} {...props}>
+    <GridContextProvider {...props}>
       <GridComponent />
     </GridContextProvider>
   );
-});
+};

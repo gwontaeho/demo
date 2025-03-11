@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState, useReducer } from "react";
 
-import { useForm, useControl } from "../modules/form";
+import { Form, useForm, useControl } from "../modules/form";
 import { Control } from "../modules/control";
 
 const options = [
@@ -9,20 +9,20 @@ const options = [
 ];
 
 export const SampleForm = () => {
-  console.log("render");
-
   const {
     register,
     setValue,
     setSchema,
     setFocus,
-    getValues,
-    getErrors,
+    getValue,
+    getError,
     validate,
     setEditable,
+    getLabel,
+    getSchema,
   } = useForm({
     defaultSchema: {
-      text: { type: "text", required: true },
+      text: { label: "asd", type: "text", required: true },
       number: { type: "number", thousandsSeparator: true },
       textarea: { type: "textarea" },
       select: { type: "select" },
@@ -44,9 +44,21 @@ export const SampleForm = () => {
 
   return (
     <div>
+      <Form>
+        <Form.Row>
+          {/* <Form.Label {...getLabel("text")} /> */}
+          <Form.Control {...register("text")} />
+          <Form.Control {...register("text")} />
+          <Form.Cell></Form.Cell>
+          <Form.Cell></Form.Cell>
+        </Form.Row>
+      </Form>
+
       <div>
-        {show && (
+        {/* {show && (
           <div>
+            <Control {...register("text")} />
+            <Control {...register("text")} />
             <Control {...register("text")} />
             <Control {...register("number")} />
             <Control {...register("textarea")} />
@@ -54,7 +66,7 @@ export const SampleForm = () => {
             <Control {...register("radio")} options={options} />
             <Control {...register("checkbox")} options={options} />
           </div>
-        )}
+        )} */}
 
         <div className="mt-10 grid grid-cols-8 border-t border-l [&>button]:border-r [&>button]:border-b [&>button]:p-1">
           <button onClick={() => setShow((prev) => !prev)}>show</button>
@@ -64,7 +76,7 @@ export const SampleForm = () => {
             set checkbox
           </button>
           <button onClick={() => setFocus("text")}>focusText</button>
-          <button onClick={() => console.log(getValues())}>get values</button>
+          <button onClick={() => console.log(getValue())}>get values</button>
           <button
             onClick={() =>
               setSchema("text", (prev) => {

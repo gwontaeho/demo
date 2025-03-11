@@ -140,405 +140,415 @@ const makeSchema = (schema) => {
 export const useGrid = (params = {}) => {
   const { defaultSchema } = params;
 
-  return useRef(
-    new (class {
-      #schema = makeSchema(cloneDeep(defaultSchema));
+  const _data = useRef({
+    data: [],
+    originalData: [],
+    addedData: [],
+    removedData: [],
+    updatedData: [],
+    checkboxData: [],
+    schema: makeSchema(cloneDeep(defaultSchema)),
+  });
 
-      #key = uuid();
-      #dataKey = uuid();
-      #data = [];
-      #originalData = [];
-      #addedData = [];
-      #removedData = [];
-      #updatedData = [];
-      #checkboxData = [];
-      #radioData = null;
-      #dataCount = 0;
+  const _useGrid = useRef(null);
+  _useGrid.current ??= new (class {
+    #schema = makeSchema(cloneDeep(defaultSchema));
 
-      #onPageChange = null;
-      #onSizeChange = null;
-      #renderer = null;
+    #key = uuid();
+    #dataKey = uuid();
+    #data = [];
+    #originalData = [];
+    #addedData = [];
+    #removedData = [];
+    #updatedData = [];
+    #checkboxData = [];
+    #radioData = null;
+    #dataCount = 0;
 
-      #renderGrid = null;
-      #renderHeader = null;
-      #renderBody = null;
-      #renderFooter = null;
+    #onPageChange = null;
+    #onSizeChange = null;
+    #renderer = null;
 
-      schema = { useGrid: this };
+    #renderGrid = null;
+    #renderHeader = null;
+    #renderBody = null;
+    #renderFooter = null;
 
-      initialize = (type, forceUpdate) => {
-        switch (type) {
-          case "Grid":
-            this.#renderGrid = forceUpdate;
-            return () => {
-              this.#renderGrid = null;
-            };
-          case "Header":
-            this.#renderHeader = forceUpdate;
-            return () => {
-              this.#renderHeader = null;
-            };
-          case "Body":
-            this.#renderBody = forceUpdate;
-            return () => {
-              this.#renderBody = null;
-            };
-          case "Footer":
-            this.#renderFooter = forceUpdate;
-            return () => {
-              this.#renderFooter = null;
-            };
-        }
-      };
+    schema = { useGrid: this };
 
-      renderGrid = () => {
-        this.#renderGrid();
-      };
+    ref = (param) => {};
 
-      renderBody = () => {
-        this.#renderBody();
-      };
+    initialize = (type, forceUpdate) => {
+      switch (type) {
+        case "Grid":
+          this.#renderGrid = forceUpdate;
+          return () => {
+            this.#renderGrid = null;
+          };
+        case "Header":
+          this.#renderHeader = forceUpdate;
+          return () => {
+            this.#renderHeader = null;
+          };
+        case "Body":
+          this.#renderBody = forceUpdate;
+          return () => {
+            this.#renderBody = null;
+          };
+        case "Footer":
+          this.#renderFooter = forceUpdate;
+          return () => {
+            this.#renderFooter = null;
+          };
+      }
+    };
 
-      renderHeader = () => {
-        this.#renderHeader();
-      };
+    renderGrid = () => {
+      this.#renderGrid();
+    };
 
-      getKey = () => {
-        return this.#key;
-      };
+    renderBody = () => {
+      this.#renderBody();
+    };
 
-      getDataKey = () => {
-        return this.#dataKey;
-      };
+    renderHeader = () => {
+      this.#renderHeader();
+    };
 
-      getSchema = () => {
-        return cloneDeep(this.#schema);
-      };
+    getKey = () => {
+      return this.#key;
+    };
 
-      getDataCount = () => {
-        return this.#dataCount;
-      };
+    getDataKey = () => {
+      return this.#dataKey;
+    };
 
-      // ttt
-      setSchema = (value) => {
-        const schema = cloneDeep(
-          typeof value === "function" ? value(cloneDeep(this.#schema)) : value
-        );
-        this.#schema = makeSchema(schema);
-        this.#renderGrid?.();
-        this.#renderHeader?.();
-        this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    getSchema = () => {
+      return cloneDeep(this.#schema);
+    };
 
-      // ttt
-      setHeader = (value) => {
-        // 스키마를 검증하는 로직 필요
-        const nextHeader = cloneDeep(
-          typeof value === "function"
-            ? value(cloneDeep(this.#schema.header))
-            : value
-        );
-        this.#schema.header = nextHeader;
-        this.#schema = makeSchema(this.#schema);
-        this.#renderHeader?.();
-        this.#renderBody?.();
-      };
+    getDataCount = () => {
+      return this.#dataCount;
+    };
 
-      // ttt
-      setBody = (value) => {
-        // 스키마를 검증하는 로직 필요
-        const nextBody = cloneDeep(
-          typeof value === "function"
-            ? value(cloneDeep(this.#schema.body))
-            : value
-        );
-        this.#schema.body = nextBody;
-        this.#schema = makeSchema(this.#schema);
-        this.#renderBody?.();
-      };
+    // ttt
+    setSchema = (value) => {
+      const schema = cloneDeep(
+        typeof value === "function" ? value(cloneDeep(this.#schema)) : value
+      );
+      this.#schema = makeSchema(schema);
+      this.#renderGrid?.();
+      this.#renderHeader?.();
+      this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      // ok
-      // ttt
-      setHeight = (value) => {
-        if (this.#schema.height === value) return;
-        this.#schema.height = value;
-        this.#renderGrid?.();
-        this.#renderBody?.();
-      };
+    // ttt
+    setHeader = (value) => {
+      // 스키마를 검증하는 로직 필요
+      const nextHeader = cloneDeep(
+        typeof value === "function"
+          ? value(cloneDeep(this.#schema.header))
+          : value
+      );
+      this.#schema.header = nextHeader;
+      this.#schema = makeSchema(this.#schema);
+      this.#renderHeader?.();
+      this.#renderBody?.();
+    };
 
-      // ok
-      // ttt
-      setRadio = (value) => {
-        if (
-          typeof value !== "boolean" ||
-          (this.#schema.radio ?? false) === value
-        )
-          return;
-        this.#schema.radio = value;
-        this.#renderHeader?.();
-        this.#renderBody?.();
-      };
+    // ttt
+    setBody = (value) => {
+      // 스키마를 검증하는 로직 필요
+      const nextBody = cloneDeep(
+        typeof value === "function"
+          ? value(cloneDeep(this.#schema.body))
+          : value
+      );
+      this.#schema.body = nextBody;
+      this.#schema = makeSchema(this.#schema);
+      this.#renderBody?.();
+    };
 
-      setRadioData = (index) => {
-        if (typeof index !== "number") return;
-        this.#radioData = index === undefined ? null : this.#data[index];
-        this.#renderBody?.();
-      };
+    // ok
+    // ttt
+    setHeight = (value) => {
+      if (this.#schema.height === value) return;
+      this.#schema.height = value;
+      this.#renderGrid?.();
+      this.#renderBody?.();
+    };
 
-      setCheckboxData = () => {};
+    // ok
+    // ttt
+    setRadio = (value) => {
+      if (typeof value !== "boolean" || (this.#schema.radio ?? false) === value)
+        return;
+      this.#schema.radio = value;
+      this.#renderHeader?.();
+      this.#renderBody?.();
+    };
 
-      // ok
-      // ttt
-      setCheckbox = (value) => {
-        if (
-          typeof value !== "boolean" ||
-          (this.#schema.checkbox ?? false) === value
-        )
-          return;
-        this.#schema.checkbox = value;
-        this.#renderHeader?.();
-        this.#renderBody?.();
-      };
+    setRadioData = (index) => {
+      if (typeof index !== "number") return;
+      this.#radioData = index === undefined ? null : this.#data[index];
+      this.#renderBody?.();
+    };
 
-      // ttt
-      setEdit = (value) => {
-        // 전체, 컬럼
-        if (typeof value !== "boolean" || this.#schema.edit === value) return;
-        this.#schema.edit = value;
-        this.#schema = makeSchema(this.#schema);
-        this.#renderBody?.();
-      };
+    setCheckboxData = () => {};
 
-      // ttt
-      setShow = (id, value) => {
-        // 헤더, 바디 id
-        if (typeof value !== "boolean") return;
-        const target = this.#schema.header.find((item) => item.id === id);
-        if (!target || (target.show ?? true) === value) return;
-        target.show = value;
-        this.#renderHeader?.();
-        this.#renderBody?.();
-      };
+    // ok
+    // ttt
+    setCheckbox = (value) => {
+      if (
+        typeof value !== "boolean" ||
+        (this.#schema.checkbox ?? false) === value
+      )
+        return;
+      this.#schema.checkbox = value;
+      this.#renderHeader?.();
+      this.#renderBody?.();
+    };
 
-      // ok
-      // ttt
-      addRow = () => {
-        if (this.#schema.pagination === "external") return;
-        const addedData = {};
-        this.#data.push(addedData);
-        this.#addedData.push(addedData);
-        this.#dataCount = this.#data.length;
-        this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    // ttt
+    setEdit = (value) => {
+      // 전체, 컬럼
+      if (typeof value !== "boolean" || this.#schema.edit === value) return;
+      this.#schema.edit = value;
+      this.#schema = makeSchema(this.#schema);
+      this.#renderBody?.();
+    };
 
-      // ok
-      // ttt
-      removeRow = (index) => {
-        if (this.#schema.pagination === "external") return;
-        const removed = this.#data.splice(index, 1);
-        if (!removed.length) return;
-        const target = removed[0];
-        this.#removedData.push(target);
-        const addedIndex = this.#addedData.findIndex((item) => item === target);
-        if (addedIndex !== -1) this.#addedData.splice(addedIndex, 1);
-        this.#dataCount = this.#data.length;
-        this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    // ttt
+    setShow = (id, value) => {
+      // 헤더, 바디 id
+      if (typeof value !== "boolean") return;
+      const target = this.#schema.header.find((item) => item.id === id);
+      if (!target || (target.show ?? true) === value) return;
+      target.show = value;
+      this.#renderHeader?.();
+      this.#renderBody?.();
+    };
 
-      // ok
-      // ttt
-      setPage = (value) => {
-        if (
-          !this.#schema.pagination ||
-          typeof value !== "number" ||
-          this.#schema.page === value
-        )
-          return;
-        this.#schema.page = value;
-        if (this.#schema.pagination !== "external") this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    // ok
+    // ttt
+    addRow = () => {
+      if (this.#schema.pagination === "external") return;
+      const addedData = {};
+      this.#data.push(addedData);
+      this.#addedData.push(addedData);
+      this.#dataCount = this.#data.length;
+      this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      // ok
-      // ttt
-      setSize = (value) => {
-        if (
-          !this.#schema.pagination ||
-          typeof value !== "number" ||
-          this.#schema.size === value
-        )
-          return;
-        this.#schema.page = 0;
-        this.#schema.size = value;
-        if (this.#schema.pagination !== "external") this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    // ok
+    // ttt
+    removeRow = (index) => {
+      if (this.#schema.pagination === "external") return;
+      const removed = this.#data.splice(index, 1);
+      if (!removed.length) return;
+      const target = removed[0];
+      this.#removedData.push(target);
+      const addedIndex = this.#addedData.findIndex((item) => item === target);
+      if (addedIndex !== -1) this.#addedData.splice(addedIndex, 1);
+      this.#dataCount = this.#data.length;
+      this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      // ttt
-      getPagination = () => {
-        return this.#schema.pagination;
-      };
+    // ok
+    // ttt
+    setPage = (value) => {
+      if (
+        !this.#schema.pagination ||
+        typeof value !== "number" ||
+        this.#schema.page === value
+      )
+        return;
+      this.#schema.page = value;
+      if (this.#schema.pagination !== "external") this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      // ok
-      // ttt
-      getPage = () => {
-        return this.#schema.page;
-      };
+    // ok
+    // ttt
+    setSize = (value) => {
+      if (
+        !this.#schema.pagination ||
+        typeof value !== "number" ||
+        this.#schema.size === value
+      )
+        return;
+      this.#schema.page = 0;
+      this.#schema.size = value;
+      if (this.#schema.pagination !== "external") this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      // ok
-      // ttt
-      getSize = () => {
-        return this.#schema.size;
-      };
+    // ttt
+    getPagination = () => {
+      return this.#schema.pagination;
+    };
 
-      // ok
-      // ttt
-      setData = (data, dataCount) => {
-        this.#key = uuid();
-        this.#originalData = cloneDeep(data);
-        this.#data = cloneDeep(data);
-        this.#addedData = [];
-        this.#removedData = [];
-        this.#updatedData = [];
-        this.#checkboxData = [];
-        this.#radioData = null;
-        this.#dataCount = dataCount ?? this.#data.length;
-        this.#renderBody?.();
-        this.#renderFooter?.();
-      };
+    // ok
+    // ttt
+    getPage = () => {
+      return this.#schema.page;
+    };
 
-      setRowData = (index, value) => {
-        const row = this.#data[index];
-        const nextValue = cloneDeep(
-          typeof value === "function" ? cloneDeep(row) : value
-        );
-        Object.keys(row).forEach((key) => delete row[key]);
-        Object.assign(row, nextValue);
-        this.#renderBody?.();
-      };
+    // ok
+    // ttt
+    getSize = () => {
+      return this.#schema.size;
+    };
 
-      isRadioData = (index) => {
-        return this.#data[index] === this.#radioData;
-      };
+    // ok
+    // ttt
+    setData = (data, dataCount) => {
+      this.#key = uuid();
+      this.#originalData = cloneDeep(data);
+      this.#data = cloneDeep(data);
+      this.#addedData = [];
+      this.#removedData = [];
+      this.#updatedData = [];
+      this.#checkboxData = [];
+      this.#radioData = null;
+      this.#dataCount = dataCount ?? this.#data.length;
+      this.#renderBody?.();
+      this.#renderFooter?.();
+    };
 
-      isCheckboxData = (index) => {
-        return this.#checkboxData.includes(this.#data[index]);
-      };
+    setRowData = (index, value) => {
+      const row = this.#data[index];
+      const nextValue = cloneDeep(
+        typeof value === "function" ? cloneDeep(row) : value
+      );
+      Object.keys(row).forEach((key) => delete row[key]);
+      Object.assign(row, nextValue);
+      this.#renderBody?.();
+    };
 
-      getTest = (index) => {
-        return this.#data[index];
-      };
+    isRadioData = (index) => {
+      return this.#data[index] === this.#radioData;
+    };
 
-      getHeight = () => {
-        return this.#schema.height;
-      };
+    isCheckboxData = (index) => {
+      return this.#checkboxData.includes(this.#data[index]);
+    };
 
-      // ok
-      // ttt
-      getData = () => {
-        return cloneDeep(this.#data);
-      };
+    getTest = (index) => {
+      return this.#data[index];
+    };
 
-      // ok
-      // ttt
-      getCheckboxData = () => {
-        return cloneDeep(this.#checkboxData);
-      };
+    getHeight = () => {
+      return this.#schema.height;
+    };
 
-      // ok
-      // ttt
-      getRadioData = () => {
-        return cloneDeep(this.#radioData);
-      };
+    // ok
+    // ttt
+    getData = () => {
+      return cloneDeep(this.#data);
+    };
 
-      // ttt
-      getAddedData = () => {
-        return cloneDeep(this.#addedData);
-      };
+    // ok
+    // ttt
+    getCheckboxData = () => {
+      return cloneDeep(this.#checkboxData);
+    };
 
-      // ttt
-      getOriginData = () => {
-        return cloneDeep(this.#originalData);
-      };
+    // ok
+    // ttt
+    getRadioData = () => {
+      return cloneDeep(this.#radioData);
+    };
 
-      // ttt
-      getRemovedData = () => {
-        return cloneDeep(this.#removedData);
-      };
+    // ttt
+    getAddedData = () => {
+      return cloneDeep(this.#addedData);
+    };
 
-      // ttt
-      getUpdatedData = () => {
-        return cloneDeep(this.#updatedData);
-      };
+    // ttt
+    getOriginData = () => {
+      return cloneDeep(this.#originalData);
+    };
 
-      getEdit = () => {
-        return this.#schema.edit;
-      };
+    // ttt
+    getRemovedData = () => {
+      return cloneDeep(this.#removedData);
+    };
 
-      // ok
-      // ttt
-      upRow = (index) => {
-        if (index < 1) return;
-        const target = this.#data[index];
-        this.#data[index] = this.#data[index - 1];
-        this.#data[index - 1] = target;
-        this.#renderBody?.();
-      };
+    // ttt
+    getUpdatedData = () => {
+      return cloneDeep(this.#updatedData);
+    };
 
-      // ok
-      // ttt
-      downRow = (index) => {
-        if (index + 1 > this.#data.length - 1) return;
-        const target = this.#data[index];
-        this.#data[index] = this.#data[index + 1];
-        this.#data[index + 1] = target;
-        this.#renderBody?.();
-      };
+    getEdit = () => {
+      return this.#schema.edit;
+    };
 
-      // ttt
-      setSort = (key) => {
-        if (key) {
-          this.#schema.sort = key;
-        } else {
-          delete this.#schema.sort;
-        }
-        this.#renderBody?.();
+    // ok
+    // ttt
+    upRow = (index) => {
+      if (index < 1) return;
+      const target = this.#data[index];
+      this.#data[index] = this.#data[index - 1];
+      this.#data[index - 1] = target;
+      this.#renderBody?.();
+    };
 
-        // if (sort) {
-        //   data.sort((a, b) => b[sort] - a[sort]);
-        // }
-      };
+    // ok
+    // ttt
+    downRow = (index) => {
+      if (index + 1 > this.#data.length - 1) return;
+      const target = this.#data[index];
+      this.#data[index] = this.#data[index + 1];
+      this.#data[index + 1] = target;
+      this.#renderBody?.();
+    };
 
-      // ttt
-      setGroup = (key) => {
-        if (key) {
-          this.#schema.group = key;
-        } else {
-          delete this.#schema.group;
-        }
-        this.#renderBody?.();
-      };
+    // ttt
+    setSort = (key) => {
+      if (key) {
+        this.#schema.sort = key;
+      } else {
+        delete this.#schema.sort;
+      }
+      this.#renderBody?.();
 
-      // ttt
-      setOnPageChange = (callback) => {
-        if (!(typeof callback === "function")) return;
-        this.#onPageChange = callback;
-      };
+      // if (sort) {
+      //   data.sort((a, b) => b[sort] - a[sort]);
+      // }
+    };
 
-      // ttt
-      setOnSizeChange = (callback) => {
-        if (!(typeof callback === "function")) return;
-        this.#onSizeChange = callback;
-      };
+    // ttt
+    setGroup = (key) => {
+      if (key) {
+        this.#schema.group = key;
+      } else {
+        delete this.#schema.group;
+      }
+      this.#renderBody?.();
+    };
 
-      // ttt
-      setRenderer = (renderer) => {
-        // 렌더러 검증 로직 필요
-        this.#renderer = renderer;
-      };
-    })()
-  ).current;
+    // ttt
+    setOnPageChange = (callback) => {
+      if (!(typeof callback === "function")) return;
+      this.#onPageChange = callback;
+    };
+
+    // ttt
+    setOnSizeChange = (callback) => {
+      if (!(typeof callback === "function")) return;
+      this.#onSizeChange = callback;
+    };
+
+    // ttt
+    setRenderer = (renderer) => {
+      // 렌더러 검증 로직 필요
+      this.#renderer = renderer;
+    };
+  })();
+
+  return { ..._useGrid.current };
 };

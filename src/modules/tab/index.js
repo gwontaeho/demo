@@ -28,7 +28,7 @@ const useTab = (params = {}) => {
   const { defaultSchema } = params;
 
   const _data = useRef(null);
-  if (_data.current === null) {
+  _data.current ??= (() => {
     let active = 0;
     let name = [];
     let hidden = [];
@@ -41,8 +41,8 @@ const useTab = (params = {}) => {
         if (item.disabled) disabled.push(index);
       });
     }
-    _data.current = { name, active, hidden, disabled };
-  }
+    return { name, active, hidden, disabled };
+  })();
 
   const _tab = useRef(null);
   const _useTab = useRef({

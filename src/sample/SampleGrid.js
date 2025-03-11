@@ -2,11 +2,12 @@ import { useEffect, useState, useRef, useReducer } from "react";
 import { useGrid } from "../modules/grid";
 import { Grid } from "../modules/grid";
 
-import utils from "../utils";
+import utils from "../.temp/utils";
 
 export const SampleGrid = () => {
   console.log("Grid");
   const {
+    ref,
     schema,
     setSchema,
     setHeader,
@@ -37,7 +38,7 @@ export const SampleGrid = () => {
     // setRenderer,
   } = useGrid({
     defaultSchema: {
-      pagination: true,
+      // pagination: true,
       page: 0,
       size: 10,
       // edit: true,
@@ -315,7 +316,7 @@ export const SampleGrid = () => {
       </div>
 
       <div>
-        <Grid {...schema} />
+        <Grid ref={ref} {...schema} />
       </div>
     </div>
   );
