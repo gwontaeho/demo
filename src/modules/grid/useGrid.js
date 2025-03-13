@@ -28,7 +28,7 @@ const makeHeader = (schema) => {
   const { radio, checkbox, header } = schema;
   const { headerWidths, headerRowCount } = header.reduce(
     (prev, curr) => {
-      curr.show ??= true;
+      curr.visible ??= true;
       curr.colCount ??= 1;
       curr.rowCount ??= 1;
       const { colWidths } = curr.cells.reduce(
@@ -61,16 +61,16 @@ const makeHeader = (schema) => {
 };
 
 const makeBody = (schema) => {
-  const { edit, body, header } = schema;
+  const { editable, body, header } = schema;
   const { bodyRowCount } = body.reduce(
     (prev, curr, index) => {
-      curr.show = header[index].show;
+      curr.visible = header[index].visible;
       curr.colCount ??= 1;
       curr.rowCount ??= 1;
       curr.cells.forEach((item) => {
         item.colSpan ??= 1;
         item.rowSpan ??= 1;
-        item.edit = edit;
+        item.editable = editable;
       });
       prev.bodyRowCount < curr.rowCount && (prev.bodyRowCount = curr.rowCount);
       return prev;
@@ -81,7 +81,7 @@ const makeBody = (schema) => {
 };
 
 const makeSchema = (schema) => {
-  schema.edit ??= false;
+  schema.editable ??= false;
   schema.radio ??= false;
   schema.checkbox ??= false;
   const { headerWidths, headerRowCount } = makeHeader(schema);
@@ -101,7 +101,7 @@ const makeSchema = (schema) => {
 /**
  * @typedef {Object} HeaderColumn
  * @property {string} id
- * @property {boolean} show
+ * @property {boolean} visible
  * @property {Array<HeaderCell>} cells
  */
 
@@ -109,7 +109,7 @@ const makeSchema = (schema) => {
  * @typedef {Object} BodyCell
  * @property {string} id
  * @property {string} type
- * @property {boolean} edit
+ * @property {boolean} editable
  * @property {string} binding
  * @property {Array} options
  */
@@ -123,9 +123,9 @@ const makeSchema = (schema) => {
  * @typedef {Object} DefaultSchema
  * @property {number} page
  * @property {number} size
- * @property {boolean} edit
  * @property {boolean} radio
  * @property {boolean} checkbox
+ * @property {boolean} editable
  * @property {boolean|'external'} pagination
  * @property {string|number} height
  * @property {Array<HeaderColumn>} header
@@ -140,15 +140,58 @@ const makeSchema = (schema) => {
 export const useGrid = (params = {}) => {
   const { defaultSchema } = params;
 
-  const _data = useRef({
+  const _ = useRef({
     data: [],
     originalData: [],
     addedData: [],
     removedData: [],
     updatedData: [],
     checkboxData: [],
+    radioData: null,
+    dataCount: 0,
     schema: makeSchema(cloneDeep(defaultSchema)),
-  });
+    renderGrid: null,
+    renderHeader: null,
+    renderBody: null,
+    renderFooter: null,
+  }).current;
+
+  const method = useRef({
+    ref: _,
+    getSchema: () => {
+      return cloneDeep(_.schema);
+    },
+    getData: () => {
+      return cloneDeep(_.data);
+    },
+    getDataCount: () => {
+      return _.dataCount;
+    },
+    setEditable: (value) => {
+      if (typeof value !== "boolean" || _.schema.editable === value) return;
+      _.schema.edit = value;
+      _.schema = makeSchema(_.schema);
+      _.renderBody?.();
+    },
+    setData: (data, dataCount) => {
+      _.data = cloneDeep(data);
+      _.originalData = cloneDeep(data);
+      _.addedData = [];
+      _.removedData = [];
+      _.updatedData = [];
+      _.checkboxData = [];
+      _.radioData = null;
+      _.dataCount = dataCount ?? data.length;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    setHeight: (value) => {
+      if (_.schema.height === value) return;
+      _.schema.height = value;
+      _.renderGrid?.();
+      _.renderBody?.();
+    },
+  }).current;
 
   const _useGrid = useRef(null);
   _useGrid.current ??= new (class {
@@ -156,14 +199,15 @@ export const useGrid = (params = {}) => {
 
     #key = uuid();
     #dataKey = uuid();
-    #data = [];
-    #originalData = [];
-    #addedData = [];
-    #removedData = [];
-    #updatedData = [];
-    #checkboxData = [];
-    #radioData = null;
-    #dataCount = 0;
+
+    #data = []; //
+    #originalData = []; //
+    #addedData = []; //
+    #removedData = []; //
+    #updatedData = []; //
+    #checkboxData = []; //
+    #radioData = null; //
+    #dataCount = 0; //
 
     #onPageChange = null;
     #onSizeChange = null;
@@ -223,6 +267,7 @@ export const useGrid = (params = {}) => {
       return this.#dataKey;
     };
 
+    // a
     getSchema = () => {
       return cloneDeep(this.#schema);
     };
@@ -550,5 +595,5 @@ export const useGrid = (params = {}) => {
     };
   })();
 
-  return { ..._useGrid.current };
+  return { ..._useGrid.current, ...method };
 };

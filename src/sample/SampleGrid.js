@@ -5,46 +5,15 @@ import { Grid } from "../modules/grid";
 import utils from "../.temp/utils";
 
 export const SampleGrid = () => {
-  console.log("Grid");
-  const {
-    ref,
-    schema,
-    setSchema,
-    setHeader,
-    getData,
-    setData,
-    setSize,
-    setPage,
-    setEdit,
-    addRow,
-    removeRow,
-    getPage,
-    getSize,
-    setHeight,
-    upRow,
-    downRow,
-    setSort,
-    setGroup,
-    getRadioData,
-    getCheckboxData,
-    setShow,
-    setRadio,
-    setCheckbox,
-    renderGrid,
-    renderBody,
-    renderHeader,
-    // setOnSizeChange,
-    // setOnPageChange,
-    // setRenderer,
-  } = useGrid({
+  const { ref, schema, setEditable, setData } = useGrid({
     defaultSchema: {
-      // pagination: true,
+      pagination: true,
       page: 0,
       size: 10,
       // edit: true,
       radio: true,
       checkbox: true,
-      height: "500px",
+      height: 700,
       header: [
         { id: "test12", cells: [{ binding: "text" }] },
         { cells: [{ binding: "number", width: "100px" }] },
@@ -97,132 +66,6 @@ export const SampleGrid = () => {
       }, 1000);
     });
 
-  const tests = [
-    {
-      name: "test render",
-      onClick: () => {
-        setTest((prev) => ++prev);
-      },
-    },
-    {
-      name: "get data",
-      onClick: () => {
-        console.log(getData());
-      },
-    },
-    {
-      name: "set header",
-      onClick: () => {
-        setHeader((prev) => {
-          prev[0].cells[0].binding = "qwe";
-          return prev;
-        });
-      },
-    },
-    {
-      name: "set edit : true",
-      onClick: () => {
-        setEdit(true);
-      },
-    },
-    {
-      name: "set edit : false",
-      onClick: () => {
-        setEdit(false);
-      },
-    },
-    {
-      name: "remove last",
-      onClick: () => {
-        removeRow(-1);
-      },
-    },
-    {
-      name: "add",
-      onClick: () => {
-        addRow();
-      },
-    },
-    {
-      name: "get page",
-      onClick: () => {
-        console.log(getPage());
-      },
-    },
-    {
-      name: "get size",
-      onClick: () => {
-        console.log(getSize());
-      },
-    },
-    {
-      name: "set height : 700px",
-      onClick: () => {
-        setHeight("700px");
-      },
-    },
-    {
-      name: "set height : undefined",
-      onClick: () => {
-        setHeight();
-      },
-    },
-    {
-      name: "up : 2",
-      onClick: () => {
-        upRow(2);
-      },
-    },
-    {
-      name: "down : 2",
-      onClick: () => {
-        downRow(2);
-      },
-    },
-    {
-      name: "sort : number",
-      onClick: () => {
-        sort("number");
-      },
-    },
-    {
-      name: "group : text",
-      onClick: () => {
-        setGroup("text");
-      },
-    },
-    {
-      name: "set page : 2",
-      onClick: () => {
-        setPage(2);
-      },
-    },
-    {
-      name: "set size : 20",
-      onClick: () => {
-        setSize(20);
-      },
-    },
-    {
-      name: "render grid",
-      onClick: () => {
-        renderGrid();
-      },
-    },
-    {
-      name: "render body",
-      onClick: () => {
-        renderBody();
-      },
-    },
-    {
-      name: "render header",
-      onClick: () => {
-        renderHeader();
-      },
-    },
-  ];
-
   const handleChangePage = async (value) => {
     const d = await fetchData(value);
     setData(d, 40);
@@ -269,50 +112,15 @@ export const SampleGrid = () => {
   //   },
   // });
 
-  const aaa = useRef(
-    new (class {
-      abc = "4";
-
-      setAbc() {
-        this.abc = 7;
-      }
-    })()
-  ).current;
-
-  // console.log(schema);
-
   const [, forceUpdate] = useReducer(() => ({}));
 
   return (
     <div>
       <div onClick={forceUpdate}>force</div>
-      <div
-        onClick={() => {
-          aaa.setAbc();
-        }}
-      >
-        gogot
-      </div>
-      <div
-        onClick={() => {
-          console.log(aaa.abc);
-        }}
-      >
-        gogo
-      </div>
-      <div className="grid grid-cols-10 gap-1 mb-10">
-        {tests.map(({ name, onClick }) => {
-          return (
-            <button
-              className="border"
-              key={utils.uuid()}
-              type="button"
-              onClick={onClick}
-            >
-              {name}
-            </button>
-          );
-        })}
+
+      <div className="grid grid-cols-8 gap-2">
+        <button onClick={() => setEditable(true)}>set editable true</button>
+        <button onClick={() => setEditable(false)}>set editable false</button>
       </div>
 
       <div>

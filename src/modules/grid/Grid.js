@@ -1,26 +1,12 @@
 import {
   useRef,
-  createContext,
-  useContext,
   useLayoutEffect,
-  useEffect,
   useState,
-  useMemo,
   memo,
-  useCallback,
-  useReducer,
   forwardRef,
+  useEffect,
 } from "react";
-
-// import { ControlText } from "../../components/ControlText";
-// import { ControlNumber } from "../../components/ControlNumber";
-// import { ControlRadio } from "../../components/ControlRadio";
-// import { ControlCheckbox } from "../../components/ControlCheckbox";
-// import { ControlSelect } from "../../components/ControlSelect";
-// import { ControlTextarea } from "../../components/ControlTextarea";
-// import { ControlDate } from "../../components/ControlDate";
-
-const GridContext = createContext();
+import { GridContextProvider, useGridContext, useInit } from "./GridContext";
 
 const deepEqual = (a, b) => {
   if (a === b) return true;
@@ -48,257 +34,19 @@ const deepEqual = (a, b) => {
   return true;
 };
 
-const throttle = (func, delay) => {
-  let timer;
-  return (...args) => {
-    if (!timer) {
-      timer = setTimeout(() => {
-        func(...args);
-        timer = undefined;
-      }, delay);
-    }
-  };
-};
-
-const debounce = (func, delay) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func(...args);
-    }, delay);
-  };
-};
-
-const uuid = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
-const clone = (item) => {
-  if (item === null || typeof item !== "object") {
-    return item;
-  }
-  if (Array.isArray(item)) {
-    return [...item];
-  }
-  return { ...item };
-};
-
-const cloneDeep = (item) => {
-  if (item === null || typeof item !== "object") {
-    return item;
-  }
-  if (Array.isArray(item)) {
-    return item.map(cloneDeep);
-  }
-  const obj = {};
-  for (let key in item) {
-    if (item.hasOwnProperty(key)) {
-      obj[key] = cloneDeep(item[key]);
-    }
-  }
-  return obj;
-};
-
-const useInitialize = (type) => {
-  const { useGrid, grid } = useContext(GridContext);
-  const forceUpdate = useReducer(() => ({}))[1];
-  useLayoutEffect(() => {
-    const deinitializeUseGrid = useGrid.initialize(type, forceUpdate);
-    const deinitializeGrid = grid.initialize(type, forceUpdate);
-    return () => {
-      deinitializeUseGrid();
-      deinitializeGrid();
-    };
-  }, []);
-  return { grid, useGrid, forceUpdate };
-};
-
-const GridContextProvider = forwardRef((props, ref) => {
-  const { children, useGrid } = props;
-
-  const _data = useRef(null);
-  ref && (_data.current = ref());
-
-  const _api = useRef({
-    getData: () => {},
-  });
-
-  const _grid = useRef(null);
-  _grid.current ??= new (class {
-    key = uuid();
-    overscanCount = 40;
-    rowMinHeight = 32;
-    scrollerRef = null;
-    rowMetricsEditable = [];
-    rowMetricsNonEditable = [];
-    renderGrid = null;
-    renderHeader = null;
-    renderBody = null;
-    renderFooter = null;
-
-    initialize = (type, forceUpdate) => {
-      switch (type) {
-        case "Grid":
-          this.renderGrid = forceUpdate;
-          return () => {
-            this.renderGrid = null;
-          };
-        case "Header":
-          this.renderHeader = forceUpdate;
-          return () => {
-            this.renderHeader = null;
-          };
-        case "Body":
-          this.renderBody = forceUpdate;
-          return () => {
-            this.renderBody = null;
-          };
-        case "Footer":
-          this.renderFooter = forceUpdate;
-          return () => {
-            this.renderFooter = null;
-          };
-      }
-    };
-
-    handleScroll = throttle(() => {
-      this.renderBody?.();
-    }, 100);
-
-    scrollerRefCallback = (ref) => {
-      this.scrollerRef = ref;
-    };
-
-    setRowHeight = (index, height) => {
-      const rowMetrics = this.#getRowMetrics();
-      const rowMetric = (rowMetrics[index] ??= {});
-      if (rowMetric.height === height) {
-        return false;
-      } else {
-        rowMetric.height = height;
-        return true;
-      }
-    };
-
-    readjust = debounce(() => {
-      this.#calculateRowTops();
-      this.renderBody?.();
-    }, 100);
-
-    getRows = () => {
-      return this.#index(this.#slice(this.#paginate(useGrid.getData())));
-    };
-
-    // ### Private ### //
-
-    #getRowMetrics = () => {
-      return useGrid.getEdit()
-        ? this.rowMetricsEditable
-        : this.rowMetricsNonEditable;
-    };
-
-    #calculateRowTops = () => {
-      this.#getRowMetrics()
-        .slice(0, useGrid.getPagination() ? useGrid.getSize() : undefined)
-        .reduce((prev, curr) => {
-          curr.top = prev;
-          return prev + curr.height;
-        }, 0);
-    };
-
-    #paginate = (data) => {
-      const page = useGrid.getPage();
-      const size = useGrid.getSize();
-      return !useGrid.getPagination() || useGrid.getPagination() === "external"
-        ? data
-        : data.slice(page * size, (page + 1) * size);
-    };
-
-    #getIndexTop = () => {
-      return Math.max(
-        this.#getRowMetrics().findIndex(({ top }) => {
-          return (this.scrollerRef?.scrollTop ?? 0) <= top;
-        }),
-        0
-      );
-    };
-
-    #getIndexStart = () => {
-      return Math.max(this.#getIndexTop() - this.overscanCount, 0);
-    };
-
-    #getIndexEnd = (rowsCount) => {
-      const height = Number(
-        String(useGrid.getHeight()).replaceAll(" ", "").replace("px", "")
-      );
-      return Math.min(
-        this.#getIndexTop() +
-          Math.ceil(height / this.rowMinHeight) +
-          this.overscanCount,
-        rowsCount
-      );
-    };
-
-    #slice = (data) => {
-      return useGrid.getHeight() === undefined
-        ? data
-        : data.slice(this.#getIndexStart(), this.#getIndexEnd(data.length));
-    };
-
-    #index = (data) => {
-      const page = useGrid.getPage();
-      const size = useGrid.getSize();
-      const rowMetrics = this.#getRowMetrics();
-      return data.map((data, index) => {
-        const viewIndex =
-          useGrid.getHeight() === undefined
-            ? index
-            : index + this.#getIndexStart();
-        const dataIndex =
-          !useGrid.getPagination() || useGrid.getPagination() === "external"
-            ? viewIndex
-            : viewIndex + page * size;
-
-        const { top, height } = rowMetrics[viewIndex] || {};
-        const key = `${this.key}:b:${dataIndex}:`;
-        return {
-          key,
-          data,
-          top,
-          height,
-          viewIndex,
-          dataIndex,
-        };
-      });
-    };
-  })();
-
-  const contextValue = useMemo(() => {
-    return { grid: _grid.current, useGrid };
-  }, []);
-
-  return (
-    <GridContext.Provider value={contextValue}>{children}</GridContext.Provider>
-  );
-});
-
 const GridComponent = memo(() => {
   console.log("Grid");
-  const { useGrid, grid } = useInitialize("Grid");
-  const height = useGrid.getHeight();
-  const pagination = useGrid.getPagination();
+  const { scrollerRefCallback, handleScroll, getSchema, getHeight } =
+    useInit("Grid");
+  const { pagination } = getSchema();
+  const height = getHeight();
 
   return (
     <div className="w-full">
       <div
         className="w-full overflow-auto text-[14px]"
-        ref={grid.scrollerRefCallback}
-        onScroll={grid.handleScroll}
+        ref={scrollerRefCallback}
+        onScroll={handleScroll}
         style={{ height }}
       >
         <Header />
@@ -311,23 +59,20 @@ const GridComponent = memo(() => {
 
 const Header = memo(() => {
   console.log("Grid Header");
-  const { useGrid, grid } = useInitialize("Header");
-  const key = grid.key;
-  const schema = useGrid.getSchema();
-  const { radio, checkbox, header, headerWidths, headerRowCount } = schema;
+  const { getKeyBase, getSchema, getGridTemplate } = useInit("Header");
+  const keyBase = getKeyBase();
+  const { radio, checkbox, header, headerRowCount } = getSchema();
+
   return (
     <div
       className="sticky top-0 min-w-fit grid border-t border-l bg-gray-100 z-[1]"
-      style={{
-        gridTemplateColumns: headerWidths.join(" "),
-        gridTemplateRows: `repeat(${headerRowCount}, minmax(32px, auto))`,
-      }}
+      style={getGridTemplate()}
     >
       {radio && <OptionCell />}
       {checkbox && <OptionCell />}
       {header.map((col, colIndex) => {
         const { colCount, cells } = col;
-        const colKey = `${key}:h:${colIndex}`;
+        const colKey = `${keyBase}:header:${colIndex}`;
         return (
           <div
             key={colKey}
@@ -362,16 +107,20 @@ const Header = memo(() => {
 
 const Body = memo(() => {
   console.log("Grid Body");
-  const { grid, useGrid } = useInitialize("Body");
-  const schema = useGrid.getSchema();
-  const { height, body, headerWidths, bodyRowCount, edit } = schema;
+  const { getSchema, getRows, getGridTemplate } = useInit("Body");
+  const { height, body, headerWidths, bodyRowCount, radio, checkbox } =
+    getSchema();
+  const rows = getRows();
   const hasGridHeight = !!height;
-  const rows = grid.getRows();
+
+  console.log(rows);
 
   return (
     <div className="relative">
       {rows.map((row) => {
         const { key, data, dataIndex, viewIndex, top, height } = row;
+        // console.log(key);
+
         return (
           <Row
             key={key}
@@ -384,10 +133,12 @@ const Body = memo(() => {
             body={body}
             top={top}
             height={height}
-            edit={edit}
             hasGridHeight={hasGridHeight}
-            radioChecked={useGrid.isRadioData(dataIndex)}
-            checkboxChecked={useGrid.isCheckboxData(dataIndex)}
+            radio={radio}
+            checkbox={checkbox}
+
+            // radioChecked={useGrid.isRadioData(dataIndex)}
+            // checkboxChecked={useGrid.isCheckboxData(dataIndex)}
           />
         );
       })}
@@ -401,80 +152,44 @@ const Row = memo(
       rowKey,
       dataIndex,
       viewIndex,
-      headerWidths,
+      top,
       body,
       bodyRowCount,
       rowData,
       hasGridHeight,
-      top,
       radioChecked,
+      radio,
+      checkbox,
+      headerWidths,
     } = props;
 
-    const { grid, useGrid } = useContext(GridContext);
+    const { getKeyBase, createObserver, getGridTemplate } = useGridContext();
+    const keyBase = getKeyBase();
 
-    const $ = useRef(
-      new (class {
-        rowRef = null;
-        observer = null;
+    const rowRef = useRef(null);
 
-        setObserver = () => {
-          this.observer = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-              if (grid.setRowHeight(viewIndex, entry.contentRect.height)) {
-                grid.readjust();
-              }
-            }
-          });
-        };
+    // const radioData = _.radioData;
+    // const checkboxData = _.checkboxData;
+    console.log(rowKey);
 
-        observe = () => {
-          this.observer.observe(this.rowRef);
-        };
-
-        disconnect = () => {
-          this.observer.disconnect();
-        };
-      })()
-    ).current;
-
-    const schema = useGrid.getSchema();
-    const radioData = useGrid.getRadioData();
-    const checkboxData = useGrid.getCheckboxData();
-
-    const { radio, checkbox } = schema;
-
-    const handleRadio = () => {
-      useGrid.setRadioData(dataIndex);
-    };
-
-    const handleCheckbox = () => {
-      const checkboxIndex = checkboxData.findIndex((item) => item === rowData);
-      if (checkboxIndex === -1) {
-        checkboxData.push(rowData);
-      } else {
-        checkboxData.splice(checkboxIndex, 1);
-      }
-    };
+    useEffect(() => {
+      // console.log(dataIndex);
+      console.log(rowKey);
+    }, []);
 
     useLayoutEffect(() => {
       if (hasGridHeight) {
-        $.setObserver();
-        $.observe();
+        const observer = createObserver(viewIndex);
+        observer.observe(rowRef.current);
+        return () => {
+          observer.disconnect();
+        };
       }
-
-      return () => {
-        if (hasGridHeight) {
-          $.disconnect();
-        }
-      };
     }, [hasGridHeight]);
 
     return (
       <div
-        ref={(ref) => {
-          if (!ref) return;
-          $.rowRef = ref;
-        }}
+        ref={rowRef}
         className={
           "grid border-l" +
           (hasGridHeight && top === undefined ? " opacity-0" : "") +
@@ -488,20 +203,21 @@ const Row = memo(
       >
         {radio && (
           <OptionCell>
-            <input
-              name={`${grid.key}:r`}
+            {/* <input
+              name={`${keyBase}:radio`}
               type="radio"
               defaultChecked={radioChecked}
-              onChange={handleRadio}
-            />
+              // onChange={handleRadio}
+            /> */}
+            {dataIndex}
           </OptionCell>
         )}
         {checkbox && (
           <OptionCell>
             <input
               type="checkbox"
-              defaultChecked={checkboxData.includes(rowData)}
-              onChange={handleCheckbox}
+              // defaultChecked={checkboxData.includes(rowData)}
+              // onChange={handleCheckbox}
             />
           </OptionCell>
         )}
@@ -522,12 +238,6 @@ const Row = memo(
                 const celKey = `${colKey}:${cellIndex}`;
 
                 const defaultValue = rowData[binding];
-                // const renderer = $useGrid.renderer?.body?.[id]?.({
-                //   data: cloneDeep(rowData),
-                //   schema: cloneDeep(cell),
-                //   index: dataIndex,
-                //   setData,
-                // });
 
                 const onChange = (event) => {
                   let nextValue;
@@ -558,10 +268,10 @@ const Row = memo(
                   // }
                   // rowData[binding] = nextValue;
 
-                  useGrid.setRowData(dataIndex, {
-                    ...rowData,
-                    [binding]: nextValue,
-                  });
+                  // useGrid.setRowData(dataIndex, {
+                  //   ...rowData,
+                  //   [binding]: nextValue,
+                  // });
                   // renderRow();
                 };
 
@@ -574,13 +284,11 @@ const Row = memo(
                       gridRow: `span ${rowSpan}`,
                     }}
                   >
-                    {/* {renderer ?? ( */}
                     <Control
                       {...rest}
                       defaultValue={defaultValue}
                       onChange={onChange}
                     />
-                    {/* // )} */}
                   </div>
                 );
               })}
@@ -591,7 +299,7 @@ const Row = memo(
     );
   },
   (prevProps, nextProps) => {
-    // return false;
+    return false;
     return (
       deepEqual(prevProps.rowData, nextProps.rowData) &&
       prevProps.hasGridHeight === nextProps.hasGridHeight &&
@@ -603,7 +311,7 @@ const Row = memo(
 );
 
 const Control = (props) => {
-  const { type, edit, ...rest } = props;
+  const { type, editable, ...rest } = props;
 
   const controlValue = rest.value || rest.defaultValue;
   const controlText =
@@ -617,7 +325,7 @@ const Control = (props) => {
       ? controlValue.join(", ")
       : controlValue;
 
-  if (edit === false) {
+  if (editable === false) {
     return <div className="max-w-full break-words">{controlText}</div>;
   }
 
@@ -645,19 +353,18 @@ const Control = (props) => {
 const Footer = memo(() => {
   console.log("Grid Footer");
 
-  const { useGrid } = useInitialize("Footer");
-  const schema = useGrid.getSchema();
-  const dataCount = useGrid.getDataCount();
-  const { page, size } = schema;
+  const { getRef, getSchema, onSizeChange, onPageChange } = useInit("Footer");
+  const { page, size } = getSchema();
+  const { dataCount } = getRef();
 
   return (
     <div className="min-h-12 bg-gray-100 px-2 flex items-center gap-8">
-      <Sizination size={size} onChange={useGrid.setSize} />
+      <Sizination size={size} onChange={onSizeChange} />
       <Pagination
         page={page}
         perPage={size}
         count={dataCount}
-        onChange={useGrid.setPage}
+        onChange={onPageChange}
       />
     </div>
   );
@@ -665,7 +372,8 @@ const Footer = memo(() => {
 
 const Pagination = (props) => {
   const { page, count = 0, perPage = 10, chunk = 10, onChange } = props;
-  const { grid } = useContext(GridContext);
+  const { getKeyBase } = useGridContext();
+  const keyBase = getKeyBase();
   const [cursor, setCursor] = useState(0);
   const chunked = [];
   const pageCount = Math.ceil(count / perPage) || 1;
@@ -710,7 +418,7 @@ const Pagination = (props) => {
         onClick={handlePrevClick}
       >{`<`}</button>
       {list?.map((value) => {
-        const key = `${grid.key}:p:${value}`;
+        const key = `${keyBase}:p:${value}`;
         return (
           <button
             key={key}
@@ -736,7 +444,8 @@ const Pagination = (props) => {
 
 const Sizination = (props) => {
   const { size, onChange } = props;
-  const { grid } = useContext(GridContext);
+  const { getKeyBase } = useGridContext();
+  const keyBase = getKeyBase();
   const list = [10, 20, 30, 40, 50, 100, 1000];
   const handleChange = (event) => {
     onChange?.(Number(event.target.value));
@@ -748,7 +457,7 @@ const Sizination = (props) => {
       onChange={handleChange}
     >
       {list.map((value) => {
-        const key = `${grid.key}:s:${value}`;
+        const key = `${keyBase}:s:${value}`;
         return (
           <option key={key} value={value}>
             {value}
