@@ -188,7 +188,7 @@ const GridContextProvider = forwardRef((props, ref) => {
       return rows.map((data, index) => {
         const viewIndex = index + (height ? firstIndex : 0);
         const dataIndex = viewIndex + (pageable ? page * size : 0);
-        const key = `${keyBase}:row:${dataIndex}`;
+        const key = `${keyBase}:row:${viewIndex}:${dataIndex}`;
         return { ...rowMetrics[viewIndex], key, data, viewIndex, dataIndex };
       });
     },

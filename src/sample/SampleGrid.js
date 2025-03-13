@@ -10,10 +10,10 @@ export const SampleGrid = () => {
       pagination: true,
       page: 0,
       size: 10,
-      // edit: true,
+      editable: false,
       radio: true,
       checkbox: true,
-      height: 700,
+      height: 500,
       header: [
         { id: "test12", cells: [{ binding: "text" }] },
         { cells: [{ binding: "number", width: "100px" }] },

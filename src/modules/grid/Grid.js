@@ -107,7 +107,8 @@ const Header = memo(() => {
 
 const Body = memo(() => {
   console.log("Grid Body");
-  const { getSchema, getRows, getGridTemplate } = useInit("Body");
+  const { getSchema, getRows, getGridTemplate, createObserver } =
+    useInit("Body");
   const { height, body, headerWidths, bodyRowCount, radio, checkbox } =
     getSchema();
   const rows = getRows();
@@ -119,8 +120,6 @@ const Body = memo(() => {
     <div className="relative">
       {rows.map((row) => {
         const { key, data, dataIndex, viewIndex, top, height } = row;
-        // console.log(key);
-
         return (
           <Row
             key={key}
@@ -136,9 +135,13 @@ const Body = memo(() => {
             hasGridHeight={hasGridHeight}
             radio={radio}
             checkbox={checkbox}
-
-            // radioChecked={useGrid.isRadioData(dataIndex)}
-            // checkboxChecked={useGrid.isCheckboxData(dataIndex)}
+            createObserver={createObserver}
+            className={
+              "grid border-l" +
+              (hasGridHeight && top === undefined ? " opacity-0" : "") +
+              (!hasGridHeight ? "" : " absolute")
+            }
+            style={{ ...getGridTemplate(), top }}
           />
         );
       })}
@@ -146,169 +149,134 @@ const Body = memo(() => {
   );
 });
 
-const Row = memo(
-  (props) => {
-    const {
-      rowKey,
-      dataIndex,
-      viewIndex,
-      top,
-      body,
-      bodyRowCount,
-      rowData,
-      hasGridHeight,
-      radioChecked,
-      radio,
-      checkbox,
-      headerWidths,
-    } = props;
+const Row = (props) => {
+  const {
+    rowKey,
+    dataIndex,
+    viewIndex,
+    top,
+    body,
+    bodyRowCount,
+    rowData,
+    hasGridHeight,
+    radio,
+    checkbox,
 
-    const { getKeyBase, createObserver, getGridTemplate } = useGridContext();
-    const keyBase = getKeyBase();
+    createObserver,
 
-    const rowRef = useRef(null);
+    style,
+    className,
+  } = props;
 
-    // const radioData = _.radioData;
-    // const checkboxData = _.checkboxData;
-    console.log(rowKey);
+  const rowRef = useRef(null);
 
-    useEffect(() => {
-      // console.log(dataIndex);
-      console.log(rowKey);
-    }, []);
+  useLayoutEffect(() => {
+    if (hasGridHeight) {
+      const observer = createObserver(viewIndex);
+      observer.observe(rowRef.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [hasGridHeight]);
 
-    useLayoutEffect(() => {
-      if (hasGridHeight) {
-        const observer = createObserver(viewIndex);
-        observer.observe(rowRef.current);
-        return () => {
-          observer.disconnect();
-        };
-      }
-    }, [hasGridHeight]);
-
-    return (
-      <div
-        ref={rowRef}
-        className={
-          "grid border-l" +
-          (hasGridHeight && top === undefined ? " opacity-0" : "") +
-          (!hasGridHeight ? "" : " absolute")
-        }
-        style={{
-          top,
-          gridTemplateColumns: headerWidths.join(" "),
-          gridTemplateRows: `repeat(${bodyRowCount}, minmax(32px, auto))`,
-        }}
-      >
-        {radio && (
-          <OptionCell>
-            {/* <input
+  return (
+    <div ref={rowRef} className={className} style={style}>
+      {radio && (
+        <OptionCell>
+          {/* <input
               name={`${keyBase}:radio`}
               type="radio"
               defaultChecked={radioChecked}
               // onChange={handleRadio}
             /> */}
-            {dataIndex}
-          </OptionCell>
-        )}
-        {checkbox && (
-          <OptionCell>
-            <input
-              type="checkbox"
-              // defaultChecked={checkboxData.includes(rowData)}
-              // onChange={handleCheckbox}
-            />
-          </OptionCell>
-        )}
-        {body.map((col, colIndex) => {
-          const { colCount, cells } = col;
-          const colKey = `${rowKey}:${colIndex}`;
-          return (
-            <div
-              key={colKey}
-              className="grid grid-cols-subgrid grid-rows-subgrid"
-              style={{
-                gridColumn: `span ${colCount}`,
-                gridRow: `span ${bodyRowCount}`,
-              }}
-            >
-              {cells.map((cell, cellIndex) => {
-                const { id, colSpan, rowSpan, binding, ...rest } = cell;
-                const celKey = `${colKey}:${cellIndex}`;
+          {dataIndex}
+        </OptionCell>
+      )}
+      {checkbox && (
+        <OptionCell>
+          <input
+            type="checkbox"
+            // defaultChecked={checkboxData.includes(rowData)}
+            // onChange={handleCheckbox}
+          />
+        </OptionCell>
+      )}
+      {body.map((col, colIndex) => {
+        const { colCount, cells } = col;
+        const colKey = `${rowKey}:${colIndex}`;
+        return (
+          <div
+            key={colKey}
+            className="grid grid-cols-subgrid grid-rows-subgrid"
+            style={{
+              gridColumn: `span ${colCount}`,
+              gridRow: `span ${bodyRowCount}`,
+            }}
+          >
+            {cells.map((cell, cellIndex) => {
+              const { id, colSpan, rowSpan, binding, ...rest } = cell;
+              const celKey = `${colKey}:${cellIndex}`;
 
-                const defaultValue = rowData[binding];
+              const defaultValue = rowData[binding];
 
-                const onChange = (event) => {
-                  let nextValue;
-                  switch (rest.type) {
-                    case "checkbox":
-                      nextValue = Array.isArray(defaultValue)
-                        ? defaultValue
-                        : [];
-                      if (event.target.checked)
-                        nextValue = [...nextValue, event.target.value];
-                      else
-                        nextValue = nextValue.filter(
-                          (item) => item !== event.target.value
-                        );
-                      break;
-                    case "date":
-                      if (event instanceof Date || event === null)
-                        nextValue = event;
-                      else nextValue = event.target.value;
-                      break;
-                    default:
-                      nextValue = event.target.value;
-                      break;
-                  }
+              const onChange = (event) => {
+                let nextValue;
+                switch (rest.type) {
+                  case "checkbox":
+                    nextValue = Array.isArray(defaultValue) ? defaultValue : [];
+                    if (event.target.checked)
+                      nextValue = [...nextValue, event.target.value];
+                    else
+                      nextValue = nextValue.filter(
+                        (item) => item !== event.target.value
+                      );
+                    break;
+                  case "date":
+                    if (event instanceof Date || event === null)
+                      nextValue = event;
+                    else nextValue = event.target.value;
+                    break;
+                  default:
+                    nextValue = event.target.value;
+                    break;
+                }
 
-                  // if (!$useGrid.updatedData.includes(rowData)) {
-                  //   $useGrid.updatedData.push(rowData);
-                  // }
-                  // rowData[binding] = nextValue;
+                // if (!$useGrid.updatedData.includes(rowData)) {
+                //   $useGrid.updatedData.push(rowData);
+                // }
+                // rowData[binding] = nextValue;
 
-                  // useGrid.setRowData(dataIndex, {
-                  //   ...rowData,
-                  //   [binding]: nextValue,
-                  // });
-                  // renderRow();
-                };
+                // useGrid.setRowData(dataIndex, {
+                //   ...rowData,
+                //   [binding]: nextValue,
+                // });
+                // renderRow();
+              };
 
-                return (
-                  <div
-                    key={celKey}
-                    className="border-r border-b flex items-center p-1"
-                    style={{
-                      gridColumn: `span ${colSpan}`,
-                      gridRow: `span ${rowSpan}`,
-                    }}
-                  >
-                    <Control
-                      {...rest}
-                      defaultValue={defaultValue}
-                      onChange={onChange}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    return false;
-    return (
-      deepEqual(prevProps.rowData, nextProps.rowData) &&
-      prevProps.hasGridHeight === nextProps.hasGridHeight &&
-      prevProps.top === nextProps.top &&
-      prevProps.height === nextProps.height
-      // prevProps.radioChecked === nextProps.radioChecked
-    );
-  }
-);
+              return (
+                <div
+                  key={celKey}
+                  className="border-r border-b flex items-center p-1"
+                  style={{
+                    gridColumn: `span ${colSpan}`,
+                    gridRow: `span ${rowSpan}`,
+                  }}
+                >
+                  <Control
+                    {...rest}
+                    defaultValue={defaultValue}
+                    onChange={onChange}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const Control = (props) => {
   const { type, editable, ...rest } = props;
