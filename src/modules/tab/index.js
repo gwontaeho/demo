@@ -1,13 +1,5 @@
 import { useRef, useState, forwardRef, useEffect } from "react";
 
-const uuid = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
     return item;
@@ -83,7 +75,7 @@ const Tab = forwardRef((props, ref) => {
   );
 
   const _tab = useRef({
-    key: uuid(),
+    key: crypto.randomUUID(),
     setActive: (index) => {
       _data.current.active = index;
       setActiveItem(index);
