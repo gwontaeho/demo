@@ -287,7 +287,7 @@ const Pagination = (props) => {
     <div className="flex gap-1">
       <button
         type="button"
-        className="text-sm border rounded w-8 h-8"
+        className="text-sm border rounded w-6 h-6"
         onClick={handlePrevClick}
       >{`<`}</button>
       {list?.map((value) => {
@@ -297,7 +297,7 @@ const Pagination = (props) => {
             key={key}
             type="button"
             className={
-              "text-sm border rounded w-8 h-8" +
+              "text-sm border rounded w-6 h-6" +
               (page === value ? " font-semibold" : "")
             }
             onClick={() => onChange?.(value)}
@@ -308,7 +308,7 @@ const Pagination = (props) => {
       })}
       <button
         type="button"
-        className="text-sm border rounded w-8 h-8"
+        className="text-sm border rounded w-6 h-6"
         onClick={handleNextClick}
       >{`>`}</button>
     </div>
@@ -325,7 +325,7 @@ const Sizination = (props) => {
   };
   return (
     <select
-      className="h-8 w-20 rounded border text-sm"
+      className="h-6 w-20 rounded border text-sm"
       value={size}
       onChange={handleChange}
     >

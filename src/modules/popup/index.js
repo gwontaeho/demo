@@ -1,13 +1,5 @@
 import { useEffect, useRef } from "react";
 
-const uuid = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
 const usePopup = () => {
   const _usePopup = useRef({ popups: {} }).current;
 
@@ -25,7 +17,7 @@ const usePopup = () => {
   const openPopup = ({ id, url, onMessage } = {}) => {
     deleteClosedPopups();
     if (!url) return;
-    id ??= uuid();
+    id ??= crypto.randomUUID();
 
     // 기존 팝업 닫기, 이벤트 리스너 제거
     if (_usePopup.popups[id]) {

@@ -148,6 +148,7 @@ export const useGrid = (params = {}) => {
       _.renderBody?.();
       _.renderFooter?.();
     },
+    updateRow: () => {},
     upRow: (dataIndex) => {
       if (dataIndex < 1) return;
       const target = _.data[dataIndex];

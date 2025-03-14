@@ -116,6 +116,7 @@ const GridContextProvider = forwardRef((props, ref) => {
       // Slice
       height && (rows = rows.slice(firstIndex, lastIndex));
 
+      // map 하지 않고 return
       return rows.map((data, index) => {
         const viewIndex = index + (height ? firstIndex : 0);
         const dataIndex = viewIndex + (pageable ? page * size : 0);
