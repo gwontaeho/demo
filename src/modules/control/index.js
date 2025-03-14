@@ -15,7 +15,7 @@ const ControlText = forwardRef((props, ref) => {
     <input
       ref={ref}
       type="text"
-      className="border h-8 px-2 bg-slate-50"
+      className="border h-6 px-2 bg-slate-50"
       autoComplete="off"
       {...rest}
     />
@@ -62,7 +62,7 @@ const ControlNumber = forwardRef((props, ref) => {
       ref={ref}
       type="text"
       autoComplete="off"
-      className="border h-8 px-2 bg-slate-50"
+      className="border h-6 px-2 bg-slate-50"
       onChange={handleChange}
       {...rest}
     />
@@ -74,7 +74,7 @@ const ControlTextarea = forwardRef((props, ref) => {
   return (
     <textarea
       ref={ref}
-      className="block border min-h-8 px-2 bg-slate-50"
+      className="block border min-h-6 px-2 bg-slate-50"
       {...rest}
     />
   );
@@ -84,7 +84,7 @@ const ControlSelect = forwardRef((props, ref) => {
   const { options, onChange } = props;
   const _key = useRef({ key: uuid() }).current;
   return (
-    <select ref={ref} className="border h-8 bg-slate-50" onChange={onChange}>
+    <select ref={ref} className="border h-6 bg-slate-50" onChange={onChange}>
       <option value=""></option>
       {options?.map((item, index) => {
         return (
@@ -161,7 +161,7 @@ const Control = forwardRef((props, ref) => {
   }
 
   return (
-    <div>
+    <div className="[&_*]:w-full">
       {type === "text" ? (
         <ControlText ref={ref} {...rest} />
       ) : type === "number" ? (

@@ -6,78 +6,7 @@ import {
   useReducer,
   forwardRef,
 } from "react";
-
-const deepEqual = (a, b) => {
-  if (a === b) return true;
-  if (
-    typeof a !== "object" ||
-    a === null ||
-    typeof b !== "object" ||
-    b === null
-  ) {
-    return a === b;
-  }
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-  for (let key of keysA) {
-    if (
-      !Object.prototype.hasOwnProperty.call(b, key) ||
-      !deepEqual(a[key], b[key])
-    ) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const throttle = (func, delay) => {
-  let timer;
-  return (...args) => {
-    if (!timer) {
-      timer = setTimeout(() => {
-        func(...args);
-        timer = undefined;
-      }, delay);
-    }
-  };
-};
-
-const debounce = (func, delay) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func(...args);
-    }, delay);
-  };
-};
-
-const uuid = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
-const cloneDeep = (item) => {
-  if (item === null || typeof item !== "object") {
-    return item;
-  }
-  if (Array.isArray(item)) {
-    return item.map(cloneDeep);
-  }
-  const obj = {};
-  for (let key in item) {
-    if (item.hasOwnProperty(key)) {
-      obj[key] = cloneDeep(item[key]);
-    }
-  }
-  return obj;
-};
+import { uuid, cloneDeep, debounce } from "./utils";
 
 const GridContext = createContext();
 
@@ -89,7 +18,6 @@ const useInit = (type) => {
   const forceUpdate = useReducer(() => ({}))[1];
   const _method = useGridContext();
   _method.init(type, forceUpdate);
-  return _method;
 };
 
 const GridContextProvider = forwardRef((props, ref) => {
@@ -144,13 +72,16 @@ const GridContextProvider = forwardRef((props, ref) => {
     },
     getHeight: () => {
       return (
-        _.schema.height && _.schema.height - (_.schema.pagination ? 48 : 0)
+        _.schema.height && _.schema.height - (_.schema.pagination ? 40 : 0)
       );
     },
-    getGridTemplate: () => {
+    getGridTemplate: (type) => {
+      const { headerWidths, headerRowCount, bodyRowCount } = _.schema;
       return {
-        gridTemplateColumns: _.schema.headerWidths.join(" "),
-        gridTemplateRows: `repeat(${_.schema.headerRowCount}, minmax(32px, auto))`,
+        gridTemplateColumns: headerWidths.join(" "),
+        gridTemplateRows: `repeat(${
+          type === "header" ? headerRowCount : bodyRowCount
+        }, minmax(32px, auto))`,
       };
     },
     getRows: () => {
@@ -188,7 +119,7 @@ const GridContextProvider = forwardRef((props, ref) => {
       return rows.map((data, index) => {
         const viewIndex = index + (height ? firstIndex : 0);
         const dataIndex = viewIndex + (pageable ? page * size : 0);
-        const key = `${keyBase}:row:${viewIndex}:${dataIndex}`;
+        const key = `${keyBase}:row:editable:${editable}:${viewIndex}:${dataIndex}`;
         return { ...rowMetrics[viewIndex], key, data, viewIndex, dataIndex };
       });
     },
@@ -229,6 +160,21 @@ const GridContextProvider = forwardRef((props, ref) => {
       _.schema.page = value;
       if (_.schema.pagination !== "external") _.renderBody?.();
       _.renderFooter?.();
+    },
+    onRadioChange: (index) => {
+      _.radioData = _.data[index];
+    },
+    onCheckboxChange: (index) => {
+      const checkboxData = _.checkboxData;
+      const row = _.data[index];
+      const found = checkboxData.findIndex((item) => item === row);
+      found === -1 ? checkboxData.push(row) : checkboxData.splice(found, 1);
+    },
+    isRadioData: (index) => {
+      return _.radioData === _.data[index];
+    },
+    isCheckboxData: (index) => {
+      return _.checkboxData.includes(_.data[index]);
     },
   }).current;
 

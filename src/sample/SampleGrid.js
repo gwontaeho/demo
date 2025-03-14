@@ -11,6 +11,7 @@ export const SampleGrid = () => {
       page: 0,
       size: 10,
       editable: false,
+      index: true,
       radio: true,
       checkbox: true,
       height: 500,
@@ -20,13 +21,12 @@ export const SampleGrid = () => {
         // { cells: [{ binding: "date", width: "150px" }] },
       ],
       body: [
-        { cells: [{ id: "custom-cell" }] },
+        { cells: [{ id: "custom-cell", type: "text" }] },
         {
           cells: [
             {
-              binding: "text",
-              type: "textarea",
-
+              binding: "number",
+              type: "number",
               // decimalScale: 2,
               // thousandsSeparator: true,
             },

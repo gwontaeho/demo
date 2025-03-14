@@ -1,43 +1,12 @@
-import {
-  useRef,
-  useLayoutEffect,
-  useState,
-  memo,
-  forwardRef,
-  useEffect,
-} from "react";
+import { useRef, useLayoutEffect, useState, memo, forwardRef } from "react";
 import { GridContextProvider, useGridContext, useInit } from "./GridContext";
-
-const deepEqual = (a, b) => {
-  if (a === b) return true;
-  if (
-    typeof a !== "object" ||
-    a === null ||
-    typeof b !== "object" ||
-    b === null
-  ) {
-    return a === b;
-  }
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-  for (let key of keysA) {
-    if (
-      !Object.prototype.hasOwnProperty.call(b, key) ||
-      !deepEqual(a[key], b[key])
-    ) {
-      return false;
-    }
-  }
-  return true;
-};
+import { Control } from "../control";
 
 const GridComponent = memo(() => {
   console.log("Grid");
+  useInit("Grid");
   const { scrollerRefCallback, handleScroll, getSchema, getHeight } =
-    useInit("Grid");
+    useGridContext();
   const { pagination } = getSchema();
   const height = getHeight();
 
@@ -59,20 +28,22 @@ const GridComponent = memo(() => {
 
 const Header = memo(() => {
   console.log("Grid Header");
-  const { getKeyBase, getSchema, getGridTemplate } = useInit("Header");
+  useInit("Header");
+  const { getKeyBase, getSchema, getGridTemplate } = useGridContext();
   const keyBase = getKeyBase();
-  const { radio, checkbox, header, headerRowCount } = getSchema();
+  const { index, radio, checkbox, header, headerRowCount } = getSchema();
 
   return (
     <div
       className="sticky top-0 min-w-fit grid border-t border-l bg-gray-100 z-[1]"
-      style={getGridTemplate()}
+      style={getGridTemplate("header")}
     >
+      {index && <OptionCell />}
       {radio && <OptionCell />}
       {checkbox && <OptionCell />}
-      {header.map((col, colIndex) => {
-        const { colCount, cells } = col;
-        const colKey = `${keyBase}:header:${colIndex}`;
+      {header.map((column, columnIndex) => {
+        const { colCount, cells } = column;
+        const colKey = `${keyBase}:header:${columnIndex}`;
         return (
           <div
             key={colKey}
@@ -107,14 +78,23 @@ const Header = memo(() => {
 
 const Body = memo(() => {
   console.log("Grid Body");
-  const { getSchema, getRows, getGridTemplate, createObserver } =
-    useInit("Body");
-  const { height, body, headerWidths, bodyRowCount, radio, checkbox } =
+  useInit("Body");
+  const {
+    getSchema,
+    getRows,
+    getGridTemplate,
+    createObserver,
+    getKeyBase,
+    onRadioChange,
+    onCheckboxChange,
+    isRadioData,
+    isCheckboxData,
+  } = useGridContext();
+  const keyBase = getKeyBase();
+  const { height, body, headerWidths, bodyRowCount, index, radio, checkbox } =
     getSchema();
   const rows = getRows();
-  const hasGridHeight = !!height;
-
-  console.log(rows);
+  const gridHeight = !!height;
 
   return (
     <div className="relative">
@@ -124,6 +104,7 @@ const Body = memo(() => {
           <Row
             key={key}
             rowKey={key}
+            keyBase={keyBase}
             rowData={data}
             dataIndex={dataIndex}
             viewIndex={viewIndex}
@@ -132,16 +113,21 @@ const Body = memo(() => {
             body={body}
             top={top}
             height={height}
-            hasGridHeight={hasGridHeight}
+            gridHeight={gridHeight}
+            index={index}
             radio={radio}
             checkbox={checkbox}
             createObserver={createObserver}
+            onRadioChange={onRadioChange}
+            onCheckboxChange={onCheckboxChange}
+            isRadioChecked={isRadioData(dataIndex)}
+            isCheckboxChecked={isCheckboxData(dataIndex)}
             className={
               "grid border-l" +
-              (hasGridHeight && top === undefined ? " opacity-0" : "") +
-              (!hasGridHeight ? "" : " absolute")
+              (gridHeight && top === undefined ? " opacity-0" : "") +
+              (!gridHeight ? "" : " absolute")
             }
-            style={{ ...getGridTemplate(), top }}
+            style={{ ...getGridTemplate("body"), top }}
           />
         );
       })}
@@ -154,16 +140,20 @@ const Row = (props) => {
     rowKey,
     dataIndex,
     viewIndex,
-    top,
     body,
     bodyRowCount,
     rowData,
-    hasGridHeight,
+    gridHeight,
+
+    index,
     radio,
     checkbox,
-
+    keyBase,
     createObserver,
-
+    onRadioChange,
+    onCheckboxChange,
+    isRadioChecked,
+    isCheckboxChecked,
     style,
     className,
   } = props;
@@ -171,34 +161,34 @@ const Row = (props) => {
   const rowRef = useRef(null);
 
   useLayoutEffect(() => {
-    if (hasGridHeight) {
+    if (gridHeight) {
       const observer = createObserver(viewIndex);
       observer.observe(rowRef.current);
       return () => {
         observer.disconnect();
       };
     }
-  }, [hasGridHeight]);
+  }, [gridHeight]);
 
   return (
     <div ref={rowRef} className={className} style={style}>
+      {index && <OptionCell>{dataIndex}</OptionCell>}
       {radio && (
         <OptionCell>
-          {/* <input
-              name={`${keyBase}:radio`}
-              type="radio"
-              defaultChecked={radioChecked}
-              // onChange={handleRadio}
-            /> */}
-          {dataIndex}
+          <input
+            name={`${keyBase}:radio`}
+            type="radio"
+            defaultChecked={isRadioChecked}
+            onChange={() => onRadioChange(dataIndex)}
+          />
         </OptionCell>
       )}
       {checkbox && (
         <OptionCell>
           <input
             type="checkbox"
-            // defaultChecked={checkboxData.includes(rowData)}
-            // onChange={handleCheckbox}
+            defaultChecked={isCheckboxChecked}
+            onChange={() => onCheckboxChange(dataIndex)}
           />
         </OptionCell>
       )}
@@ -220,44 +210,10 @@ const Row = (props) => {
 
               const defaultValue = rowData[binding];
 
-              const onChange = (event) => {
-                let nextValue;
-                switch (rest.type) {
-                  case "checkbox":
-                    nextValue = Array.isArray(defaultValue) ? defaultValue : [];
-                    if (event.target.checked)
-                      nextValue = [...nextValue, event.target.value];
-                    else
-                      nextValue = nextValue.filter(
-                        (item) => item !== event.target.value
-                      );
-                    break;
-                  case "date":
-                    if (event instanceof Date || event === null)
-                      nextValue = event;
-                    else nextValue = event.target.value;
-                    break;
-                  default:
-                    nextValue = event.target.value;
-                    break;
-                }
-
-                // if (!$useGrid.updatedData.includes(rowData)) {
-                //   $useGrid.updatedData.push(rowData);
-                // }
-                // rowData[binding] = nextValue;
-
-                // useGrid.setRowData(dataIndex, {
-                //   ...rowData,
-                //   [binding]: nextValue,
-                // });
-                // renderRow();
-              };
-
               return (
                 <div
                   key={celKey}
-                  className="border-r border-b flex items-center p-1"
+                  className="border-r border-b flex items-center px-1 [&>div]:w-full"
                   style={{
                     gridColumn: `span ${colSpan}`,
                     gridRow: `span ${rowSpan}`,
@@ -266,7 +222,7 @@ const Row = (props) => {
                   <Control
                     {...rest}
                     defaultValue={defaultValue}
-                    onChange={onChange}
+                    // onChange={onChange}
                   />
                 </div>
               );
@@ -278,55 +234,15 @@ const Row = (props) => {
   );
 };
 
-const Control = (props) => {
-  const { type, editable, ...rest } = props;
-
-  const controlValue = rest.value || rest.defaultValue;
-  const controlText =
-    type === "date" && controlValue instanceof Date
-      ? `${controlValue.getFullYear()}-${
-          controlValue.getMonth() + 1 > 9 ? "" : "0"
-        }${controlValue.getMonth() + 1}-${
-          controlValue.getDate() > 9 ? "" : "0"
-        }${controlValue.getDate()}`
-      : type === "checkbox" && Array.isArray(controlValue)
-      ? controlValue.join(", ")
-      : controlValue;
-
-  if (editable === false) {
-    return <div className="max-w-full break-words">{controlText}</div>;
-  }
-
-  return (
-    <div className="w-full [&>*]:w-full">
-      {/* {type === "text" ? (
-        <ControlText {...rest} />
-      ) : type === "number" ? (
-        <ControlNumber {...rest} />
-      ) : type === "select" ? (
-        <ControlSelect {...rest} />
-      ) : type === "radio" ? (
-        <ControlRadio {...rest} />
-      ) : type === "checkbox" ? (
-        <ControlCheckbox {...rest} />
-      ) : type === "textarea" ? (
-        <ControlTextarea {...rest} />
-      ) : type === "date" ? (
-        <ControlDate {...rest} />
-      ) : null} */}
-    </div>
-  );
-};
-
 const Footer = memo(() => {
   console.log("Grid Footer");
-
-  const { getRef, getSchema, onSizeChange, onPageChange } = useInit("Footer");
+  useInit("Footer");
+  const { getRef, getSchema, onSizeChange, onPageChange } = useGridContext();
   const { page, size } = getSchema();
   const { dataCount } = getRef();
 
   return (
-    <div className="min-h-12 bg-gray-100 px-2 flex items-center gap-8">
+    <div className="min-h-10 bg-gray-100 px-2 flex items-center gap-8">
       <Sizination size={size} onChange={onSizeChange} />
       <Pagination
         page={page}
@@ -361,22 +277,6 @@ const Pagination = (props) => {
       setCursor((prev) => (prev += 1));
     }
   };
-
-  const isOverPage = pageCount < page + 1;
-
-  // useEffect(() => {
-  //   if (isOverPage) {
-  //     handlePageClick(page - 1);
-  //   }
-  // }, [isOverPage]);
-
-  const isOverCursor = chunkCount < cursor + 1;
-
-  // useEffect(() => {
-  //   if (isOverCursor) {
-  //     setCursor((prev) => prev - 1);
-  //   }
-  // }, [isOverCursor]);
 
   return (
     <div className="flex gap-1">
