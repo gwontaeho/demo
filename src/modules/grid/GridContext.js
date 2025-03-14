@@ -140,7 +140,7 @@ const GridContextProvider = forwardRef((props, ref) => {
         }
       });
     },
-    onSizeChange: (value) => {
+    handleSizeChange: (value) => {
       if (
         !_.schema.pagination ||
         typeof value !== "number" ||
@@ -152,7 +152,7 @@ const GridContextProvider = forwardRef((props, ref) => {
       if (_.schema.pagination !== "external") _.renderBody?.();
       _.renderFooter?.();
     },
-    onPageChange: (value) => {
+    handlePageChange: (value) => {
       if (
         !_.schema.pagination ||
         typeof value !== "number" ||
@@ -163,16 +163,18 @@ const GridContextProvider = forwardRef((props, ref) => {
       if (_.schema.pagination !== "external") _.renderBody?.();
       _.renderFooter?.();
     },
-    onRadioChange: (dataIndex) => {
+    handleRadioChange: (dataIndex) => {
       _.radioData = _.data[dataIndex];
     },
-    onCheckboxChange: (dataIndex) => {
+    handleCheckboxChange: (dataIndex) => {
       const checkboxData = _.checkboxData;
       const row = _.data[dataIndex];
       const found = checkboxData.findIndex((item) => item === row);
       found === -1 ? checkboxData.push(row) : checkboxData.splice(found, 1);
     },
-    onChange: (dataIndex, event) => {},
+    handleRowChange: (dataIndex, binding, value) => {
+      _.data[dataIndex][binding] = value;
+    },
     isRadioData: (dataIndex) => {
       return _.radioData === _.data[dataIndex];
     },

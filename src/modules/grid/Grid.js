@@ -85,9 +85,9 @@ const Body = memo(() => {
     getGridTemplate,
     createObserver,
     getKeyBase,
-    onChange,
-    onRadioChange,
-    onCheckboxChange,
+    handleRowChange,
+    handleRadioChange,
+    handleCheckboxChange,
     isRadioData,
     isCheckboxData,
   } = useGridContext();
@@ -96,8 +96,6 @@ const Body = memo(() => {
     getSchema();
   const rows = getRows();
   const gridHeight = !!height;
-
-  console.log(rows);
 
   return (
     <div className="relative">
@@ -120,10 +118,10 @@ const Body = memo(() => {
             index={index}
             radio={radio}
             checkbox={checkbox}
-            onChange={onChange}
+            handleRowChange={handleRowChange}
             createObserver={createObserver}
-            onRadioChange={onRadioChange}
-            onCheckboxChange={onCheckboxChange}
+            handleRadioChange={handleRadioChange}
+            handleCheckboxChange={handleCheckboxChange}
             isRadioChecked={isRadioData(dataIndex)}
             isCheckboxChecked={isCheckboxData(dataIndex)}
             className={
@@ -154,9 +152,9 @@ const Row = (props) => {
     checkbox,
     keyBase,
     createObserver,
-    onRadioChange,
-    onChange,
-    onCheckboxChange,
+    handleRowChange,
+    handleRadioChange,
+    handleCheckboxChange,
     isRadioChecked,
     isCheckboxChecked,
     style,
@@ -184,7 +182,7 @@ const Row = (props) => {
             name={`${keyBase}:radio`}
             type="radio"
             defaultChecked={isRadioChecked}
-            onChange={() => onRadioChange(dataIndex)}
+            onChange={() => handleRadioChange(dataIndex)}
           />
         </OptionCell>
       )}
@@ -193,7 +191,7 @@ const Row = (props) => {
           <input
             type="checkbox"
             defaultChecked={isCheckboxChecked}
-            onChange={() => onCheckboxChange(dataIndex)}
+            onChange={() => handleCheckboxChange(dataIndex)}
           />
         </OptionCell>
       )}
@@ -227,7 +225,9 @@ const Row = (props) => {
                   <Control
                     {...rest}
                     defaultValue={defaultValue}
-                    onChange={onChange}
+                    onChange={(newValue) =>
+                      handleRowChange(dataIndex, binding, newValue)
+                    }
                   />
                 </div>
               );
@@ -242,18 +242,19 @@ const Row = (props) => {
 const Footer = memo(() => {
   console.log("Grid Footer");
   useInit("Footer");
-  const { getRef, getSchema, onSizeChange, onPageChange } = useGridContext();
+  const { getRef, getSchema, handleSizeChange, handlePageChange } =
+    useGridContext();
   const { page, size } = getSchema();
   const { dataCount } = getRef();
 
   return (
     <div className="min-h-10 bg-gray-100 px-2 flex items-center gap-8">
-      <Sizination size={size} onChange={onSizeChange} />
+      <Sizination size={size} onChange={handleSizeChange} />
       <Pagination
         page={page}
         perPage={size}
         count={dataCount}
-        onChange={onPageChange}
+        onChange={handlePageChange}
       />
     </div>
   );

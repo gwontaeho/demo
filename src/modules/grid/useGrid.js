@@ -32,11 +32,12 @@ import { cloneDeep, makeBody, makeHeader, makeSchema } from "./utils";
  * @typedef {Object} DefaultSchema
  * @property {number} page
  * @property {number} size
+ * @property {boolean} index
  * @property {boolean} radio
  * @property {boolean} checkbox
  * @property {boolean} editable
  * @property {boolean|'external'} pagination
- * @property {string|number} height
+ * @property {number} height
  * @property {Array<HeaderColumn>} header
  * @property {Array<BodyColumn>} body
  */
@@ -129,8 +130,17 @@ export const useGrid = (params = {}) => {
       _.renderGrid?.();
       _.renderBody?.();
     },
-    setPage: () => {},
-    setSize: () => {},
+    setPage: (newPage) => {
+      _.schema.page = newPage;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    setSize: (newSize) => {
+      _.schema.page = 0;
+      _.schema.size = newSize;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
 
     addRow: (newRow = {}) => {
       _.data.push(newRow);

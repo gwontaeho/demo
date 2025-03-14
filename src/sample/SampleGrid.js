@@ -20,8 +20,7 @@ export const SampleGrid = () => {
   } = useGrid({
     defaultSchema: {
       pagination: true,
-      page: 0,
-      size: 10,
+
       editable: true,
       index: true,
       radio: true,
@@ -31,17 +30,36 @@ export const SampleGrid = () => {
         { cells: [{ binding: "index" }] },
         { cells: [{ binding: "text" }] },
         { cells: [{ binding: "number" }] },
+        { cells: [{ binding: "radio" }] },
+        { cells: [{ binding: "checkbox" }] },
       ],
       body: [
         { cells: [{ binding: "index", type: "text" }] },
         { cells: [{ binding: "text", type: "text" }] },
+        { cells: [{ binding: "number", type: "number" }] },
         {
           cells: [
             {
-              binding: "number",
-              type: "number",
-              // decimalScale: 2,
-              // thousandsSeparator: true,
+              binding: "radio",
+              type: "radio",
+              options: [
+                { label: "a", value: "a" },
+                { label: "b", value: "b" },
+                { label: "c", value: "c" },
+              ],
+            },
+          ],
+        },
+        {
+          cells: [
+            {
+              binding: "checkbox",
+              type: "checkbox",
+              options: [
+                { label: "a", value: "a" },
+                { label: "b", value: "b" },
+                { label: "c", value: "c" },
+              ],
             },
           ],
         },
@@ -63,6 +81,8 @@ export const SampleGrid = () => {
       ],
     },
   });
+
+  console.log(crypto.randomUUID);
 
   // console.log(schema);
 

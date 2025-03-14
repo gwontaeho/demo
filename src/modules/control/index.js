@@ -1,22 +1,15 @@
 import { forwardRef, useRef } from "react";
 import { useControl } from "../form";
 
-const uuid = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-};
-
 const ControlText = forwardRef((props, ref) => {
-  const { ...rest } = props;
+  const { onChange, ...rest } = props;
   return (
     <input
       ref={ref}
       type="text"
       className="border h-6 px-2 bg-slate-50"
       autoComplete="off"
+      onChange={(event) => onChange?.(event.target.value)}
       {...rest}
     />
   );
@@ -54,7 +47,7 @@ const ControlNumber = forwardRef((props, ref) => {
         integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
         (decimal === undefined ? "" : `.${decimal}`);
     }
-    onChange?.(event);
+    onChange?.(event.target.value);
   };
 
   return (
@@ -70,11 +63,12 @@ const ControlNumber = forwardRef((props, ref) => {
 });
 
 const ControlTextarea = forwardRef((props, ref) => {
-  const { ...rest } = props;
+  const { onChange, ...rest } = props;
   return (
     <textarea
       ref={ref}
       className="block border min-h-6 px-2 bg-slate-50"
+      onChange={(event) => onChange?.(event.target.value)}
       {...rest}
     />
   );
@@ -82,9 +76,13 @@ const ControlTextarea = forwardRef((props, ref) => {
 
 const ControlSelect = forwardRef((props, ref) => {
   const { options, onChange } = props;
-  const _key = useRef({ key: uuid() }).current;
+  const _key = useRef({ key: crypto.randomUUID() }).current;
   return (
-    <select ref={ref} className="border h-6 bg-slate-50" onChange={onChange}>
+    <select
+      ref={ref}
+      className="border h-6 bg-slate-50"
+      onChange={(event) => onChange?.(event.target.value)}
+    >
       <option value=""></option>
       {options?.map((item, index) => {
         return (
@@ -98,20 +96,25 @@ const ControlSelect = forwardRef((props, ref) => {
 });
 
 const ControlRadio = forwardRef((props, ref) => {
-  const { value, options, name, onChange } = props;
-  const _key = useRef({ key: uuid() }).current;
+  const { value, defaultValue, options, name, onChange } = props;
+  const _ = useRef({ key: crypto.randomUUID() }).current;
   return (
     <div className="flex flex-wrap gap-x-4">
       {options?.map((item, index) => {
         return (
-          <label key={_key.key + ":" + index}>
+          <label key={_.key + ":" + index}>
             <input
               ref={ref}
               type="radio"
-              name={name}
+              name={name ?? _.key}
               value={item.value}
-              checked={value === item.value}
-              onChange={onChange}
+              defaultChecked={
+                defaultValue === undefined
+                  ? undefined
+                  : defaultValue === item.value
+              }
+              checked={value === undefined ? undefined : value === item.value}
+              onChange={(event) => onChange?.(event.target.value)}
             />
             {item.label}
           </label>
@@ -122,20 +125,31 @@ const ControlRadio = forwardRef((props, ref) => {
 });
 
 const ControlCheckbox = forwardRef((props, ref) => {
-  const { value, options, name, onChange } = props;
-  const _key = useRef({ key: uuid() }).current;
+  const { value, defaultValue, options, name, onChange } = props;
+  const _ = useRef({ key: crypto.randomUUID() }).current;
   return (
     <div className="flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {
         return (
-          <label key={_key.key + ":" + index}>
+          <label key={_.key + ":" + index}>
             <input
               ref={ref}
               type="checkbox"
               name={name}
               value={item.value}
-              checked={value.includes(item.value)}
-              onChange={onChange}
+              defaultChecked={defaultValue?.includes?.(item.value)}
+              checked={value?.includes?.(item.value)}
+              onChange={(event) =>
+                onChange?.(
+                  [
+                    ...event.target.parentElement.parentElement.getElementsByTagName(
+                      "input"
+                    ),
+                  ]
+                    .filter((element) => element.checked)
+                    .map((element) => element.value)
+                )
+              }
             />
             {item.label}
           </label>
@@ -161,7 +175,7 @@ const Control = forwardRef((props, ref) => {
   }
 
   return (
-    <div className="[&_*]:w-full">
+    <div className="[&>*]:w-full">
       {type === "text" ? (
         <ControlText ref={ref} {...rest} />
       ) : type === "number" ? (

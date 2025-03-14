@@ -129,8 +129,11 @@ const makeBody = (schema) => {
 
 const makeSchema = (schema) => {
   schema.editable ??= false;
+  schema.index ??= false;
   schema.radio ??= false;
   schema.checkbox ??= false;
+  schema.page ??= 0;
+  schema.size ??= 10;
   const { headerWidths, headerRowCount } = makeHeader(schema);
   const { bodyRowCount } = makeBody(schema);
   schema.headerWidths = headerWidths;
