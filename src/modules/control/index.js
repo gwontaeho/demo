@@ -155,7 +155,7 @@ const Control = forwardRef((props, ref) => {
   } = useControl(props);
 
   if (!editable) {
-    const value = rest.value;
+    const value = rest.value || rest.defaultValue;
     const text = type === "checkbox" ? value.join(", ") : value;
     return <div>{text}</div>;
   }

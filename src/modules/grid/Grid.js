@@ -85,6 +85,7 @@ const Body = memo(() => {
     getGridTemplate,
     createObserver,
     getKeyBase,
+    onChange,
     onRadioChange,
     onCheckboxChange,
     isRadioData,
@@ -95,6 +96,8 @@ const Body = memo(() => {
     getSchema();
   const rows = getRows();
   const gridHeight = !!height;
+
+  console.log(rows);
 
   return (
     <div className="relative">
@@ -117,6 +120,7 @@ const Body = memo(() => {
             index={index}
             radio={radio}
             checkbox={checkbox}
+            onChange={onChange}
             createObserver={createObserver}
             onRadioChange={onRadioChange}
             onCheckboxChange={onCheckboxChange}
@@ -151,6 +155,7 @@ const Row = (props) => {
     keyBase,
     createObserver,
     onRadioChange,
+    onChange,
     onCheckboxChange,
     isRadioChecked,
     isCheckboxChecked,
@@ -222,7 +227,7 @@ const Row = (props) => {
                   <Control
                     {...rest}
                     defaultValue={defaultValue}
-                    // onChange={onChange}
+                    onChange={onChange}
                   />
                 </div>
               );

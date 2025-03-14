@@ -119,7 +119,8 @@ const GridContextProvider = forwardRef((props, ref) => {
       return rows.map((data, index) => {
         const viewIndex = index + (height ? firstIndex : 0);
         const dataIndex = viewIndex + (pageable ? page * size : 0);
-        const key = `${keyBase}:row:editable:${editable}:${viewIndex}:${dataIndex}`;
+        // const key = `${keyBase}:row:editable:${editable}:${viewIndex}:${dataIndex}`;
+        const key = `${uuid()}`;
         return { ...rowMetrics[viewIndex], key, data, viewIndex, dataIndex };
       });
     },
@@ -161,20 +162,21 @@ const GridContextProvider = forwardRef((props, ref) => {
       if (_.schema.pagination !== "external") _.renderBody?.();
       _.renderFooter?.();
     },
-    onRadioChange: (index) => {
-      _.radioData = _.data[index];
+    onRadioChange: (dataIndex) => {
+      _.radioData = _.data[dataIndex];
     },
-    onCheckboxChange: (index) => {
+    onCheckboxChange: (dataIndex) => {
       const checkboxData = _.checkboxData;
-      const row = _.data[index];
+      const row = _.data[dataIndex];
       const found = checkboxData.findIndex((item) => item === row);
       found === -1 ? checkboxData.push(row) : checkboxData.splice(found, 1);
     },
-    isRadioData: (index) => {
-      return _.radioData === _.data[index];
+    onChange: (dataIndex, event) => {},
+    isRadioData: (dataIndex) => {
+      return _.radioData === _.data[dataIndex];
     },
-    isCheckboxData: (index) => {
-      return _.checkboxData.includes(_.data[index]);
+    isCheckboxData: (dataIndex) => {
+      return _.checkboxData.includes(_.data[dataIndex]);
     },
   }).current;
 

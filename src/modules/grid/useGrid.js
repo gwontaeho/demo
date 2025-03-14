@@ -55,8 +55,8 @@ export const useGrid = (params = {}) => {
     addedData: [],
     removedData: [],
     updatedData: [],
-    checkboxData: [],
     radioData: null,
+    checkboxData: [],
     dataCount: 0,
     schema: makeSchema(cloneDeep(defaultSchema)),
     renderGrid: null,
@@ -73,31 +73,93 @@ export const useGrid = (params = {}) => {
     getData: () => {
       return cloneDeep(_.data);
     },
-    getDataCount: () => {
-      return _.dataCount;
+    getRadioData: () => {
+      return cloneDeep(_.radioData);
     },
-    setEditable: (value) => {
-      if (typeof value !== "boolean" || _.schema.editable === value) return;
-      _.schema.editable = value;
+    getCheckboxData: () => {
+      return cloneDeep(_.checkboxData);
+    },
+    getAddedData: () => {
+      return cloneDeep(_.addedData);
+    },
+    getRemoveData: () => {
+      return cloneDeep(_.removedData);
+    },
+    getUpdatedData: () => {
+      return cloneDeep(_.updatedData);
+    },
+    getPage: () => {
+      return _.schema.page;
+    },
+    getSize: () => {
+      return _.schema.size;
+    },
+
+    setSchema: (newSchema) => {
+      makeSchema(cloneDeep(newSchema));
+      _.renderGrid?.();
+      _.renderHeader?.();
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    setEditable: (newEditable) => {
+      const oldEditable = _.schema.editable;
+      if (typeof newEditable !== "boolean" || oldEditable === newEditable)
+        return;
+      _.schema.editable = newEditable;
       _.schema = makeSchema(_.schema);
       _.renderBody?.();
     },
-    setData: (data, dataCount) => {
-      _.data = cloneDeep(data);
-      _.originalData = cloneDeep(data);
+    setData: (newData, newDataCount) => {
+      _.data = cloneDeep(newData);
+      _.originalData = cloneDeep(newData);
       _.addedData = [];
       _.removedData = [];
       _.updatedData = [];
       _.checkboxData = [];
       _.radioData = null;
-      _.dataCount = dataCount ?? data.length;
+      _.dataCount = newDataCount ?? newData.length;
       _.renderBody?.();
       _.renderFooter?.();
     },
-    setHeight: (value) => {
-      if (_.schema.height === value) return;
-      _.schema.height = value;
+    setHeight: (newHeight) => {
+      const oldHeight = _.schema.height;
+      if (oldHeight === newHeight) return;
+      _.schema.height = newHeight;
       _.renderGrid?.();
+      _.renderBody?.();
+    },
+    setPage: () => {},
+    setSize: () => {},
+
+    addRow: (newRow = {}) => {
+      _.data.push(newRow);
+      _.addedData.push(newRow);
+      _.dataCount = _.data.length;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    removeRow: (dataIndex) => {
+      const removedRow = _.data[dataIndex];
+      if (!removedRow) return;
+      _.data.splice(dataIndex, 1);
+      _.removedData.push(removedRow);
+      _.dataCount = _.data.length;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    upRow: (dataIndex) => {
+      if (dataIndex < 1) return;
+      const target = _.data[dataIndex];
+      _.data[dataIndex] = _.data[dataIndex - 1];
+      _.data[dataIndex - 1] = target;
+      _.renderBody?.();
+    },
+    downRow: (dataIndex) => {
+      if (dataIndex + 1 > _.dataCount - 1) return;
+      const target = _.data[dataIndex];
+      _.data[dataIndex] = _.data[dataIndex + 1];
+      _.data[dataIndex + 1] = target;
       _.renderBody?.();
     },
   }).current;

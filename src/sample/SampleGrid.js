@@ -5,23 +5,36 @@ import { Grid } from "../modules/grid";
 import utils from "../.temp/utils";
 
 export const SampleGrid = () => {
-  const { ref, schema, setEditable, setData } = useGrid({
+  const {
+    ref,
+    schema,
+    setEditable,
+    setData,
+    getData,
+    upRow,
+    downRow,
+    addRow,
+    removeRow,
+    getRemoveData,
+    getAddedData,
+  } = useGrid({
     defaultSchema: {
       pagination: true,
       page: 0,
       size: 10,
-      editable: false,
+      editable: true,
       index: true,
       radio: true,
       checkbox: true,
       height: 500,
       header: [
-        { id: "test12", cells: [{ binding: "text" }] },
-        { cells: [{ binding: "number", width: "100px" }] },
-        // { cells: [{ binding: "date", width: "150px" }] },
+        { cells: [{ binding: "index" }] },
+        { cells: [{ binding: "text" }] },
+        { cells: [{ binding: "number" }] },
       ],
       body: [
-        { cells: [{ id: "custom-cell", type: "text" }] },
+        { cells: [{ binding: "index", type: "text" }] },
+        { cells: [{ binding: "text", type: "text" }] },
         {
           cells: [
             {
@@ -56,7 +69,7 @@ export const SampleGrid = () => {
   const [test, setTest] = useState(0);
 
   useEffect(() => {
-    setData(utils.mock(999));
+    setData(utils.mock(5));
   }, []);
 
   const fetchData = (value) =>
@@ -114,6 +127,39 @@ export const SampleGrid = () => {
 
   const [, forceUpdate] = useReducer(() => ({}));
 
+  useEffect(() => {
+    // console.time("a");
+    // utils.mock(999999).map((item) => {
+    //   item.key = utils.uuid();
+    //   return item;
+    // });
+    // console.timeEnd("a");
+    // console.time("c");
+    // utils.mock(999999).map((item) => {
+    //   item.key = crypto.randomUUID();
+    //   return item;
+    // });
+    // console.timeEnd("c");
+    // console.time("d");
+    // utils.mock(999999).map((item) => {
+    //   item.key = Symbol();
+    //   return item;
+    // });
+    // console.timeEnd("d");
+    // const a = utils.mock(1).map((item) => {
+    //   item.key = Symbol();
+    //   return item;
+    // });
+    // const b = a[0];
+    // console.log(a[0].key === b.key);
+    // console.time("b");
+    // utils.mock(999999).map((item) => {
+    //   delete item.key;
+    //   return item;
+    // });
+    // console.timeEnd("b");
+  }, []);
+
   return (
     <div>
       <div onClick={forceUpdate}>force</div>
@@ -121,6 +167,15 @@ export const SampleGrid = () => {
       <div className="grid grid-cols-8 gap-2">
         <button onClick={() => setEditable(true)}>set editable true</button>
         <button onClick={() => setEditable(false)}>set editable false</button>
+        <button onClick={() => console.log(getData())}>get Data</button>
+        <button onClick={() => upRow(2)}>up 2</button>
+        <button onClick={() => downRow(4)}>down 4</button>
+        <button onClick={() => addRow()}>add</button>
+        <button onClick={() => removeRow(0)}>remove</button>
+        <button onClick={() => console.log(getAddedData())}>get added</button>
+        <button onClick={() => console.log(getRemoveData())}>
+          get removed
+        </button>
       </div>
 
       <div>
