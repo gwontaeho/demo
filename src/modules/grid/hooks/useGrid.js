@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { cloneDeep, makeBody, makeHeader, makeSchema } from "./utils";
+import { cloneDeep, makeBody, makeHeader, makeSchema } from "../utils/utils";
 
 /**
  * @typedef {Object} HeaderCell

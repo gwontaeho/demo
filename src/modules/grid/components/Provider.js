@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useCallback } from "react";
-import { GridContext } from "../context";
-import { debounce, uuid, cloneDeep } from "../utils";
+import { GridContext } from "../utils/context";
+import { debounce, uuid, cloneDeep } from "../utils/utils";
 
 const Provider = forwardRef((props, ref) => {
   const { children } = props;

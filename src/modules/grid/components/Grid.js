@@ -1,10 +1,10 @@
 import { memo, forwardRef } from "react";
-import { useGridContext } from "./hooks/useGridContext";
-import { useInit } from "./hooks/useInit";
-import { Provider } from "./components/Provider";
-import { Header } from "./components/Header";
-import { Body } from "./components/Body";
-import { Footer } from "./components/Footer";
+import { useGridContext } from "../hooks/useGridContext";
+import { useInit } from "../hooks/useInit";
+import { Provider } from "./Provider";
+import { Header } from "./Header";
+import { Body } from "./Body";
+import { Footer } from "./Footer";
 
 const GridComponent = memo(() => {
   console.log("Grid");

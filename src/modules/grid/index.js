@@ -1,2 +1,2 @@
-export * from "./Grid";
-export * from "./useGrid";
+export * from "./components/Grid";
+export * from "./hooks/useGrid";
