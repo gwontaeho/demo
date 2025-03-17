@@ -58,9 +58,12 @@ const Provider = forwardRef((props, ref) => {
       );
     },
     getGridTemplate: (type) => {
-      const { headerWidths, headerRowCount, bodyRowCount } = _.schema;
+      const { headerWidths, headerRowCount, bodyWidths, bodyRowCount } =
+        _.schema;
       return {
-        gridTemplateColumns: headerWidths.join(" "),
+        gridTemplateColumns: (_.schema.header ? headerWidths : bodyWidths).join(
+          " "
+        ),
         gridTemplateRows: `repeat(${
           type === "header" ? headerRowCount : bodyRowCount
         }, minmax(32px, auto))`,
@@ -154,14 +157,20 @@ const Provider = forwardRef((props, ref) => {
       const found = checkboxData.findIndex((item) => item === row);
       found === -1 ? checkboxData.push(row) : checkboxData.splice(found, 1);
     },
-    handleRowChange: (dataIndex, binding, value) => {
-      _.data[dataIndex][binding] = value;
+    handleRowChange: (dataIndex, field, value) => {
+      _.data[dataIndex][field] = value;
     },
     isRadioData: (dataIndex) => {
       return _.radioData === _.data[dataIndex];
     },
     isCheckboxData: (dataIndex) => {
       return _.checkboxData.includes(_.data[dataIndex]);
+    },
+    hasHeader: () => {
+      return !!_.schema.header;
+    },
+    hasBody: () => {
+      return !!_.schema.body;
     },
   }).current;
 

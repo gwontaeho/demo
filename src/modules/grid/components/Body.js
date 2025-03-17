@@ -136,10 +136,10 @@ const Row = (props) => {
             }}
           >
             {cells.map((cell, cellIndex) => {
-              const { id, colSpan, rowSpan, binding, ...rest } = cell;
+              const { id, colSpan, rowSpan, field, ...rest } = cell;
               const celKey = `${colKey}:${cellIndex}`;
 
-              const defaultValue = rowData[binding];
+              const defaultValue = rowData[field];
 
               return (
                 <div
@@ -154,7 +154,7 @@ const Row = (props) => {
                     {...rest}
                     defaultValue={defaultValue}
                     onChange={(newValue) =>
-                      handleRowChange(dataIndex, binding, newValue)
+                      handleRowChange(dataIndex, field, newValue)
                     }
                   />
                 </div>

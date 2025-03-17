@@ -9,8 +9,14 @@ import { Footer } from "./Footer";
 const GridComponent = memo(() => {
   console.log("Grid");
   useInit("Grid");
-  const { scrollerRefCallback, handleScroll, getSchema, getHeight } =
-    useGridContext();
+  const {
+    scrollerRefCallback,
+    handleScroll,
+    getSchema,
+    getHeight,
+    hasHeader,
+    hasBody,
+  } = useGridContext();
   const height = getHeight();
   const { pagination } = getSchema();
 
@@ -22,10 +28,10 @@ const GridComponent = memo(() => {
         onScroll={handleScroll}
         style={{ height }}
       >
-        <Header />
-        <Body />
+        {hasHeader() && <Header />}
+        {hasBody() && <Body />}
       </div>
-      {pagination && <Footer />}
+      {hasBody() && pagination && <Footer />}
     </div>
   );
 });

@@ -31,7 +31,7 @@ const Header = memo(() => {
             }}
           >
             {cells.map((cell, cellIndex) => {
-              const { colSpan, rowSpan, binding } = cell;
+              const { colSpan, rowSpan, field } = cell;
               const celKey = `${colKey}:${cellIndex}`;
               return (
                 <div
@@ -42,7 +42,7 @@ const Header = memo(() => {
                     gridRow: `span ${rowSpan}`,
                   }}
                 >
-                  {binding}
+                  {field}
                 </div>
               );
             })}

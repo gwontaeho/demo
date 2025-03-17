@@ -1,16 +1,26 @@
 import { useRef } from "react";
-import { cloneDeep, makeBody, makeHeader, makeSchema } from "../utils/utils";
+import {
+  uuid,
+  cloneDeep,
+  makeBody,
+  makeHeader,
+  makeSchema,
+} from "../utils/utils";
 
 /**
  * @typedef {Object} HeaderCell
- * @property {string} binding
+ * @property {string} field
  * @property {string} width
+ * @property {number} rowSpan
+ * @property {number} colSpan
  */
 
 /**
  * @typedef {Object} HeaderColumn
  * @property {string} id
  * @property {boolean} visible
+ * @property {number} rowCount
+ * @property {number} colCount
  * @property {Array<HeaderCell>} cells
  */
 
@@ -19,12 +29,16 @@ import { cloneDeep, makeBody, makeHeader, makeSchema } from "../utils/utils";
  * @property {string} id
  * @property {string} type
  * @property {boolean} editable
- * @property {string} binding
+ * @property {string} field
  * @property {Array} options
+ * @property {number} rowSpan
+ * @property {number} colSpan
  */
 
 /**
  * @typedef {Object} BodyColumn
+ * @property {number} rowCount
+ * @property {number} colCount
  * @property {Array<BodyCell>} cells
  */
 
@@ -60,6 +74,7 @@ const useGrid = (params = {}) => {
     checkboxData: [],
     dataCount: 0,
     schema: makeSchema(cloneDeep(defaultSchema)),
+
     renderGrid: null,
     renderHeader: null,
     renderBody: null,
@@ -96,6 +111,18 @@ const useGrid = (params = {}) => {
       return _.schema.size;
     },
 
+    setData: (newData, newDataCount) => {
+      _.data = cloneDeep(newData);
+      _.originalData = cloneDeep(_.data);
+      _.addedData = [];
+      _.removedData = [];
+      _.updatedData = [];
+      _.checkboxData = [];
+      _.radioData = null;
+      _.dataCount = newDataCount ?? newData.length;
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
     setSchema: (newSchema) => {
       makeSchema(cloneDeep(newSchema));
       _.renderGrid?.();
@@ -110,18 +137,6 @@ const useGrid = (params = {}) => {
       _.schema.editable = newEditable;
       _.schema = makeSchema(_.schema);
       _.renderBody?.();
-    },
-    setData: (newData, newDataCount) => {
-      _.data = cloneDeep(newData);
-      _.originalData = cloneDeep(newData);
-      _.addedData = [];
-      _.removedData = [];
-      _.updatedData = [];
-      _.checkboxData = [];
-      _.radioData = null;
-      _.dataCount = newDataCount ?? newData.length;
-      _.renderBody?.();
-      _.renderFooter?.();
     },
     setHeight: (newHeight) => {
       const oldHeight = _.schema.height;
@@ -158,7 +173,10 @@ const useGrid = (params = {}) => {
       _.renderBody?.();
       _.renderFooter?.();
     },
-    updateRow: () => {},
+    updateRow: (dataIndex, field, value) => {
+      _.data[dataIndex][field] = cloneDeep(value);
+      _.renderBody?.();
+    },
     upRow: (dataIndex) => {
       if (dataIndex < 1) return;
       const target = _.data[dataIndex];

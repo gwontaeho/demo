@@ -108,23 +108,39 @@ const makeHeader = (schema) => {
 };
 
 const makeBody = (schema) => {
-  const { editable, body, header } = schema;
-  const { bodyRowCount } = body.reduce(
+  const { index, radio, checkbox, editable, body, header } = schema;
+  const { bodyWidths, bodyRowCount } = body.reduce(
     (prev, curr, index) => {
-      curr.visible = header[index].visible;
+      curr.visible = header?.[index].visible ?? true;
       curr.colCount ??= 1;
       curr.rowCount ??= 1;
-      curr.cells.forEach((item) => {
-        item.colSpan ??= 1;
-        item.rowSpan ??= 1;
-        item.editable = editable;
-      });
+      const { colWidths } = curr.cells.reduce(
+        (item, cell) => {
+          cell.colSpan ??= 1;
+          cell.rowSpan ??= 1;
+          item.editable = editable;
+          item.colSpan += cell.colSpan;
+          if (cell.width && cell.colSpan === 1)
+            item.colWidths[item.colSpan - 1] = cell.width;
+          if (item.colSpan >= curr.colCount) item.colSpan = 0;
+          return item;
+        },
+        {
+          colWidths: new Array(curr.colCount).fill("200px"),
+          colSpan: 0,
+          rowCount: 0,
+        }
+      );
+      prev.bodyWidths = prev.bodyWidths.concat(colWidths);
       prev.bodyRowCount < curr.rowCount && (prev.bodyRowCount = curr.rowCount);
       return prev;
     },
-    { bodyRowCount: 0 }
+    { bodyWidths: [], bodyRowCount: 0 }
   );
-  return { bodyRowCount };
+  for (let i = 0; i < checkbox + radio + index; i++) {
+    bodyWidths.unshift("32px");
+  }
+  return { bodyWidths, bodyRowCount };
 };
 
 const makeSchema = (schema) => {
@@ -134,10 +150,16 @@ const makeSchema = (schema) => {
   schema.checkbox ??= false;
   schema.page ??= 0;
   schema.size ??= 10;
-  const { headerWidths, headerRowCount } = makeHeader(schema);
-  const { bodyRowCount } = makeBody(schema);
+
+  const header = schema.header;
+  const body = schema.body;
+
+  const { headerWidths, headerRowCount } = header ? makeHeader(schema) : {};
+  const { bodyWidths, bodyRowCount } = body ? makeBody(schema) : {};
+
   schema.headerWidths = headerWidths;
   schema.headerRowCount = headerRowCount;
+  schema.bodyWidths = bodyWidths;
   schema.bodyRowCount = bodyRowCount;
   return schema;
 };

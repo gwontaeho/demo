@@ -3,6 +3,7 @@ import { useGrid } from "../modules/grid";
 import { Grid } from "../modules/grid";
 
 import utils from "../.temp/utils";
+import { cloneDeep } from "../modules/grid/utils/utils";
 
 export const SampleGrid = () => {
   const {
@@ -16,6 +17,7 @@ export const SampleGrid = () => {
     removeRow,
     getRemoveData,
     getAddedData,
+    updateRow,
   } = useGrid({
     defaultSchema: {
       pagination: true,
@@ -24,21 +26,21 @@ export const SampleGrid = () => {
       radio: true,
       checkbox: true,
       height: 500,
-      header: [
-        { cells: [{ binding: "index" }] },
-        { cells: [{ binding: "text" }] },
-        { cells: [{ binding: "number" }] },
-        { cells: [{ binding: "radio" }] },
-        { cells: [{ binding: "checkbox" }] },
-      ],
+      // header: [
+      //   { cells: [{ field: "index" }] },
+      //   { cells: [{ field: "text" }] },
+      //   { cells: [{ field: "number" }] },
+      //   { cells: [{ field: "radio" }] },
+      //   { cells: [{ field: "checkbox" }] },
+      // ],
       body: [
-        { cells: [{ binding: "index", type: "text" }] },
-        { cells: [{ binding: "text", type: "text" }] },
-        { cells: [{ binding: "number", type: "number" }] },
+        { cells: [{ field: "index", type: "text" }] },
+        { cells: [{ field: "text", type: "text" }] },
+        { cells: [{ field: "number", type: "number" }] },
         {
           cells: [
             {
-              binding: "radio",
+              field: "radio",
               type: "radio",
               options: [
                 { label: "a", value: "a" },
@@ -51,7 +53,7 @@ export const SampleGrid = () => {
         {
           cells: [
             {
-              binding: "checkbox",
+              field: "checkbox",
               type: "checkbox",
               options: [
                 { label: "a", value: "a" },
@@ -61,21 +63,6 @@ export const SampleGrid = () => {
             },
           ],
         },
-        // {
-        //   cells: [
-        //     {
-        //       binding: "checkbox",
-        //       type: "checkbox",
-        //       options: [
-        //         { value: 1, label: "1" },
-        //         { value: 2, label: "2" },
-        //         { value: 3, label: "3" },
-        //         { value: 4, label: "4" },
-        //         { value: 5, label: "5" },
-        //       ],
-        //     },
-        //   ],
-        // },
       ],
     },
   });
@@ -85,7 +72,9 @@ export const SampleGrid = () => {
   const [test, setTest] = useState(0);
 
   useEffect(() => {
-    setData(utils.mock(5));
+    console.time("c");
+    setData(utils.mock(6666));
+    console.timeEnd("c");
   }, []);
 
   const fetchData = (value) =>
@@ -103,59 +92,33 @@ export const SampleGrid = () => {
     console.log(value);
   };
 
-  // setOnSizeChange((value) => {
-  //   console.log(getPage());
-  //   console.log(test);
-  //   console.log(value, "asd");
-  // });
-
-  // setOnPageChange((value) => {
-  //   // console.log(test);
-  //   console.log(value, "asd");
-
-  //   // const d = await fetchData(value);
-  //   setData(utils.mock(1));
-  // });
-
-  // setRenderer({
-  //   body: {
-  //     "custom-cell": (params) => {
-  //       const { data, setData } = params;
-
-  //       return (
-  //         <div>
-  //           {/* {data.number} */}
-  //           <button
-  //             onClick={() =>
-  //               setData((prev) => {
-  //                 prev.text = "asd";
-  //                 return { number: 1, text: "a" };
-  //               })
-  //             }
-  //           >
-  //             {test}
-  //           </button>
-  //         </div>
-  //       );
-  //     },
-  //   },
-  // });
-
   const [, forceUpdate] = useReducer(() => ({}));
 
   useEffect(() => {
+    // console.time("c");
+    // cloneData(utils.mock(999999));
+    // console.timeEnd("c");
     // console.time("a");
     // utils.mock(999999).map((item) => {
     //   item.key = utils.uuid();
     //   return item;
     // });
     // console.timeEnd("a");
+    // console.time("b");
+    // utils.cloneDeep(utils.mock(999999));
+    // console.timeEnd("b");
     // console.time("c");
-    // utils.mock(999999).map((item) => {
-    //   item.key = crypto.randomUUID();
-    //   return item;
+    // const aa = utils.mock(999999).map((item) => {
+    //   return { o: cloneDeep(item), d: cloneDeep(item) };
     // });
     // console.timeEnd("c");
+    // console.time("cc");
+    // console.log(
+    //   aa.map((item) => {
+    //     return cloneDeep(item.d);
+    //   })
+    // );
+    // console.timeEnd("cc");
     // console.time("d");
     // utils.mock(999999).map((item) => {
     //   item.key = Symbol();
@@ -191,6 +154,9 @@ export const SampleGrid = () => {
         <button onClick={() => console.log(getAddedData())}>get added</button>
         <button onClick={() => console.log(getRemoveData())}>
           get removed
+        </button>
+        <button onClick={() => updateRow(2, "text", "qwdqwd")}>
+          update Row
         </button>
       </div>
 
