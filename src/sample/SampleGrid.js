@@ -7,7 +7,6 @@ import utils from "../.temp/utils";
 export const SampleGrid = () => {
   const {
     ref,
-    schema,
     setEditable,
     setData,
     getData,
@@ -20,7 +19,6 @@ export const SampleGrid = () => {
   } = useGrid({
     defaultSchema: {
       pagination: true,
-
       editable: true,
       index: true,
       radio: true,
@@ -81,8 +79,6 @@ export const SampleGrid = () => {
       ],
     },
   });
-
-  console.log(crypto.randomUUID);
 
   // console.log(schema);
 
@@ -199,7 +195,7 @@ export const SampleGrid = () => {
       </div>
 
       <div>
-        <Grid ref={ref} {...schema} />
+        <Grid ref={ref} />
       </div>
     </div>
   );

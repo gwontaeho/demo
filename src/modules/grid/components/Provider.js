@@ -1,26 +1,8 @@
-import {
-  useRef,
-  createContext,
-  useContext,
-  useCallback,
-  useReducer,
-  forwardRef,
-} from "react";
-import { uuid, cloneDeep, debounce } from "./utils";
+import { forwardRef, useRef, useCallback } from "react";
+import { GridContext } from "../context";
+import { debounce, uuid, cloneDeep } from "../utils";
 
-const GridContext = createContext();
-
-const useGridContext = () => {
-  return useContext(GridContext);
-};
-
-const useInit = (type) => {
-  const forceUpdate = useReducer(() => ({}))[1];
-  const _method = useGridContext();
-  _method.init(type, forceUpdate);
-};
-
-const GridContextProvider = forwardRef((props, ref) => {
+const Provider = forwardRef((props, ref) => {
   const { children } = props;
 
   const _ = useRef(ref).current;
@@ -188,4 +170,4 @@ const GridContextProvider = forwardRef((props, ref) => {
   );
 });
 
-export { GridContextProvider, useGridContext, useInit };
+export { Provider };

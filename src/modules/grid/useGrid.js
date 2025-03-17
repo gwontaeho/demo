@@ -47,7 +47,7 @@ import { cloneDeep, makeBody, makeHeader, makeSchema } from "./utils";
  * @param {DefaultSchema} params.defaultSchema
  * @returns
  */
-export const useGrid = (params = {}) => {
+const useGrid = (params = {}) => {
   const { defaultSchema } = params;
 
   const _ = useRef({
@@ -177,3 +177,5 @@ export const useGrid = (params = {}) => {
 
   return { ...method };
 };
+
+export { useGrid };
