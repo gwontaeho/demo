@@ -124,7 +124,23 @@ const useGrid = (params = {}) => {
       _.renderFooter?.();
     },
     setSchema: (newSchema) => {
-      makeSchema(cloneDeep(newSchema));
+      _.schema = makeSchema(cloneDeep(newSchema));
+      _.renderGrid?.();
+      _.renderHeader?.();
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    setHeader: (newHeader) => {
+      _.schema.header = cloneDeep(newHeader);
+      _.schema = makeSchema(_.schema);
+      _.renderGrid?.();
+      _.renderHeader?.();
+      _.renderBody?.();
+      _.renderFooter?.();
+    },
+    setBody: (newBody) => {
+      _.schema.body = cloneDeep(newBody);
+      _.schema = makeSchema(_.schema);
       _.renderGrid?.();
       _.renderHeader?.();
       _.renderBody?.();

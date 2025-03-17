@@ -166,12 +166,6 @@ const Provider = forwardRef((props, ref) => {
     isCheckboxData: (dataIndex) => {
       return _.checkboxData.includes(_.data[dataIndex]);
     },
-    hasHeader: () => {
-      return !!_.schema.header;
-    },
-    hasBody: () => {
-      return !!_.schema.body;
-    },
   }).current;
 
   return (

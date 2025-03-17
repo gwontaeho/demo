@@ -9,29 +9,29 @@ import { Footer } from "./Footer";
 const GridComponent = memo(() => {
   console.log("Grid");
   useInit("Grid");
-  const {
-    scrollerRefCallback,
-    handleScroll,
-    getSchema,
-    getHeight,
-    hasHeader,
-    hasBody,
-  } = useGridContext();
+  const { scrollerRefCallback, handleScroll, getSchema, getHeight } =
+    useGridContext();
   const height = getHeight();
-  const { pagination } = getSchema();
+  const { pagination, header, body } = getSchema();
+
+  const hasHeader = !!header;
+  const hasBody = !!body;
 
   return (
     <div className="w-full">
       <div
-        className="w-full overflow-auto text-[14px]"
+        className={
+          "w-full overflow-auto text-[14px]" +
+          (!hasHeader && hasBody ? " border-t" : "")
+        }
         ref={scrollerRefCallback}
         onScroll={handleScroll}
         style={{ height }}
       >
-        {hasHeader() && <Header />}
-        {hasBody() && <Body />}
+        {hasHeader && <Header />}
+        {hasBody && <Body />}
       </div>
-      {hasBody() && pagination && <Footer />}
+      {hasBody && pagination && <Footer />}
     </div>
   );
 });
