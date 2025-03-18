@@ -98,6 +98,11 @@ const ControlSelect = forwardRef((props, ref) => {
 const ControlRadio = forwardRef((props, ref) => {
   const { value, defaultValue, options, name, onChange } = props;
   const _ = useRef({ key: crypto.randomUUID() }).current;
+
+  const checked = value === undefined ? undefined : value === item.value;
+  const defaultChecked =
+    defaultValue === undefined ? undefined : defaultValue === item.value;
+
   return (
     <div className="flex flex-wrap gap-x-4">
       {options?.map((item, index) => {
@@ -108,12 +113,8 @@ const ControlRadio = forwardRef((props, ref) => {
               type="radio"
               name={name ?? _.key}
               value={item.value}
-              defaultChecked={
-                defaultValue === undefined
-                  ? undefined
-                  : defaultValue === item.value
-              }
-              checked={value === undefined ? undefined : value === item.value}
+              checked={checked}
+              defaultChecked={defaultChecked}
               onChange={(event) => onChange?.(event.target.value)}
             />
             {item.label}
@@ -128,6 +129,20 @@ const ControlCheckbox = forwardRef((props, ref) => {
   const { value, defaultValue, options, name, onChange } = props;
   const _ = useRef({ key: crypto.randomUUID() }).current;
 
+  const checked = Array.isArray(value) ? value.includes(item.value) : undefined;
+  const defaultChecked = Array.isArray(defaultValue)
+    ? defaultValue.includes(item.value)
+    : undefined;
+  const handleChange = (event) => {
+    const inputs =
+      event.target.parentElement.parentElement.getElementsByTagName("input");
+    onChange?.(
+      [...inputs]
+        .filter((element) => element.checked)
+        .map((element) => element.value)
+    );
+  };
+
   return (
     <div className="flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {
@@ -138,19 +153,9 @@ const ControlCheckbox = forwardRef((props, ref) => {
               type="checkbox"
               name={name}
               value={item.value}
-              defaultChecked={defaultValue?.includes?.(item.value)}
-              checked={value?.includes?.(item.value)}
-              onChange={(event) =>
-                onChange?.(
-                  [
-                    ...event.target.parentElement.parentElement.getElementsByTagName(
-                      "input"
-                    ),
-                  ]
-                    .filter((element) => element.checked)
-                    .map((element) => element.value)
-                )
-              }
+              checked={checked}
+              defaultChecked={defaultChecked}
+              onChange={handleChange}
             />
             {item.label}
           </label>

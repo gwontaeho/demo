@@ -39,8 +39,8 @@ function App() {
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
-      {/* <SampleForm /> */}
-      <SampleGrid />
+      <SampleForm />
+      {/* <SampleGrid /> */}
     </div>
   );
 }
