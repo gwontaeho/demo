@@ -1,5 +1,5 @@
 import { forwardRef, useRef } from "react";
-import { useControl } from "../form";
+import { useControl } from "./useControl";
 
 const ControlText = forwardRef((props, ref) => {
   const { onChange, ...rest } = props;
@@ -75,13 +75,15 @@ const ControlTextarea = forwardRef((props, ref) => {
 });
 
 const ControlSelect = forwardRef((props, ref) => {
-  const { options, onChange } = props;
+  const { options, onChange, ...rest } = props;
   const _key = useRef({ key: crypto.randomUUID() }).current;
+
   return (
     <select
       ref={ref}
       className="border h-6 bg-slate-50"
       onChange={(event) => onChange?.(event.target.value)}
+      {...rest}
     >
       <option value=""></option>
       {options?.map((item, index) => {
@@ -99,13 +101,12 @@ const ControlRadio = forwardRef((props, ref) => {
   const { value, defaultValue, options, name, onChange } = props;
   const _ = useRef({ key: crypto.randomUUID() }).current;
 
-  const checked = value === undefined ? undefined : value === item.value;
-  const defaultChecked =
-    defaultValue === undefined ? undefined : defaultValue === item.value;
-
   return (
     <div className="flex flex-wrap gap-x-4">
       {options?.map((item, index) => {
+        const checked = value === undefined ? undefined : value === item.value;
+        const defaultChecked =
+          defaultValue === undefined ? undefined : defaultValue === item.value;
         return (
           <label key={_.key + ":" + index}>
             <input
@@ -129,10 +130,6 @@ const ControlCheckbox = forwardRef((props, ref) => {
   const { value, defaultValue, options, name, onChange } = props;
   const _ = useRef({ key: crypto.randomUUID() }).current;
 
-  const checked = Array.isArray(value) ? value.includes(item.value) : undefined;
-  const defaultChecked = Array.isArray(defaultValue)
-    ? defaultValue.includes(item.value)
-    : undefined;
   const handleChange = (event) => {
     const inputs =
       event.target.parentElement.parentElement.getElementsByTagName("input");
@@ -146,6 +143,12 @@ const ControlCheckbox = forwardRef((props, ref) => {
   return (
     <div className="flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {
+        const checked = Array.isArray(value)
+          ? value.includes(item.value)
+          : undefined;
+        const defaultChecked = Array.isArray(defaultValue)
+          ? defaultValue.includes(item.value)
+          : undefined;
         return (
           <label key={_.key + ":" + index}>
             <input
@@ -175,8 +178,8 @@ const Control = forwardRef((props, ref) => {
   } = useControl(props);
 
   if (!editable) {
-    const value = rest.value || rest.defaultValue;
-    const text = type === "checkbox" ? value.join(", ") : value;
+    const value = rest.value ?? rest.defaultValue;
+    const text = Array.isArray(value) ? value.join(", ") : value;
     return <div>{text}</div>;
   }
 

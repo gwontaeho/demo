@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useRef, useReducer } from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -24,219 +18,146 @@ const cloneDeep = (item) => {
 
 const useForm = (params = {}) => {
   const { defaultSchema, defaultValues = {} } = params;
-  const _useForm = useRef(null);
-  _useForm.current ??= new (class {
-    #refs = {};
-    #errors = {};
-    #schema = cloneDeep(defaultSchema);
-    #values = cloneDeep(defaultValues);
-    #defaultValues = cloneDeep(defaultValues);
-    #renders = {};
 
-    #render = (name) => {
-      name
-        ? this.#renders[name] &&
-          this.#renders[name].forEach((render) => render())
-        : Object.values(this.#renders).forEach((item) => {
-            item.forEach((render) => render());
-          });
-    };
+  const forceUpdate = useReducer(() => ({}))[1];
 
-    #isHTMLElement = (param) => {
-      return param instanceof HTMLElement;
-    };
+  const _ = useRef({
+    registered: {},
+    elements: {},
+    errors: {},
+    schema: cloneDeep(defaultSchema),
+    defaultValues: cloneDeep(defaultValues),
+    values: cloneDeep(defaultValues),
+  }).current;
 
-    #isRadio = (param) => {
-      return (
-        param instanceof HTMLElement &&
-        param.tagName === "INPUT" &&
-        param.type === "radio"
-      );
-    };
-
-    #isCheckbox = (param) => {
-      return (
-        param instanceof HTMLElement &&
-        param.tagName === "INPUT" &&
-        param.type === "checkbox"
-      );
-    };
-
-    #initialize = (name, forceUpdate) => {
-      this.#renders[name] ??= [];
-      this.#renders[name].includes(forceUpdate) ||
-        this.#renders[name].push(forceUpdate);
-      return {
-        ref: (ref) => {
-          this.#isHTMLElement(ref) &&
-            this.#refs[name] !== ref &&
-            (this.#refs[name] = ref);
-        },
-        onChange: (event) => {
-          if (this.#isHTMLElement(event?.target)) {
-            if (this.#isCheckbox(event.target)) {
-              Array.isArray(this.#values[name]) || (this.#values[name] = []);
-              event.target.checked
-                ? this.#values[name].push(event.target.value)
-                : this.#values[name].splice(
-                    this.#values[name].findIndex(
-                      (item) => item === event.target.value
-                    ),
-                    1
-                  );
-            } else {
-              this.#values[name] = event.target.value;
+  const methods = useRef({
+    register: (name) => {
+      if (!_.registered[name]) {
+        _.registered[name] = {
+          ref: (element) => {
+            if (element instanceof HTMLElement) {
+              _.elements[name] = element;
             }
-          } else {
-            this.#values[name] = event;
-          }
-          this.#render(name);
-        },
-        get: () => {
-          return {
-            value: this.#values[name],
-            ...this.#schema[name],
-            ...(this.#errors[name] && {
-              errorMessage: Object.values(this.#errors[name])[0].message,
-            }),
-          };
-        },
-        // uninitialize: () => {
-        //   this.#renders[name].splice(
-        //     this.#renders[name].findIndex((item) => item === forceUpdate),
-        //     1
-        //   );
-        // },
-      };
-    };
+          },
+          onChange: (value) => {
+            _.values[name] = value;
+            _.registered[name].control.setValue?.(value);
+          },
+          control: {
+            setValue: null,
+            get value() {
+              const value = _.values[name];
+              const type = _.schema[name].type;
+              return value ?? (type === "checkbox" ? [] : "");
+            },
+          },
+        };
+      }
 
-    register = (name) => {
-      const { label, required } = this.#schema[name];
       return {
-        name,
-        initialize: this.#initialize,
-        ...(label && { label }),
-        ...(required && { required }),
+        ..._.registered[name],
+        ..._.schema[name],
+        ...(_.errors[name] && Object.values(_.errors[name])[0]),
       };
-    };
-
-    setSchema = (name, value) => {
-      this.#schema[name] = cloneDeep(
-        typeof value === "function"
-          ? value(cloneDeep(this.#schema[name]))
-          : value
+    },
+    getValues: () => {
+      return cloneDeep(_.values);
+    },
+    getErrors: () => {
+      return cloneDeep(_.errors);
+    },
+    setValue: (name, value) => {
+      _.values[name] = cloneDeep(value);
+      _.registered[name]?.control.setValue?.(_.values[name]);
+    },
+    setFocus: (name) => {
+      _.elements[name]?.focus?.();
+    },
+    resetValues: () => {
+      _.values = cloneDeep(_.defaultValues);
+      for (const key in _.registered) {
+        const value = _.values[key];
+        const type = _.schema[key].type;
+        _.registered[key].control.setValue?.(
+          value ?? (type === "checkbox" ? [] : "")
+        );
+      }
+    },
+    clearValues: () => {},
+    setEditable: (...params) => {
+      if (params.length === 1) {
+        Object.values(_.schema).forEach((item) => {
+          item.editable = params[0];
+        });
+      } else if (params.length === 2) {
+        _.schema[params[0]] = params[1];
+      }
+      forceUpdate();
+    },
+    setSchema: (name, value) => {
+      _.schema[name] = cloneDeep(
+        typeof value === "function" ? value(cloneDeep(_.schema[name])) : value
       );
-      this.#render(name);
-    };
-
-    setValue = (name, value) => {
-      this.#values[name] = cloneDeep(value);
-      this.#render(name);
-    };
-
-    setFocus = (name) => {
-      this.#refs[name]?.focus?.();
-    };
-
-    validate = () => {
+      forceUpdate();
+    },
+    validate: () => {
       const errors = {};
-      for (const key in this.#schema) {
+      for (const key in _.schema) {
         const error = {};
-        const value = this.#values[key];
+        const value = _.values[key];
         const { required, validate, minLength, maxLength, min, max } =
-          this.#schema[key];
+          _.schema[key];
         if (required === true) {
           if (!value) {
-            error["required"] = { message: "An error occurred (required)" };
+            error["required"] = {
+              errorMessage: "An error occurred (required)",
+            };
           }
         }
         if (typeof validate === "function") {
           if (!validate(cloneDeep(value))) {
-            error["validate"] = { message: "An error occurred (validate)" };
+            error["validate"] = {
+              errorMessage: "An error occurred (validate)",
+            };
           }
         }
         if (typeof minLength === "number") {
           if (value.length < minLength) {
-            error["minLength"] = { message: "An error occurred (minLength)" };
+            error["minLength"] = {
+              errorMessage: "An error occurred (minLength)",
+            };
           }
         }
         if (typeof maxLength === "number") {
           if (value.length > maxLength) {
-            error["maxLength"] = { message: "An error occurred (maxLength)" };
+            error["maxLength"] = {
+              errorMessage: "An error occurred (maxLength)",
+            };
           }
         }
         if (typeof min === "number") {
           if (value < min) {
-            error["min"] = { message: "An error occurred (min)" };
+            error["min"] = { errorMessage: "An error occurred (min)" };
           }
         }
         if (typeof max === "number") {
           if (value < max) {
-            error["max"] = { message: "An error occurred (max)" };
+            error["max"] = { errorMessage: "An error occurred (max)" };
           }
         }
         if (Object.keys(error).length) {
           errors[key] = error;
         }
       }
-      this.#errors = errors;
-      this.#render();
-    };
+      _.errors = errors;
+      forceUpdate();
+    },
+    TESTGET: () => {
+      console.log(_);
+    },
+  }).current;
 
-    getValue = (name) => {
-      const values = cloneDeep(this.#values);
-      return name ? values[name] : values;
-    };
-
-    getError = (name) => {
-      const errors = cloneDeep(this.#errors);
-      return name ? errors[name] : errors;
-    };
-
-    clearValue = () => {};
-
-    resetValue = () => {
-      this.#values = cloneDeep(this.#defaultValues);
-      this.#render();
-    };
-
-    setEditable = (name, value) => {
-      if (value === undefined) {
-        for (const key in this.#schema) {
-          this.#schema[key].editable = name;
-        }
-        this.#render();
-      } else {
-        this.#schema[name] = value;
-        this.#render(name);
-      }
-    };
-
-    getLabel = (name) => {
-      const { label, required } = this.#schema[name];
-      return { label, required };
-    };
-  })();
-
-  return { ..._useForm.current };
+  return { ...methods };
 };
 
-const useControl = (props) => {
-  const { name, initialize, ...rest1 } = props;
-
-  const forceUpdate = useReducer(() => ({}))[1];
-  const _useControl = useRef(null);
-  typeof initialize === "function" &&
-    (_useControl.current ??= initialize(name, forceUpdate));
-
-  useEffect(() => {}, []);
-
-  if (_useControl.current === null) {
-    return props;
-  } else {
-    const { ref, onChange, get } = _useControl.current;
-    return { ref, onChange, ...get(), ...rest1 };
-  }
-};
-
-export { useForm, useControl };
+export { useForm };

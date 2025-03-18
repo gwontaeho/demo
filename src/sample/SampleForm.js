@@ -12,14 +12,16 @@ export const SampleForm = () => {
   const {
     register,
     setValue,
-    setSchema,
     setFocus,
-    getValue,
-    getError,
+    getValues,
+    getErrors,
+    resetValues,
+    clearValues,
     validate,
     setEditable,
-    getLabel,
-    getSchema,
+    setSchema,
+    //
+    TESTGET,
   } = useForm({
     defaultSchema: {
       text: { label: "asd", type: "text", required: true },
@@ -44,39 +46,50 @@ export const SampleForm = () => {
 
   return (
     <div>
-      <Form>
-        <Form.Row>
-          {/* <Form.Label {...getLabel("text")} /> */}
-          <Form.Control {...register("text")} />
-          <Form.Control {...register("text")} />
-          <Form.Cell></Form.Cell>
-          <Form.Cell></Form.Cell>
-        </Form.Row>
-      </Form>
+      {/* <Control type="text" onChange={(value) => console.log(value)} />
+      <Control type="number" onChange={(value) => console.log(value)} />
+      <Control type="textarea" onChange={(value) => console.log(value)} />
+      <Control
+        type="select"
+        options={options}
+        onChange={(value) => console.log(value)}
+      />
+      <Control
+        type="radio"
+        options={options}
+        onChange={(value) => console.log(value)}
+      />
+      <Control
+        type="checkbox"
+        options={options}
+        onChange={(value) => console.log(value)}
+      /> */}
+
+      {show && (
+        <Form>
+          <Form.Row>
+            <Form.Control {...register("text")} />
+            <Form.Control {...register("number")} />
+            <Form.Control {...register("textarea")} />
+            <Form.Control {...register("select")} options={options} />
+            <Form.Control {...register("radio")} options={options} />
+            <Form.Control {...register("checkbox")} options={options} />
+          </Form.Row>
+        </Form>
+      )}
 
       <div>
-        {/* {show && (
-          <div>
-            <Control {...register("text")} />
-            <Control {...register("text")} />
-            <Control {...register("text")} />
-            <Control {...register("number")} />
-            <Control {...register("textarea")} />
-            <Control {...register("select")} options={options} />
-            <Control {...register("radio")} options={options} />
-            <Control {...register("checkbox")} options={options} />
-          </div>
-        )} */}
-
         <div className="mt-10 grid grid-cols-8 border-t border-l [&>button]:border-r [&>button]:border-b [&>button]:p-1">
+          <button onClick={TESTGET}>TESTGET</button>
           <button onClick={() => setShow((prev) => !prev)}>show</button>
           <button onClick={forceUpdate}>render</button>
+          <button onClick={() => resetValues()}>reset</button>
           <button onClick={validate}>validate</button>
           <button onClick={() => setValue("checkbox", ["a", "b"])}>
             set checkbox
           </button>
           <button onClick={() => setFocus("text")}>focusText</button>
-          <button onClick={() => console.log(getValue())}>get values</button>
+          <button onClick={() => console.log(getValues())}>get values</button>
           <button
             onClick={() =>
               setSchema("text", (prev) => {

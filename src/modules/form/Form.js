@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Control } from "../control";
 
 const COL_SPAN = {
@@ -20,7 +21,7 @@ const FormCell = (props) => {
   return (
     <div
       className={
-        "min-h-10 border-r border-b" +
+        "min-h-8 border-r border-b" +
         (grid ? " grid grid-cols-subgrid" : " p-1 flex items-center") +
         (size ? ` ${COL_SPAN[size]}` : "")
       }
@@ -35,7 +36,7 @@ const FormLabel = (props) => {
   return (
     <div
       className={
-        "p-1 flex items-center min-h-10 border-r border-b bg-gray-100" +
+        "p-1 flex items-center min-h-8 border-r border-b bg-gray-100" +
         (size ? ` ${COL_SPAN[size]}` : "") +
         (required ? " after:content-['*'] after:text-red-600" : "")
       }
@@ -45,7 +46,7 @@ const FormLabel = (props) => {
   );
 };
 
-const FormControl = (props) => {
+const FormControl = forwardRef((props, ref) => {
   const { label, labelSize = 2, controlSize = 4, required, ...rest } = props;
 
   return (
@@ -55,22 +56,20 @@ const FormControl = (props) => {
       )}
       <div
         className={
-          "p-1 flex items-center min-h-10 border-r border-b [&>*]:w-full" +
+          "p-1 flex items-center min-h-8 border-r border-b [&>*]:w-full" +
           (controlSize ? ` ${COL_SPAN[controlSize]}` : "")
         }
       >
-        <Control {...rest} />
+        <Control ref={ref} {...rest} />
       </div>
     </>
   );
-};
+});
 
 const FormRow = (props) => {
   const { children } = props;
   return (
-    <div className="grid grid-cols-subgrid col-span-12 min-h-10">
-      {children}
-    </div>
+    <div className="grid grid-cols-subgrid col-span-12 min-h-8">{children}</div>
   );
 };
 
