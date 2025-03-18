@@ -15,7 +15,7 @@ const Sizer = (props) => {
       onChange={handleChange}
     >
       {list.map((value) => {
-        const key = `${keyBase}:s:${value}`;
+        const key = `${keyBase}:sizer:${value}`;
         return (
           <option key={key} value={value}>
             {value}

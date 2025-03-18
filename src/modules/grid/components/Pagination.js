@@ -33,7 +33,7 @@ const Pagination = (props) => {
         onClick={handlePrevClick}
       >{`<`}</button>
       {list?.map((value) => {
-        const key = `${keyBase}:p:${value}`;
+        const key = `${keyBase}:pagination:${value}`;
         return (
           <button
             key={key}

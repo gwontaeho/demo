@@ -72,9 +72,7 @@ export const SampleGrid = () => {
   const [test, setTest] = useState(0);
 
   useEffect(() => {
-    console.time("c");
-    setData(utils.mock(6666));
-    console.timeEnd("c");
+    setData(utils.mock(2));
   }, []);
 
   const fetchData = (value) =>

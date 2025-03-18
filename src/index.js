@@ -48,17 +48,17 @@ function App() {
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  <StrictMode>
-    <ResourceProvider>
-      <RouterProvider>
-        <StoreProvider>
-          <ModalProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </ModalProvider>
-        </StoreProvider>
-      </RouterProvider>
-    </ResourceProvider>
-  </StrictMode>
+  // <StrictMode>
+  <ResourceProvider>
+    <RouterProvider>
+      <StoreProvider>
+        <ModalProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </ModalProvider>
+      </StoreProvider>
+    </RouterProvider>
+  </ResourceProvider>
+  // </StrictMode>
 );

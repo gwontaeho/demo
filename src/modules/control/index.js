@@ -127,6 +127,7 @@ const ControlRadio = forwardRef((props, ref) => {
 const ControlCheckbox = forwardRef((props, ref) => {
   const { value, defaultValue, options, name, onChange } = props;
   const _ = useRef({ key: crypto.randomUUID() }).current;
+
   return (
     <div className="flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {

@@ -1,13 +1,15 @@
-import { memo, useRef, useLayoutEffect } from "react";
+import { memo, useRef, useLayoutEffect, useReducer } from "react";
 import { useInit } from "../hooks/useInit";
 import { useGridContext } from "../hooks/useGridContext";
 import { Cell } from "./Cell";
 import { Control } from "../../control";
+import { uuid } from "../utils/utils";
 
 const Body = memo(() => {
   console.log("Grid Body");
   useInit("Body");
   const {
+    getRef,
     getSchema,
     getRows,
     getGridTemplate,
@@ -16,48 +18,64 @@ const Body = memo(() => {
     handleRowChange,
     handleRadioChange,
     handleCheckboxChange,
-    isRadioData,
-    isCheckboxData,
   } = useGridContext();
   const { height, body, headerWidths, bodyRowCount, index, radio, checkbox } =
     getSchema();
-  const rows = getRows();
+  const { rows, viewIndexOffset, dataIndexOffset, rowMetrics } = getRows();
+  const { data, radioData, checkboxData, addedData, removedData } = getRef();
+
   const keyBase = getKeyBase();
-  const gridHeight = !!height;
+  const hasHeight = !!height;
+  const hasIndex = index;
+  const hasRadio = radio;
+  const hasCheckbox = checkbox;
 
   return (
     <div className="relative">
-      {rows.map((row) => {
-        const { key, data, dataIndex, viewIndex, top, height } = row;
+      {rows.map((_, rowIndex) => {
+        const viewIndex = rowIndex + viewIndexOffset;
+        const dataIndex = viewIndex + dataIndexOffset;
+        const { top, height } = rowMetrics[viewIndex] ?? {};
+
+        const rowObject = data[dataIndex];
+
+        const isAdded = addedData.includes(rowObject);
+        const isRemoved = removedData.includes(rowObject);
+        const isRadioChecked = rowObject === radioData;
+        const isCheckboxChecked = checkboxData.includes(rowObject);
+
+        const className =
+          "grid border-l" +
+          (hasHeight && top === undefined ? " opacity-0" : "") +
+          (!hasHeight ? "" : " absolute");
+        const style = { ...getGridTemplate("body"), top };
+
+        const key = `${keyBase}:${viewIndex}:${dataIndex}`;
+
         return (
           <Row
             key={key}
-            rowKey={key}
+            data={data}
+            body={body}
+            style={style}
             keyBase={keyBase}
-            rowData={data}
+            hasHeight={hasHeight}
+            className={className}
             dataIndex={dataIndex}
             viewIndex={viewIndex}
             headerWidths={headerWidths}
             bodyRowCount={bodyRowCount}
-            body={body}
-            top={top}
-            height={height}
-            gridHeight={gridHeight}
-            index={index}
-            radio={radio}
-            checkbox={checkbox}
-            handleRowChange={handleRowChange}
             createObserver={createObserver}
+            handleRowChange={handleRowChange}
             handleRadioChange={handleRadioChange}
             handleCheckboxChange={handleCheckboxChange}
-            isRadioChecked={isRadioData(dataIndex)}
-            isCheckboxChecked={isCheckboxData(dataIndex)}
-            className={
-              "grid border-l" +
-              (gridHeight && top === undefined ? " opacity-0" : "") +
-              (!gridHeight ? "" : " absolute")
-            }
-            style={{ ...getGridTemplate("body"), top }}
+            hasIndex={hasIndex}
+            hasRadio={hasRadio}
+            hasCheckbox={hasCheckbox}
+            isAdded={isAdded}
+            isRemoved={isRemoved}
+            isRadioChecked={isRadioChecked}
+            isCheckboxChecked={isCheckboxChecked}
           />
         );
       })}
@@ -67,17 +85,18 @@ const Body = memo(() => {
 
 const Row = (props) => {
   const {
-    rowKey,
+    style,
+    className,
     dataIndex,
     viewIndex,
     body,
     bodyRowCount,
-    rowData,
-    gridHeight,
+    data,
+    hasHeight,
 
-    index,
-    radio,
-    checkbox,
+    hasIndex,
+    hasRadio,
+    hasCheckbox,
     keyBase,
     createObserver,
     handleRowChange,
@@ -85,28 +104,26 @@ const Row = (props) => {
     handleCheckboxChange,
     isRadioChecked,
     isCheckboxChecked,
-    style,
-    className,
   } = props;
 
+  const forceUpdate = useReducer(() => ({}))[1];
+  const row = data[dataIndex];
   const rowRef = useRef(null);
 
-  console.log(body);
-
   useLayoutEffect(() => {
-    if (gridHeight) {
+    if (hasHeight) {
       const observer = createObserver(viewIndex);
       observer.observe(rowRef.current);
       return () => {
         observer.disconnect();
       };
     }
-  }, [gridHeight]);
+  }, [hasHeight]);
 
   return (
     <div ref={rowRef} className={className} style={style}>
-      {index && <Cell>{dataIndex}</Cell>}
-      {radio && (
+      {hasIndex && <Cell>{dataIndex}</Cell>}
+      {hasRadio && (
         <Cell>
           <input
             name={`${keyBase}:radio`}
@@ -116,7 +133,7 @@ const Row = (props) => {
           />
         </Cell>
       )}
-      {checkbox && (
+      {hasCheckbox && (
         <Cell>
           <input
             type="checkbox"
@@ -127,7 +144,7 @@ const Row = (props) => {
       )}
       {body.map((col, colIndex) => {
         const { colCount, cells } = col;
-        const colKey = `${rowKey}:${colIndex}`;
+        const colKey = `${keyBase}:${colIndex}`;
         return (
           <div
             key={colKey}
@@ -141,7 +158,7 @@ const Row = (props) => {
               const { id, colSpan, rowSpan, field, ...rest } = cell;
               const celKey = `${colKey}:${cellIndex}`;
 
-              const defaultValue = rowData[field];
+              const value = row?.[field] || "";
 
               return (
                 <div
@@ -154,10 +171,11 @@ const Row = (props) => {
                 >
                   <Control
                     {...rest}
-                    defaultValue={defaultValue}
-                    onChange={(newValue) =>
-                      handleRowChange(dataIndex, field, newValue)
-                    }
+                    value={value}
+                    onChange={(newValue) => {
+                      handleRowChange(dataIndex, field, newValue);
+                      forceUpdate();
+                    }}
                   />
                 </div>
               );

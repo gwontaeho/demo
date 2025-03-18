@@ -18,9 +18,9 @@ const Header = memo(() => {
       {index && <Cell />}
       {radio && <Cell />}
       {checkbox && <Cell />}
-      {header.map((column, columnIndex) => {
+      {header.map((column, colIndex) => {
         const { colCount, cells } = column;
-        const colKey = `${keyBase}:header:${columnIndex}`;
+        const colKey = `${keyBase}:header:${colIndex}`;
         return (
           <div
             key={colKey}

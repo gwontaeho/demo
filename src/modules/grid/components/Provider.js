@@ -70,11 +70,10 @@ const Provider = forwardRef((props, ref) => {
       };
     },
     getRows: () => {
-      let rows = cloneDeep(_.data);
+      let rows = Array.from({ length: _.dataCount });
 
       const { page, size, pagination, height, editable } = _.schema;
       const {
-        keyBase,
         overscanCount,
         rowMinHeight,
         scrollerRef,
@@ -101,14 +100,10 @@ const Provider = forwardRef((props, ref) => {
       // Slice
       height && (rows = rows.slice(firstIndex, lastIndex));
 
-      // map 하지 않고 return
-      return rows.map((data, index) => {
-        const viewIndex = index + (height ? firstIndex : 0);
-        const dataIndex = viewIndex + (pageable ? page * size : 0);
-        // const key = `${keyBase}:row:editable:${editable}:${viewIndex}:${dataIndex}`;
-        const key = `${uuid()}`;
-        return { ...rowMetrics[viewIndex], key, data, viewIndex, dataIndex };
-      });
+      const viewIndexOffset = height ? firstIndex : 0;
+      const dataIndexOffset = pageable ? page * size : 0;
+
+      return { rows, viewIndexOffset, dataIndexOffset, rowMetrics };
     },
     createObserver: (index) => {
       const { editable } = _.schema;
@@ -159,12 +154,6 @@ const Provider = forwardRef((props, ref) => {
     },
     handleRowChange: (dataIndex, field, value) => {
       _.data[dataIndex][field] = value;
-    },
-    isRadioData: (dataIndex) => {
-      return _.radioData === _.data[dataIndex];
-    },
-    isCheckboxData: (dataIndex) => {
-      return _.checkboxData.includes(_.data[dataIndex]);
     },
   }).current;
 

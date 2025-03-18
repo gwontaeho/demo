@@ -19,11 +19,11 @@ const mock = (num) => {
         ][random(4)],
         number: Number((Math.random() * 1000).toFixed(0)),
         checkbox: [
-          [1, 2, 3],
-          [4, 5, 3],
-          [2, 5],
-          [2, 3],
-          [1, 3],
+          ["a", "b", "c"],
+          ["d", "e", "c"],
+          ["b", "e"],
+          ["b", "c"],
+          ["a", "c"],
         ][random(4)],
       };
     });
