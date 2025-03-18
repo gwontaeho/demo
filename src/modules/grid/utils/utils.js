@@ -114,11 +114,12 @@ const makeBody = (schema) => {
       curr.visible = header?.[index].visible ?? true;
       curr.colCount ??= 1;
       curr.rowCount ??= 1;
+
       const { colWidths } = curr.cells.reduce(
         (item, cell) => {
           cell.colSpan ??= 1;
           cell.rowSpan ??= 1;
-          item.editable = editable;
+          cell.editable = editable;
           item.colSpan += cell.colSpan;
           if (cell.width && cell.colSpan === 1)
             item.colWidths[item.colSpan - 1] = cell.width;

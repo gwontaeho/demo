@@ -91,6 +91,8 @@ const Row = (props) => {
 
   const rowRef = useRef(null);
 
+  console.log(body);
+
   useLayoutEffect(() => {
     if (gridHeight) {
       const observer = createObserver(viewIndex);
