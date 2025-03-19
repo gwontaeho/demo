@@ -1,172 +1,11 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef } from "react";
 import { useControl } from "./useControl";
-
-const ControlText = forwardRef((props, ref) => {
-  const { onChange, ...rest } = props;
-  return (
-    <input
-      ref={ref}
-      type="text"
-      className="border h-6 px-2 bg-slate-50"
-      autoComplete="off"
-      onChange={(event) => onChange?.(event.target.value)}
-      {...rest}
-    />
-  );
-});
-
-const ControlNumber = forwardRef((props, ref) => {
-  const { onChange, thousandsSeparator, decimalScale, ...rest } = props;
-
-  const handleChange = (event) => {
-    event.target.value = event.target.value.replace(/[^0-9.]+/g, "");
-    const lastPoint = event.target.value.lastIndexOf(".");
-    if (lastPoint !== -1) {
-      event.target.value =
-        event.target.value.slice(0, lastPoint).replaceAll(".", "") +
-        event.target.value.slice(lastPoint);
-    }
-
-    if (typeof decimalScale === "number") {
-      const point = event.target.value.indexOf(".");
-      if (point !== -1) {
-        if (decimalScale === 0) {
-          event.target.value = event.target.value.replaceAll(".", "");
-        } else {
-          event.target.value = event.target.value.slice(
-            0,
-            point + 1 + decimalScale
-          );
-        }
-      }
-    }
-
-    if (thousandsSeparator === true) {
-      const [integer, decimal] = event.target.value.split(".");
-      event.target.value =
-        integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
-        (decimal === undefined ? "" : `.${decimal}`);
-    }
-    onChange?.(event.target.value);
-  };
-
-  return (
-    <input
-      ref={ref}
-      type="text"
-      autoComplete="off"
-      className="border h-6 px-2 bg-slate-50"
-      onChange={handleChange}
-      {...rest}
-    />
-  );
-});
-
-const ControlTextarea = forwardRef((props, ref) => {
-  const { onChange, ...rest } = props;
-  return (
-    <textarea
-      ref={ref}
-      className="block border min-h-6 px-2 bg-slate-50"
-      onChange={(event) => onChange?.(event.target.value)}
-      {...rest}
-    />
-  );
-});
-
-const ControlSelect = forwardRef((props, ref) => {
-  const { options, onChange, ...rest } = props;
-  const _key = useRef({ key: crypto.randomUUID() }).current;
-
-  return (
-    <select
-      ref={ref}
-      className="border h-6 bg-slate-50"
-      onChange={(event) => onChange?.(event.target.value)}
-      {...rest}
-    >
-      <option value=""></option>
-      {options?.map((item, index) => {
-        return (
-          <option key={_key.key + ":" + index} value={item.value}>
-            {item.label}
-          </option>
-        );
-      })}
-    </select>
-  );
-});
-
-const ControlRadio = forwardRef((props, ref) => {
-  const { value, defaultValue, options, name, onChange } = props;
-  const _ = useRef({ key: crypto.randomUUID() }).current;
-
-  return (
-    <div className="flex flex-wrap gap-x-4">
-      {options?.map((item, index) => {
-        const checked = value === undefined ? undefined : value === item.value;
-        const defaultChecked =
-          defaultValue === undefined ? undefined : defaultValue === item.value;
-        return (
-          <label key={_.key + ":" + index}>
-            <input
-              ref={ref}
-              type="radio"
-              name={name ?? _.key}
-              value={item.value}
-              checked={checked}
-              defaultChecked={defaultChecked}
-              onChange={(event) => onChange?.(event.target.value)}
-            />
-            {item.label}
-          </label>
-        );
-      })}
-    </div>
-  );
-});
-
-const ControlCheckbox = forwardRef((props, ref) => {
-  const { value, defaultValue, options, name, onChange } = props;
-  const _ = useRef({ key: crypto.randomUUID() }).current;
-
-  const handleChange = (event) => {
-    const inputs =
-      event.target.parentElement.parentElement.getElementsByTagName("input");
-    onChange?.(
-      [...inputs]
-        .filter((element) => element.checked)
-        .map((element) => element.value)
-    );
-  };
-
-  return (
-    <div className="flex gap-x-4 flex-wrap">
-      {options?.map((item, index) => {
-        const checked = Array.isArray(value)
-          ? value.includes(item.value)
-          : undefined;
-        const defaultChecked = Array.isArray(defaultValue)
-          ? defaultValue.includes(item.value)
-          : undefined;
-        return (
-          <label key={_.key + ":" + index}>
-            <input
-              ref={ref}
-              type="checkbox"
-              name={name}
-              value={item.value}
-              checked={checked}
-              defaultChecked={defaultChecked}
-              onChange={handleChange}
-            />
-            {item.label}
-          </label>
-        );
-      })}
-    </div>
-  );
-});
+import { Text } from "./components/Text";
+import { Number } from "./components/Number";
+import { Textarea } from "./components/Textarea";
+import { Select } from "./components/Select";
+import { Radio } from "./components/Radio";
+import { Checkbox } from "./components/Checkbox";
 
 const Control = forwardRef((props, ref) => {
   const {
@@ -186,17 +25,17 @@ const Control = forwardRef((props, ref) => {
   return (
     <div className="[&>*]:w-full">
       {type === "text" ? (
-        <ControlText ref={ref} {...rest} />
+        <Text ref={ref} {...rest} />
       ) : type === "number" ? (
-        <ControlNumber ref={ref} {...rest} />
+        <Number ref={ref} {...rest} />
       ) : type === "textarea" ? (
-        <ControlTextarea ref={ref} {...rest} />
+        <Textarea ref={ref} {...rest} />
       ) : type === "select" ? (
-        <ControlSelect ref={ref} {...rest} />
+        <Select ref={ref} {...rest} />
       ) : type === "radio" ? (
-        <ControlRadio ref={ref} {...rest} />
+        <Radio ref={ref} {...rest} />
       ) : type === "checkbox" ? (
-        <ControlCheckbox ref={ref} {...rest} />
+        <Checkbox ref={ref} {...rest} />
       ) : null}
 
       {message && <div>{message}</div>}

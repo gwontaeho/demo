@@ -83,7 +83,16 @@ const useForm = (params = {}) => {
         );
       }
     },
-    clearValues: () => {},
+    clearValues: () => {
+      _.values = {};
+      for (const key in _.registered) {
+        const value = _.values[key];
+        const type = _.schema[key].type;
+        _.registered[key].control.setValue?.(
+          value ?? (type === "checkbox" ? [] : "")
+        );
+      }
+    },
     setEditable: (...params) => {
       if (params.length === 1) {
         Object.values(_.schema).forEach((item) => {

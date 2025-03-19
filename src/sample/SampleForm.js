@@ -46,8 +46,12 @@ export const SampleForm = () => {
 
   return (
     <div>
-      {/* <Control type="text" onChange={(value) => console.log(value)} />
-      <Control type="number" onChange={(value) => console.log(value)} />
+      <Control type="text" onChange={(value) => console.log(value)} />
+      <Control
+        type="number"
+        onChange={(value) => console.log(value)}
+        thousandsSeparator={true}
+      />
       <Control type="textarea" onChange={(value) => console.log(value)} />
       <Control
         type="select"
@@ -63,27 +67,27 @@ export const SampleForm = () => {
         type="checkbox"
         options={options}
         onChange={(value) => console.log(value)}
-      /> */}
+      />
 
       {show && (
         <Form>
-          <Form.Row>
-            <Form.Control {...register("text")} />
-            <Form.Control {...register("number")} />
-            <Form.Control {...register("textarea")} />
-            <Form.Control {...register("select")} options={options} />
-            <Form.Control {...register("radio")} options={options} />
-            <Form.Control {...register("checkbox")} options={options} />
-          </Form.Row>
+          <Form.Control {...register("text")} />
+          <Form.Control {...register("number")} />
+          <Form.Control {...register("textarea")} />
+          <Form.Control {...register("select")} options={options} />
+          <Form.Control {...register("radio")} options={options} />
+          <Form.Control {...register("checkbox")} options={options} />
         </Form>
       )}
 
       <div>
-        <div className="mt-10 grid grid-cols-8 border-t border-l [&>button]:border-r [&>button]:border-b [&>button]:p-1">
+        <div className="mt-10 grid grid-cols-4 gap-4 [&>button]:p-1 [&>button]:text-left">
           <button onClick={TESTGET}>TESTGET</button>
           <button onClick={() => setShow((prev) => !prev)}>show</button>
           <button onClick={forceUpdate}>render</button>
+          <div />
           <button onClick={() => resetValues()}>reset</button>
+          <button onClick={() => clearValues()}>clear</button>
           <button onClick={validate}>validate</button>
           <button onClick={() => setValue("checkbox", ["a", "b"])}>
             set checkbox
