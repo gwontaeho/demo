@@ -1,7 +1,7 @@
 import { memo, forwardRef } from "react";
 import { useGridContext } from "../hooks/useGridContext";
 import { useInit } from "../hooks/useInit";
-import { Provider } from "./Provider";
+import { GridProvider } from "./GridProvider";
 import { Header } from "./Header";
 import { Body } from "./Body";
 import { Footer } from "./Footer";
@@ -38,9 +38,9 @@ const GridComponent = memo(() => {
 
 const Grid = forwardRef((props, ref) => {
   return (
-    <Provider ref={ref} {...props}>
+    <GridProvider ref={ref} {...props}>
       <GridComponent />
-    </Provider>
+    </GridProvider>
   );
 });
 

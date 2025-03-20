@@ -1,8 +1,8 @@
 import { forwardRef, useRef, useCallback } from "react";
 import { GridContext } from "../utils/context";
-import { debounce, uuid, cloneDeep } from "../utils/utils";
+import { debounce, uuid } from "../utils/utils";
 
-const Provider = forwardRef((props, ref) => {
+const GridProvider = forwardRef((props, ref) => {
   const { children } = props;
 
   const _ = useRef(ref).current;
@@ -162,4 +162,4 @@ const Provider = forwardRef((props, ref) => {
   );
 });
 
-export { Provider };
+export { GridProvider };
