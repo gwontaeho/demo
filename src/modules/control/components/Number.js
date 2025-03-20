@@ -102,37 +102,36 @@ const Number = forwardRef((props, ref) => {
       ""
     ).length;
 
-    let isDeletedDecimalLimit = false;
+    let isLimited = false;
     if (rawBeforeSelectionNumberCount > formattedBeforeNumberCount) {
-      isDeletedDecimalLimit = true;
+      isLimited = true;
     }
 
     // Readjust selection
     let newPosition = 0;
-    let count = 0;
-    for (let i = 0; i < event.target.value.length; i++) {
-      if (/\d/.test(event.target.value[i])) {
-        count++;
-        if (count === rawBeforeSelectionNumberCount) {
-          newPosition = i;
-          break;
+    if (isLimited) {
+      newPosition = formattedSelectionStart;
+    } else {
+      let count = 0;
+      for (let i = 0; i < event.target.value.length; i++) {
+        if (/\d/.test(event.target.value[i])) {
+          count++;
+          if (count === rawBeforeSelectionNumberCount) {
+            newPosition = i;
+            break;
+          }
         }
       }
+      if (rawBeforeSelectionNumberCount !== 0) {
+        newPosition += 1;
+      }
+      if (isDotInputted) {
+        newPosition += 1;
+      }
+      if (isAfterDotDeleted) {
+        newPosition += 1;
+      }
     }
-    if (rawBeforeSelectionNumberCount !== 0) {
-      newPosition += 1;
-    }
-    if (isDotInputted) {
-      newPosition += 1;
-    }
-    if (isAfterDotDeleted) {
-      newPosition += 1;
-    }
-    if (isDeletedDecimalLimit) {
-      newPosition = formattedSelectionStart;
-    }
-
-    // console.log(newPosition);
 
     event.target.setSelectionRange(newPosition, newPosition);
     data.previousValue = event.target.value;
