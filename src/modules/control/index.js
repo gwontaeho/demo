@@ -29,7 +29,7 @@ const Control = forwardRef((props, ref) => {
 
   return (
     <div className="[&>*]:w-full">
-      <div className="flex [&>input]:flex-1 [&>textarea]:flex-1 [&>select]:flex-1 [&>div]:flex-1">
+      <div className="flex [&>input]:max-w-full [&>input]:flex-1 [&>textarea]:flex-1 [&>select]:flex-1 [&>div]:flex-1">
         {button === "left" && (
           <button
             type="button"
