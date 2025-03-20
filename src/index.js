@@ -13,6 +13,7 @@ import { SampleTree } from "./sample/SampleTree";
 import { SampleResource } from "./sample/SampleResource";
 import { SampleData } from "./sample/SampleData";
 import { SampleControl } from "./sample/SampleControl";
+import { SamplePage } from "./sample/SamplePage";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
@@ -39,6 +40,7 @@ function App() {
       {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
+      {/* <SamplePage /> */}
       <SampleForm />
       {/* <SampleGrid /> */}
     </div>

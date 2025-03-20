@@ -21,6 +21,8 @@ const useForm = (params = {}) => {
 
   const forceUpdate = useReducer(() => ({}))[1];
 
+  const watches = {};
+
   const _ = useRef({
     registered: {},
     elements: {},
@@ -31,6 +33,44 @@ const useForm = (params = {}) => {
   }).current;
 
   const methods = useRef({
+    getValues: () => {
+      return cloneDeep(_.values);
+    },
+    getErrors: () => {
+      return cloneDeep(_.errors);
+    },
+    getLabel: (name) => {
+      const { label, required } = _.schema[name];
+      return { label, required };
+    },
+
+    setValue: (name, value) => {
+      _.values[name] = cloneDeep(value);
+      _.registered[name]?.control.setValue?.(_.values[name]);
+      if (watches[name]) {
+        forceUpdate();
+      }
+    },
+    setFocus: (name) => {
+      _.elements[name]?.focus?.();
+    },
+    setEditable: (...params) => {
+      if (params.length === 1) {
+        Object.values(_.schema).forEach((item) => {
+          item.editable = params[0];
+        });
+      } else if (params.length === 2) {
+        _.schema[params[0]] = params[1];
+      }
+      forceUpdate();
+    },
+    setSchema: (name, value) => {
+      _.schema[name] = cloneDeep(
+        typeof value === "function" ? value(cloneDeep(_.schema[name])) : value
+      );
+      forceUpdate();
+    },
+
     register: (name) => {
       if (!_.registered[name]) {
         _.registered[name] = {
@@ -42,6 +82,9 @@ const useForm = (params = {}) => {
           onChange: (value) => {
             _.values[name] = value;
             _.registered[name].control.setValue?.(value);
+            if (watches[name]) {
+              forceUpdate();
+            }
           },
           control: {
             setValue: null,
@@ -60,22 +103,9 @@ const useForm = (params = {}) => {
         ...(_.errors[name] && Object.values(_.errors[name])[0]),
       };
     },
-    getValues: () => {
-      return cloneDeep(_.values);
-    },
-    getErrors: () => {
-      return cloneDeep(_.errors);
-    },
-    getLabel: (name) => {
-      const { label, required } = _.schema[name];
-      return { label, required };
-    },
-    setValue: (name, value) => {
-      _.values[name] = cloneDeep(value);
-      _.registered[name]?.control.setValue?.(_.values[name]);
-    },
-    setFocus: (name) => {
-      _.elements[name]?.focus?.();
+    watch: (name) => {
+      watches[name] = true;
+      return cloneDeep(_.values[name]);
     },
     resetValues: () => {
       _.values = cloneDeep(_.defaultValues);
@@ -85,6 +115,9 @@ const useForm = (params = {}) => {
         _.registered[key].control.setValue?.(
           value ?? (type === "checkbox" ? [] : "")
         );
+      }
+      if (Object.keys(watches).length > 0) {
+        forceUpdate();
       }
     },
     clearValues: () => {
@@ -96,22 +129,9 @@ const useForm = (params = {}) => {
           value ?? (type === "checkbox" ? [] : "")
         );
       }
-    },
-    setEditable: (...params) => {
-      if (params.length === 1) {
-        Object.values(_.schema).forEach((item) => {
-          item.editable = params[0];
-        });
-      } else if (params.length === 2) {
-        _.schema[params[0]] = params[1];
+      if (Object.keys(watches).length > 0) {
+        forceUpdate();
       }
-      forceUpdate();
-    },
-    setSchema: (name, value) => {
-      _.schema[name] = cloneDeep(
-        typeof value === "function" ? value(cloneDeep(_.schema[name])) : value
-      );
-      forceUpdate();
     },
     validate: () => {
       const errors = {};

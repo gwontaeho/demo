@@ -21,6 +21,7 @@ export const SampleForm = () => {
     setEditable,
     setSchema,
     getLabel,
+    watch,
     //
     TESTGET,
   } = useForm({
@@ -50,6 +51,9 @@ export const SampleForm = () => {
   const forceUpdate = useReducer(() => ({}))[1];
   const [show, setShow] = useState(true);
 
+  const text = watch("text");
+  const number = watch("number");
+
   return (
     <div>
       {show && (
@@ -66,7 +70,9 @@ export const SampleForm = () => {
           <Form.Label {...getLabel("text")} />
           <Form.Cells>
             <Form.Control type="text" />
-            <Form.Cell>qwdnqwjkdnk</Form.Cell>
+            <Form.Cell>
+              {text}, {number}
+            </Form.Cell>
           </Form.Cells>
 
           {/* <Form.Control {...register("checkbox")} options={options} /> */}
@@ -82,6 +88,7 @@ export const SampleForm = () => {
           <button onClick={() => resetValues()}>reset</button>
           <button onClick={() => clearValues()}>clear</button>
           <button onClick={validate}>validate</button>
+          <button onClick={() => setValue("text", "asasfas")}>set text</button>
           <button onClick={() => setValue("checkbox", ["a", "b"])}>
             set checkbox
           </button>
