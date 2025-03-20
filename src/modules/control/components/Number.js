@@ -1,18 +1,18 @@
 import { forwardRef, useRef } from "react";
 
-const c = (value) => {
+const extractNumbers = (value) => {
   value = value.replace(/[^0-9.]+/g, "").replace(/(\..*?)\./g, "$1");
   return value;
 };
 
-const d = (value, scale) => {
+const limitDecimalPoints = (value, scale) => {
   const index = value.indexOf(".");
   if (index === -1) return value;
   if (scale === 0) return value.replaceAll(".", "");
   return value.slice(0, index + 1 + scale);
 };
 
-const s = (value) => {
+const separateThousands = (value) => {
   const [integer, decimal] = value.split(".");
   return (
     integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
@@ -82,12 +82,12 @@ const Number = forwardRef((props, ref) => {
     rawBeforeSelectionNumberCount += deletionAdjust;
 
     // Format
-    event.target.value = c(event.target.value);
+    event.target.value = extractNumbers(event.target.value);
     if (hasDecimalScale) {
-      event.target.value = d(event.target.value, decimalScale);
+      event.target.value = limitDecimalPoints(event.target.value, decimalScale);
     }
     if (hasSeparator) {
-      event.target.value = s(event.target.value);
+      event.target.value = separateThousands(event.target.value);
     }
 
     const formattedValue = event.target.value;
@@ -139,12 +139,12 @@ const Number = forwardRef((props, ref) => {
 
   let formattedValue = value;
   if (value !== undefined) {
-    formattedValue = c(String(formattedValue));
+    formattedValue = extractNumbers(String(formattedValue));
     if (hasDecimalScale) {
-      formattedValue = d(formattedValue, decimalScale);
+      formattedValue = limitDecimalPoints(formattedValue, decimalScale);
     }
     if (hasSeparator) {
-      formattedValue = s(formattedValue);
+      formattedValue = separateThousands(formattedValue);
     }
   }
 
