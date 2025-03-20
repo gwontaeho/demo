@@ -66,7 +66,7 @@ export const SampleForm = () => {
           <Form.Label {...getLabel("text")} />
           <Form.Cells>
             <Form.Control type="text" />
-            <Form.Cell></Form.Cell>
+            <Form.Cell>qwdnqwjkdnk</Form.Cell>
           </Form.Cells>
 
           {/* <Form.Control {...register("checkbox")} options={options} /> */}
