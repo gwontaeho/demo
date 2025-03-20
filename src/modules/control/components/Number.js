@@ -31,7 +31,7 @@ const Number = forwardRef((props, ref) => {
   }).current;
 
   const handleChange = (event) => {
-    const isDot = event.nativeEvent.data === ".";
+    const isDotInputted = event.nativeEvent.data === ".";
 
     const inputType = event.nativeEvent.inputType;
     const rawValue = event.target.value;
@@ -43,13 +43,13 @@ const Number = forwardRef((props, ref) => {
       ""
     ).length;
 
-    let isBackDotDelted = false;
+    let isAfterDotDeleted = false;
     if (
       rawValue[rawSelectionStart - 1] === "." &&
       (inputType === "deleteContentBackward" ||
         inputType === "deleteContentForward")
     ) {
-      isBackDotDelted = true;
+      isAfterDotDeleted = true;
     }
 
     const previousValue = data.previousValue;
@@ -102,10 +102,10 @@ const Number = forwardRef((props, ref) => {
     if (rawBeforeSelectionNumberCount !== 0) {
       newPosition += 1;
     }
-    if (isDot) {
+    if (isDotInputted) {
       newPosition += 1;
     }
-    if (isBackDotDelted) {
+    if (isAfterDotDeleted) {
       newPosition += 1;
     }
 
