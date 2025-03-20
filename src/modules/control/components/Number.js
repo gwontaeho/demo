@@ -31,8 +31,13 @@ const Number = forwardRef((props, ref) => {
   }).current;
 
   const handleChange = (event) => {
-    const isDotInputted = event.nativeEvent.data === ".";
+    const previousValue = data.previousValue;
+    const previousValueNumberCount = previousValue.replace(
+      /[^0-9]+/g,
+      ""
+    ).length;
 
+    const isDotInputted = event.nativeEvent.data === ".";
     const inputType = event.nativeEvent.inputType;
     const rawValue = event.target.value;
     const rawSelectionStart = event.target.selectionStart;
@@ -51,12 +56,6 @@ const Number = forwardRef((props, ref) => {
     ) {
       isAfterDotDeleted = true;
     }
-
-    const previousValue = data.previousValue;
-    const previousValueNumberCount = previousValue.replace(
-      /[^0-9]+/g,
-      ""
-    ).length;
 
     // Adjust separator deletion
     let deletionAdjust = 0;
