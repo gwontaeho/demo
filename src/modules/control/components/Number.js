@@ -84,8 +84,28 @@ const Number = forwardRef((props, ref) => {
 
     // Format
     event.target.value = c(event.target.value);
-    if (hasDecimalScale) event.target.value = d(event.target.value);
-    if (hasSeparator) event.target.value = s(event.target.value);
+    if (hasDecimalScale) {
+      event.target.value = d(event.target.value, decimalScale);
+    }
+    if (hasSeparator) {
+      event.target.value = s(event.target.value);
+    }
+
+    const formattedValue = event.target.value;
+    const formattedSelectionStart = event.target.selectionStart;
+    const formattedBeforeSelection = formattedValue.slice(
+      0,
+      formattedSelectionStart
+    );
+    const formattedBeforeNumberCount = formattedBeforeSelection.replace(
+      /[^0-9]+/g,
+      ""
+    ).length;
+
+    let isDeletedDecimalLimit = false;
+    if (rawBeforeSelectionNumberCount > formattedBeforeNumberCount) {
+      isDeletedDecimalLimit = true;
+    }
 
     // Readjust selection
     let newPosition = 0;
@@ -108,6 +128,11 @@ const Number = forwardRef((props, ref) => {
     if (isAfterDotDeleted) {
       newPosition += 1;
     }
+    if (isDeletedDecimalLimit) {
+      newPosition = formattedSelectionStart;
+    }
+
+    // console.log(newPosition);
 
     event.target.setSelectionRange(newPosition, newPosition);
     data.previousValue = event.target.value;

@@ -25,7 +25,7 @@ export const SampleForm = () => {
   } = useForm({
     defaultSchema: {
       text: { label: "asd", type: "text", required: true },
-      number: { type: "number", thousandsSeparator: true },
+      number: { type: "number", thousandsSeparator: true, decimalScale: 2 },
       textarea: { type: "textarea" },
       select: { type: "select" },
       radio: { type: "radio" },
