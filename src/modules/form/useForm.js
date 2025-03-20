@@ -66,6 +66,10 @@ const useForm = (params = {}) => {
     getErrors: () => {
       return cloneDeep(_.errors);
     },
+    getLabel: (name) => {
+      const { label, required } = _.schema[name];
+      return { label, required };
+    },
     setValue: (name, value) => {
       _.values[name] = cloneDeep(value);
       _.registered[name]?.control.setValue?.(_.values[name]);

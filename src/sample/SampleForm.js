@@ -20,16 +20,22 @@ export const SampleForm = () => {
     validate,
     setEditable,
     setSchema,
+    getLabel,
     //
     TESTGET,
   } = useForm({
     defaultSchema: {
-      text: { label: "asd", type: "text", required: true },
-      number: { type: "number", thousandsSeparator: true, decimalScale: 2 },
-      textarea: { type: "textarea" },
-      select: { type: "select" },
-      radio: { type: "radio" },
-      checkbox: { type: "checkbox" },
+      text: { label: "text", type: "text", required: true },
+      number: {
+        label: "number",
+        type: "number",
+        thousandsSeparator: true,
+        decimalScale: 2,
+      },
+      textarea: { label: "textarea", type: "textarea" },
+      select: { label: "select", type: "select" },
+      radio: { label: "radio", type: "radio" },
+      checkbox: { label: "checkbox", type: "checkbox" },
     },
     defaultValues: {
       text: "a",
@@ -46,37 +52,24 @@ export const SampleForm = () => {
 
   return (
     <div>
-      <Control type="text" onChange={(value) => console.log(value)} />
-      <Control
-        type="number"
-        onChange={(value) => console.log(value)}
-        thousandsSeparator={true}
-      />
-      <Control type="textarea" onChange={(value) => console.log(value)} />
-      <Control
-        type="select"
-        options={options}
-        onChange={(value) => console.log(value)}
-      />
-      <Control
-        type="radio"
-        options={options}
-        onChange={(value) => console.log(value)}
-      />
-      <Control
-        type="checkbox"
-        options={options}
-        onChange={(value) => console.log(value)}
-      />
-
       {show && (
         <Form>
           <Form.Control {...register("text")} />
           <Form.Control {...register("number")} />
+
           <Form.Control {...register("textarea")} />
           <Form.Control {...register("select")} options={options} />
+
           <Form.Control {...register("radio")} options={options} />
           <Form.Control {...register("checkbox")} options={options} />
+
+          <Form.Label {...getLabel("text")} />
+          <Form.Cells>
+            <Form.Control type="text" />
+            <Form.Cell></Form.Cell>
+          </Form.Cells>
+
+          {/* <Form.Control {...register("checkbox")} options={options} /> */}
         </Form>
       )}
 

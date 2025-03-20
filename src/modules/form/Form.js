@@ -17,13 +17,24 @@ const COL_SPAN = {
 };
 
 const FormCell = (props) => {
-  const { children, size = 4, grid } = props;
+  const { children, size = 4 } = props;
   return (
     <div
       className={
-        "min-h-8 border-r border-b" +
-        (grid ? " grid grid-cols-subgrid" : " p-1 flex items-center") +
-        (size ? ` ${COL_SPAN[size]}` : "")
+        "min-h-8 border-r border-b" + (size ? ` ${COL_SPAN[size]}` : "")
+      }
+    >
+      {children}
+    </div>
+  );
+};
+
+const FormCells = (props) => {
+  const { children, size = 4 } = props;
+  return (
+    <div
+      className={
+        "min-h-8 grid grid-cols-subgrid" + (size ? ` ${COL_SPAN[size]}` : "")
       }
     >
       {children}
@@ -66,20 +77,21 @@ const FormControl = forwardRef((props, ref) => {
   );
 });
 
-const FormRow = (props) => {
-  const { children } = props;
-  return (
-    <div className="grid grid-cols-subgrid col-span-12 min-h-8">{children}</div>
-  );
-};
+// const FormRow = (props) => {
+//   const { children } = props;
+//   return (
+//     <div className="grid grid-cols-subgrid col-span-12 min-h-8">{children}</div>
+//   );
+// };
 
 const Form = (props) => {
   const { children } = props;
   return <div className="grid grid-cols-12 border-l border-t">{children}</div>;
 };
 
-Form.Row = FormRow;
+// Form.Row = FormRow;
 Form.Cell = FormCell;
+Form.Cells = FormCells;
 Form.Label = FormLabel;
 Form.Control = FormControl;
 
