@@ -33,6 +33,7 @@ const Number = forwardRef((props, ref) => {
   const handleChange = (event) => {
     const isDot = event.nativeEvent.data === ".";
 
+    const inputType = event.nativeEvent.inputType;
     const rawValue = event.target.value;
     const rawSelectionStart = event.target.selectionStart;
     const rawValueNumberCount = rawValue.replace(/[^0-9]+/g, "").length;
@@ -42,44 +43,51 @@ const Number = forwardRef((props, ref) => {
       ""
     ).length;
 
+    let isBackDotDelted = false;
+    if (
+      rawValue[rawSelectionStart - 1] === "." &&
+      (inputType === "deleteContentBackward" ||
+        inputType === "deleteContentForward")
+    ) {
+      isBackDotDelted = true;
+    }
+
     const previousValue = data.previousValue;
     const previousValueNumberCount = previousValue.replace(
       /[^0-9]+/g,
       ""
     ).length;
 
-    let isDeleted = false;
+    // Adjust separator deletion
+    let deletionAdjust = 0;
     if (rawValueNumberCount === previousValueNumberCount) {
       const rawValueSeparatorCount = rawValue.replace(/[^,]+/g, "").length;
       const previousValueSeparatorCount = previousValue.replace(
         /[^,]+/g,
         ""
       ).length;
-
       if (previousValueSeparatorCount - rawValueSeparatorCount === 1) {
-        if (event.nativeEvent.inputType === "deleteContentBackward") {
+        if (inputType === "deleteContentBackward") {
           event.target.value =
             value.slice(0, rawSelectionStart - 1) +
             value.slice(rawSelectionStart + 1);
-          isDeleted = true;
+          deletionAdjust = -1;
         }
-        if (event.nativeEvent.inputType === "deleteContentForward") {
+        if (inputType === "deleteContentForward") {
           event.target.value =
             value.slice(0, rawSelectionStart) +
             value.slice(rawSelectionStart + 2);
-          isDeleted = true;
         }
       }
     }
+    rawBeforeSelectionNumberCount += deletionAdjust;
 
-    if (isDeleted) {
-      rawBeforeSelectionNumberCount -= 1;
-    }
-
+    // Format
     event.target.value = c(event.target.value);
     if (hasDecimalScale) event.target.value = d(event.target.value);
     if (hasSeparator) event.target.value = s(event.target.value);
 
+    // Readjust selection
     let newPosition = 0;
     let count = 0;
     for (let i = 0; i < event.target.value.length; i++) {
@@ -97,9 +105,11 @@ const Number = forwardRef((props, ref) => {
     if (isDot) {
       newPosition += 1;
     }
+    if (isBackDotDelted) {
+      newPosition += 1;
+    }
 
     event.target.setSelectionRange(newPosition, newPosition);
-
     data.previousValue = event.target.value;
     onChange?.(event.target.value);
   };
