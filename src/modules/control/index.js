@@ -27,7 +27,7 @@ const Control = forwardRef((props, ref) => {
   if (!editable) {
     const value = rest.value ?? rest.defaultValue;
     const text = Array.isArray(value) ? value.join(", ") : value;
-    return <div>{text}</div>;
+    return <div className="text-sm">{text}</div>;
   }
 
   return (

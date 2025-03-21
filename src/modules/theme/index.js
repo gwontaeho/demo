@@ -22,6 +22,8 @@ const ThemeProvider = ({ children }) => {
     });
   }, []);
 
+  console.log(theme);
+
   return (
     <ThemeValueContext.Provider value={theme}>
       <ThemeSetterContext.Provider value={toggleTheme}>

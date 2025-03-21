@@ -8,7 +8,11 @@ export const SampleTheme = () => {
   console.log("aa");
   return (
     <div>
-      <Comp />
+      {test % 2 === 0 ? (
+        <Comp test={test} name="aa" />
+      ) : (
+        <Comp test={test} name="bb" />
+      )}
       <div>asdqwd</div>
       <button onClick={() => setTest((prev) => ++prev)}>up</button>
       <button onClick={() => toggleTheme()}>toggle theme</button>
@@ -16,9 +20,14 @@ export const SampleTheme = () => {
   );
 };
 
-const Comp = () => {
+const Comp = (props) => {
+  const { test, name } = props;
+  const [tt, setTt] = useState(name);
+  console.log(tt);
+
   // const theme = useTheme();
   // console.log(theme);
-  console.log("compt");
-  return <div></div>;
+  // console.log("compt");
+  console.log(test);
+  return <div>{test}</div>;
 };
