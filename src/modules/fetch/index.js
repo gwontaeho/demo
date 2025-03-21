@@ -16,8 +16,17 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const useData = (source, config = {}) => {
+const useFetch = (source, config = {}) => {
   const forceUpdate = useReducer(() => ({}))[1];
+
+  const [data, setData] = useState(null);
+
+  const _ = useRef({}).current;
+
+  const methods = useRef({
+    refetch: () => {},
+  }).current;
+
   const { setSource, setConfig, fetchData, fetchDataWithKey, getData } = useRef(
     new (class {
       #key = null;
@@ -74,9 +83,7 @@ const useData = (source, config = {}) => {
     }
   }, [enabled, ...key]);
 
-  const data = getData();
-
   return { data, fetchData };
 };
 
-export { useData };
+export { useFetch };

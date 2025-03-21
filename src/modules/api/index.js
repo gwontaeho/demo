@@ -1,30 +1,41 @@
-const getAuthorization = () => {
+const getToken = () => {
   return `Bearer Token`;
 };
 
-const makeRequest = (method, authentication) => {
-  return async (...args) => {
-    const hasBody = method === "GET" || method === "DELETE" ? false : true;
-    const config = { ...(hasBody ? args[2] : args[1]), method };
-    if (authentication) {
-      config.headers = { ...config.headers, Authorization: getAuthorization() };
+const makeRequest = (method, auth) => {
+  return async (url, bodyOrConfig, config) => {
+    let token;
+    if (auth) {
+      // 토큰 확인 추가해야함
+      token = getToken();
     }
-    if (hasBody) {
-      const body = args[1];
-      switch (Object.prototype.toString.call(body)) {
+
+    const isBodyAllowed =
+      method === "POST" || method === "PUT" || method === "PATCH";
+    const rawConfig = isBodyAllowed ? config : bodyOrConfig;
+    const rawBody = isBodyAllowed ? bodyOrConfig : undefined;
+    const newConfig = { ...rawConfig, method };
+
+    if (token) {
+      newConfig.headers[Authorization] = token;
+    }
+
+    if (isBodyAllowed) {
+      switch (Object.prototype.toString.call(rawBody)) {
         case "[object Object]":
         case "[object Array]":
           body = JSON.stringify(body);
-          config.headers = {
-            ...config.headers,
-            "Content-Type": "application/json",
-          };
+          newConfig.headers["Content-Type"] = "application/json";
+          break;
+        default:
+          body = rawBody;
           break;
       }
-      config.body = body;
+      newConfig.body = body;
     }
+
     try {
-      const response = await window.fetch(args[0], config);
+      const response = await window.fetch(url, config);
       const contentType = response.headers.get("Content-Type") || "";
 
       let data;
@@ -46,7 +57,7 @@ const makeRequest = (method, authentication) => {
   };
 };
 
-const unauthenticated = {
+const requestObject = {
   get: makeRequest("GET"),
   post: makeRequest("POST"),
   put: makeRequest("PUT"),
@@ -54,7 +65,7 @@ const unauthenticated = {
   delete: makeRequest("DELETE"),
 };
 
-const authenticated = {
+const withAuth = {
   get: makeRequest("GET", true),
   post: makeRequest("POST", true),
   put: makeRequest("PUT", true),
@@ -62,16 +73,10 @@ const authenticated = {
   delete: makeRequest("DELETE", true),
 };
 
-const authenticate = (arg) => {
-  return arg ? authenticated : unauthenticated;
+const auth = (param = true) => {
+  return { ...(param ? withAuth : requestObject) };
 };
 
-const api = {};
-
-api.get = unauthenticated.get;
-api.post = unauthenticated.post;
-api.put = unauthenticated.put;
-
-api.authenticate = authenticate;
+const api = { ...requestObject, auth };
 
 export { api };
