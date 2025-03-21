@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, useReducer } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useReducer,
+  useCallback,
+  useMemo,
+} from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -8,7 +15,7 @@ const cloneDeep = (item) => {
     return item.map(cloneDeep);
   }
   const obj = {};
-  for (let key in item) {
+  for (const key in item) {
     if (item.hasOwnProperty(key)) {
       obj[key] = cloneDeep(item[key]);
     }
@@ -16,83 +23,95 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const useFetch = (source, config = {}) => {
+const useFetch = (config = {}) => {
+  const {
+    fetcher,
+    formatter,
+    enabled,
+    key,
+    timeout,
+    interval,
+    onSuccess,
+    onError,
+  } = config;
+
+  const _enabled = !!enabled;
+  const _key = Array.isArray(key) ? key : [key];
+
   const [data, setData] = useState(null);
 
   const _ = useRef({
-    key: null,
+    key: [crypto.randomUUID()],
     data: null,
   }).current;
 
-  const methods = useRef({
-    refetch: () => {},
-  }).current;
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetcher();
+      const newData = formatter ? formatter(response) : response;
+      return newData;
+    } catch (error) {
+      console.log(error);
+    }
+  }, [fetcher, formatter]);
 
-  const enabled = !!config.enabled;
-  const key = Array.isArray(config.key) ? config.key : [config.key];
+  const _fetchData = useCallback(async () => {
+    try {
+      const newData = await fetchData();
+      setData(newData);
+      onSuccess();
+    } catch (error) {
+      console.log(error);
+      onError();
+    }
+  }, [fetchData, onSuccess, onError, ..._key]);
+
+  const isKeyEqual = useCallback((target) => {
+    if (_.key.length !== target.length) return false;
+    return _.key.every((item, index) => {
+      return item === target[index];
+    });
+  }, []);
 
   useEffect(() => {
-    if (enabled) {
-    }
-  }, [enabled, ...key]);
+    if (timeout !== undefined) return;
+    if (interval !== undefined) return;
+    if (!_enabled) return;
+    if (isKeyEqual(_key)) return;
 
-  const forceUpdate = useReducer(() => ({}))[1];
-
-  const { setSource, setConfig, fetchData, fetchDataWithKey, getData } = useRef(
-    new (class {
-      #key = null;
-      #data = null;
-      #source = null;
-      #config = null;
-      #render = forceUpdate;
-      setSource = (source) => {
-        this.#source = source;
-      };
-      setConfig = (config) => {
-        this.#config = config;
-      };
-      fetchData = async () => {
-        try {
-          this.#data = await this.#source?.();
-          this.#render?.();
-          this.#config.onSuccess?.();
-        } catch (error) {
-          this.#config.onError?.();
-        }
-      };
-      fetchDataWithKey = async (key) => {
-        const stringified = JSON.stringify(key);
-        if (this.#key === stringified) return;
-        this.#key = stringified;
-        try {
-          this.#data = await this.#source?.();
-          this.#render?.();
-          this.#config.onSuccess?.();
-        } catch (error) {
-          this.#config.onError?.();
-        }
-      };
-      getData = () => {
-        return cloneDeep(this.#data);
-      };
-      startInterval = () => {};
-    })()
-  ).current;
-  setSource(source);
-  setConfig(config);
-
-  // const key = Array.isArray(config.key) ? config.key : [config.key];
-  // const enabled = config.enabled ?? true;
-  const timeout = config.timeout;
-  const interval = config.interval;
-
-  useEffect(() => {}, []);
+    _.key = [..._key];
+    _fetchData();
+  }, [_fetchData, _enabled, timeout, interval, ..._key]);
 
   useEffect(() => {
-    if (enabled) {
-      fetchDataWithKey(key);
-    }
-  }, [enabled, ...key]);
+    if (timeout === undefined) return;
+    if (interval !== undefined) return;
+    if (!_enabled) return;
+    if (isKeyEqual(_key)) return;
+
+    const timeoutId = setTimeout(() => {
+      _.key = [..._key];
+      _fetchData();
+    }, timeout);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [_fetchData, _enabled, timeout, interval, ..._key]);
+
+  useEffect(() => {
+    if (interval === undefined) return;
+    if (timeout !== undefined) return;
+    if (!_enabled) return;
+
+    const intervalId = setInterval(() => {
+      _fetchData();
+    }, interval);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [_fetchData, _enabled, timeout, interval]);
 
   return { data, fetchData };
 };

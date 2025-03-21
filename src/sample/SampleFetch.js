@@ -7,16 +7,21 @@ export const SampleFetch = () => {
   const mockApi = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(["a"]);
+        resolve(["a", test]);
       }, 2000);
     });
   };
 
-  const { data, fetchData } = useFetch(mockApi, {
-    interval: 0,
+  const { data, fetchData } = useFetch({
+    fetcher: mockApi,
+    formatter: (data) => {
+      console.log(data);
+      return "1";
+    },
+    enabled: test % 3 === 0,
+    // interval: 1000,
     timeout: 2000,
-    // key: ["asd", "wfwf"],
-    // enabled: test === 3,
+    key: test,
     onSuccess: () => {
       console.log("asd");
     },
