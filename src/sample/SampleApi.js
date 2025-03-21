@@ -6,6 +6,8 @@ export const SampleApi = () => {
     test();
   }, []);
 
+  console.log(api);
+
   const test = async () => {
     try {
       const res = await fetch("http://localhost:3001");
