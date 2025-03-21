@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFetch } from "../modules/fetch";
 
-export const SampleData = () => {
+export const SampleFetch = () => {
   const [test, setTest] = useState(0);
 
   const mockApi = () => {

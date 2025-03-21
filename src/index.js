@@ -11,7 +11,7 @@ import { SampleRouter } from "./sample/SampleRouter";
 import { SampleTab } from "./sample/SampleTab";
 import { SampleTree } from "./sample/SampleTree";
 import { SampleResource } from "./sample/SampleResource";
-import { SampleData } from "./sample/SampleData";
+import { SampleFetch } from "./sample/SampleFetch";
 import { SampleControl } from "./sample/SampleControl";
 import { SamplePage } from "./sample/SamplePage";
 import { SampleTheme } from "./sample/SampleTheme";
@@ -35,13 +35,13 @@ function App() {
   return (
     <div className="p-8">
       {/* <SampleControl /> */}
-      {/* <SampleData /> */}
+      <SampleFetch />
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
       {/* <SampleRouter /> */}
       {/* <SamplePopup /> */}
-      <SampleApi />
+      {/* <SampleApi /> */}
       {/* <SampleModal /> */}
       {/* <SamplePage /> */}
       {/* <SampleForm /> */}

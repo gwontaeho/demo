@@ -17,15 +17,26 @@ const cloneDeep = (item) => {
 };
 
 const useFetch = (source, config = {}) => {
-  const forceUpdate = useReducer(() => ({}))[1];
-
   const [data, setData] = useState(null);
 
-  const _ = useRef({}).current;
+  const _ = useRef({
+    key: null,
+    data: null,
+  }).current;
 
   const methods = useRef({
     refetch: () => {},
   }).current;
+
+  const enabled = !!config.enabled;
+  const key = Array.isArray(config.key) ? config.key : [config.key];
+
+  useEffect(() => {
+    if (enabled) {
+    }
+  }, [enabled, ...key]);
+
+  const forceUpdate = useReducer(() => ({}))[1];
 
   const { setSource, setConfig, fetchData, fetchDataWithKey, getData } = useRef(
     new (class {
@@ -70,8 +81,8 @@ const useFetch = (source, config = {}) => {
   setSource(source);
   setConfig(config);
 
-  const key = Array.isArray(config.key) ? config.key : [config.key];
-  const enabled = config.enabled ?? true;
+  // const key = Array.isArray(config.key) ? config.key : [config.key];
+  // const enabled = config.enabled ?? true;
   const timeout = config.timeout;
   const interval = config.interval;
 
