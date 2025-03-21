@@ -19,8 +19,16 @@ const Body = memo(() => {
     handleRadioChange,
     handleCheckboxChange,
   } = useGridContext();
-  const { height, body, headerWidths, bodyRowCount, index, radio, checkbox } =
-    getSchema();
+  const {
+    height,
+    body,
+    headerWidths,
+    bodyRowCount,
+    index,
+    radio,
+    checkbox,
+    editable,
+  } = getSchema();
   const { rows, viewIndexOffset, dataIndexOffset, rowMetrics } = getRows();
   const { data, radioData, checkboxData, addedData, removedData } = getRef();
 
@@ -50,7 +58,7 @@ const Body = memo(() => {
           (!hasHeight ? "" : " absolute");
         const style = { ...getGridTemplate("body"), top };
 
-        const key = `${keyBase}:${viewIndex}:${dataIndex}`;
+        const key = `${keyBase}:${viewIndex}:${dataIndex}:${editable}`;
 
         return (
           <Row
@@ -93,7 +101,6 @@ const Row = (props) => {
     bodyRowCount,
     data,
     hasHeight,
-
     hasIndex,
     hasRadio,
     hasCheckbox,

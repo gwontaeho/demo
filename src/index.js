@@ -35,7 +35,7 @@ function App() {
   return (
     <div className="p-8">
       {/* <SampleControl /> */}
-      <SampleFetch />
+      {/* <SampleFetch /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
@@ -45,7 +45,7 @@ function App() {
       {/* <SampleModal /> */}
       {/* <SamplePage /> */}
       {/* <SampleForm /> */}
-      {/* <SampleGrid /> */}
+      <SampleGrid />
       {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
     </div>
@@ -55,19 +55,19 @@ function App() {
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  <StrictMode>
-    <ResourceProvider>
-      <RouterProvider>
-        <StoreProvider>
-          <ThemeProvider>
-            <ModalProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
-            </ModalProvider>
-          </ThemeProvider>
-        </StoreProvider>
-      </RouterProvider>
-    </ResourceProvider>
-  </StrictMode>
+  // <StrictMode>
+  <ResourceProvider>
+    <RouterProvider>
+      <StoreProvider>
+        <ThemeProvider>
+          <ModalProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </ModalProvider>
+        </ThemeProvider>
+      </StoreProvider>
+    </RouterProvider>
+  </ResourceProvider>
+  // </StrictMode>
 );
