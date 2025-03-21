@@ -28,11 +28,11 @@ const useFetch = (config = {}) => {
     fetcher,
     formatter,
     enabled,
-    key,
     timeout,
     interval,
     onSuccess,
     onError,
+    key,
   } = config;
 
   const _enabled = !!enabled;
