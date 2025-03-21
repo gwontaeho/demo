@@ -33,7 +33,7 @@ function App() {
 
   return (
     <div className="p-8">
-      <SampleControl />
+      {/* <SampleControl /> */}
       {/* <SampleData /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
@@ -43,7 +43,7 @@ function App() {
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
       {/* <SamplePage /> */}
-      {/* <SampleForm /> */}
+      <SampleForm />
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
     </div>
