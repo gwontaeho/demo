@@ -14,12 +14,14 @@ import { SampleResource } from "./sample/SampleResource";
 import { SampleData } from "./sample/SampleData";
 import { SampleControl } from "./sample/SampleControl";
 import { SamplePage } from "./sample/SamplePage";
+import { SampleTheme } from "./sample/SampleTheme";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
 import { StoreProvider } from "./modules/store";
 import { ModalProvider } from "./modules/modal";
 import { ToastProvider } from "./modules/toast";
+import { ThemeProvider } from "./modules/theme";
 
 import { useForm } from "react-hook-form";
 
@@ -41,8 +43,9 @@ function App() {
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
       {/* <SamplePage /> */}
-      <SampleForm />
+      {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
+      <SampleTheme />
     </div>
   );
 }
@@ -54,11 +57,13 @@ root.render(
     <ResourceProvider>
       <RouterProvider>
         <StoreProvider>
-          <ModalProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </ModalProvider>
+          <ThemeProvider>
+            <ModalProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </ModalProvider>
+          </ThemeProvider>
         </StoreProvider>
       </RouterProvider>
     </ResourceProvider>
