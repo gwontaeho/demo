@@ -68,9 +68,11 @@ export const SampleForm = () => {
           <Form.Control {...register("checkbox")} options={options} />
 
           <Form.Label {...getLabel("text")} />
-
-          <Form.Cells size={4}>
-            <Form.Control type="date" />
+          <Form.Cells size={6}>
+            <Form.Cells size={6}>
+              <Form.Control type="date" />
+              <Form.Control controlSize={2} type="date" />
+            </Form.Cells>
             <Form.Control type="date" />
           </Form.Cells>
 

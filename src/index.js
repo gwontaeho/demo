@@ -15,6 +15,7 @@ import { SampleData } from "./sample/SampleData";
 import { SampleControl } from "./sample/SampleControl";
 import { SamplePage } from "./sample/SamplePage";
 import { SampleTheme } from "./sample/SampleTheme";
+import { SampleButton } from "./sample/SampleButton";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
@@ -43,9 +44,10 @@ function App() {
       {/* <SampleApi /> */}
       {/* <SampleModal /> */}
       {/* <SamplePage /> */}
-      <SampleForm />
+      {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
+      <SampleButton />
     </div>
   );
 }

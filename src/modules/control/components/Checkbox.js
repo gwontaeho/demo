@@ -16,7 +16,7 @@ const Checkbox = forwardRef((props, ref) => {
   }).current;
 
   return (
-    <div className="flex gap-x-4 flex-wrap">
+    <div className="text-sm flex gap-x-4 flex-wrap">
       {options?.map((item, index) => {
         const checked = Array.isArray(value)
           ? value.includes(item.value)

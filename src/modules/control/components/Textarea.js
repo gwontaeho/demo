@@ -5,7 +5,7 @@ const Textarea = forwardRef((props, ref) => {
   return (
     <textarea
       ref={ref}
-      className="block border min-h-6 px-2 bg-slate-50"
+      className="text-sm border min-h-6 px-2 bg-slate-50"
       onChange={(event) => onChange?.(event.target.value)}
       {...rest}
     />

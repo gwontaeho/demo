@@ -6,7 +6,7 @@ const Text = forwardRef((props, ref) => {
     <input
       ref={ref}
       type="text"
-      className="border h-6 px-2 bg-slate-50"
+      className="text-sm border h-6 px-2 bg-slate-50"
       autoComplete="off"
       onChange={(event) => onChange?.(event.target.value)}
       {...rest}

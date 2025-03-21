@@ -154,7 +154,7 @@ const Number = forwardRef((props, ref) => {
       type="text"
       inputMode="numeric"
       autoComplete="off"
-      className="border h-6 px-2 bg-slate-50"
+      className="text-sm border h-6 px-2 bg-slate-50"
       onChange={handleChange}
       value={formattedValue}
       {...rest}

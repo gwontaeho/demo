@@ -9,6 +9,7 @@ import { Checkbox } from "./components/Checkbox";
 import { Password } from "./components/Password";
 import { Date } from "./components/Date";
 import { Time } from "./components/Time";
+import { File } from "./components/File";
 import { Icon } from "../icon";
 
 const Control = forwardRef((props, ref) => {
@@ -59,6 +60,8 @@ const Control = forwardRef((props, ref) => {
           <Date ref={ref} {...rest} />
         ) : type === "time" ? (
           <Time ref={ref} {...rest} />
+        ) : type === "file" ? (
+          <File ref={ref} {...rest} />
         ) : null}
         {button === "right" && (
           <button

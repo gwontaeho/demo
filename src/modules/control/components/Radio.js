@@ -5,7 +5,7 @@ const Radio = forwardRef((props, ref) => {
   const _ = useRef({ key: crypto.randomUUID() }).current;
 
   return (
-    <div className="flex flex-wrap gap-x-4">
+    <div className="text-sm flex flex-wrap gap-x-4">
       {options?.map((item, index) => {
         const checked = value === undefined ? undefined : value === item.value;
         const defaultChecked =

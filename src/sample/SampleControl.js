@@ -20,6 +20,7 @@ export const SampleControl = () => {
       <Control type="checkbox" options={options} onChange={handleChange} />
       <Control type="date" onChange={handleChange} />
       <Control type="time" onChange={handleChange} />
+      <Control type="file" onChange={handleChange} />
     </div>
   );
 };

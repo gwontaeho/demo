@@ -7,7 +7,7 @@ const Select = forwardRef((props, ref) => {
   return (
     <select
       ref={ref}
-      className="border h-6 bg-slate-50"
+      className="text-sm border h-6 bg-slate-50"
       onChange={(event) => onChange?.(event.target.value)}
       {...rest}
     >
