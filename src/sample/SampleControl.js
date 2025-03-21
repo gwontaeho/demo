@@ -6,9 +6,8 @@ const options = [
 ];
 
 export const SampleControl = () => {
-  const handleChange = (e) => {
-    console.log(e);
-    console.log(e.target.value);
+  const handleChange = (value) => {
+    console.log(value);
   };
 
   return (
@@ -19,7 +18,8 @@ export const SampleControl = () => {
       <Control type="select" options={options} onChange={handleChange} />
       <Control type="radio" options={options} onChange={handleChange} />
       <Control type="checkbox" options={options} onChange={handleChange} />
-      <Control />
+      <Control type="date" onChange={handleChange} />
+      <Control type="time" onChange={handleChange} />
     </div>
   );
 };

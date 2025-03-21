@@ -33,7 +33,7 @@ function App() {
 
   return (
     <div className="p-8">
-      {/* <SampleControl /> */}
+      <SampleControl />
       {/* <SampleData /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
@@ -45,7 +45,7 @@ function App() {
       {/* <SamplePage /> */}
       {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
-      <SampleTheme />
+      {/* <SampleTheme /> */}
     </div>
   );
 }

@@ -27,7 +27,7 @@ const Number = forwardRef((props, ref) => {
   const hasSeparator = thousandsSeparator !== undefined;
 
   const data = useRef({
-    previousValue: value === undefined ? value : String(value),
+    previousValue: value === undefined ? "" : String(value),
   }).current;
 
   const handleChange = (event) => {
