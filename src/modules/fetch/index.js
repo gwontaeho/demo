@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useReducer,
-  useCallback,
-  useMemo,
-} from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -28,6 +21,8 @@ const useFetch = (config = {}) => {
     fetcher,
     formatter,
     enabled,
+    enabledInterval,
+    enabledTimeout,
     timeout,
     interval,
     onSuccess,
@@ -41,8 +36,10 @@ const useFetch = (config = {}) => {
   const [data, setData] = useState(null);
 
   const _ = useRef({
-    key: [crypto.randomUUID()],
+    key: [window.crypto.randomUUID()],
     data: null,
+    timeoutId: null,
+    intervalId: null,
   }).current;
 
   const fetchData = useCallback(async () => {
@@ -66,7 +63,7 @@ const useFetch = (config = {}) => {
     }
   }, [fetchData, onSuccess, onError, ..._key]);
 
-  const isKeyEqual = useCallback((target) => {
+  const _isKeyEqual = useCallback((target) => {
     if (_.key.length !== target.length) return false;
     return _.key.every((item, index) => {
       return item === target[index];
@@ -77,7 +74,7 @@ const useFetch = (config = {}) => {
     if (timeout !== undefined) return;
     if (interval !== undefined) return;
     if (!_enabled) return;
-    if (isKeyEqual(_key)) return;
+    if (_isKeyEqual(_key)) return;
 
     _.key = [..._key];
     _fetchData();
@@ -87,32 +84,76 @@ const useFetch = (config = {}) => {
   useEffect(() => {
     if (timeout === undefined) return;
     if (interval !== undefined) return;
-    if (isKeyEqual(_key)) return;
+    if (!enabledTimeout) return;
 
-    const timeoutId = setTimeout(() => {
+    _.timeoutId = window.setTimeout(() => {
       _fetchData();
     }, timeout);
 
     return () => {
-      clearTimeout(timeoutId);
+      if (_.timeoutId !== null) {
+        window.clearTimeout(_.timeoutId);
+      }
     };
-  }, []);
+  }, [enabledTimeout]);
 
   // Interval
   useEffect(() => {
     if (interval === undefined) return;
     if (timeout !== undefined) return;
+    if (!enabledInterval) return;
 
-    const intervalId = setInterval(() => {
+    _.intervalId = window.setInterval(() => {
       _fetchData();
     }, interval);
 
     return () => {
-      clearInterval(intervalId);
+      if (_.intervalId !== null) {
+        window.clearInterval(_.intervalId);
+      }
     };
+  }, [enabledInterval]);
+
+  const startTimeout = useCallback(() => {
+    if (_.timeoutId !== null) {
+      window.clearTimeout(_.timeoutId);
+    }
+
+    _.timeoutId = window.setTimeout(() => {
+      _fetchData();
+    }, timeout);
+  }, [_fetchData, timeout]);
+
+  const stopTimeout = useCallback(() => {
+    if (_.timeoutId !== null) {
+      window.clearTimeout(_.timeoutId);
+    }
   }, []);
 
-  return { data, fetchData };
+  const startInterval = useCallback(() => {
+    if (_.intervalId !== null) {
+      window.clearInterval(_.intervalId);
+    }
+
+    _.intervalId = window.setInterval(() => {
+      _fetchData();
+    }, interval);
+  }, [_fetchData, interval]);
+
+  const stopInterval = useCallback(() => {
+    if (_.intervalId !== null) {
+      window.clearInterval(_.intervalId);
+    }
+  }, []);
+
+  return {
+    data,
+    fetchData,
+    startTimeout,
+    stopTimeout,
+    startInterval,
+    stopInterval,
+  };
 };
 
 export { useFetch };
