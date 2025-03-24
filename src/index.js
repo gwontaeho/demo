@@ -38,8 +38,8 @@ function App() {
 
   return (
     <>
-      <SampleModal />
-      {/* <SampleToast /> */}
+      {/* <SampleModal /> */}
+      <SampleToast />
 
       {/* <SamplePopup /> */}
       {/* <SampleControl /> */}

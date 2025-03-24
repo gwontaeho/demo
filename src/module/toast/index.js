@@ -6,6 +6,7 @@ const ToastSetterContext = createContext();
 const Toast = (props) => {
   const { id, content } = props;
   const { closeToast } = useToast();
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       closeToast(id);
@@ -16,7 +17,9 @@ const Toast = (props) => {
   }, []);
 
   return (
-    <div className="border shadow rounded h-[40px] w-[200px]">{content}</div>
+    <div className="text-sm flex items-center p-2 border shadow rounded h-[40px] w-[200px]">
+      {content}
+    </div>
   );
 };
 
@@ -38,10 +41,10 @@ const ToastProvider = ({ children }) => {
   const methods = useMemo(() => {
     return {
       openToast: (params = {}) => {
-        const { id = window.crypto.randomUUID(), content, type } = params;
+        const { id = window.crypto.randomUUID(), ...rest } = params;
         setToasts((prev) => {
           const next = prev.filter((item) => item.id !== id);
-          next.push({ id, content });
+          next.push({ id, ...rest });
           return next;
         });
       },
@@ -50,6 +53,7 @@ const ToastProvider = ({ children }) => {
       },
     };
   }, []);
+
   return (
     <ToastSetterContext.Provider value={methods}>
       <ToastContainer toasts={toasts} />

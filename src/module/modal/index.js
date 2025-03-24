@@ -19,6 +19,13 @@ import { createPortal } from "react-dom";
  * @property {Function} [onClose]
  */
 
+const MODAL_TYPES = {
+  success: {},
+  error: {},
+  info: {},
+  warning: {},
+};
+
 const ModalSetterContext = createContext();
 
 const Modal = (props) => {
