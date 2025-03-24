@@ -1,4 +1,4 @@
-const getIDB = (name, storeName, keyPath, key) => {
+const getIndexedDB = (name, storeName, keyPath, key) => {
   return new Promise((resolve, reject) => {
     const request = window.indexedDB.open(name);
     request.onupgradeneeded = () => {
@@ -18,7 +18,7 @@ const getIDB = (name, storeName, keyPath, key) => {
   });
 };
 
-const insertIDB = (name, storeName, keyPath, data) => {
+const insertIndexedDB = (name, storeName, keyPath, data) => {
   return new Promise((resolve, reject) => {
     const request = window.indexedDB.open(name);
     request.onupgradeneeded = () => {
@@ -38,7 +38,7 @@ const insertIDB = (name, storeName, keyPath, data) => {
   });
 };
 
-const updateIDB = (name, storeName, keyPath, data) => {
+const updateIndexedDB = (name, storeName, keyPath, data) => {
   return new Promise((resolve, reject) => {
     const request = window.indexedDB.open(name);
     request.onupgradeneeded = () => {
@@ -61,19 +61,19 @@ const updateIDB = (name, storeName, keyPath, data) => {
 export const SampleIndexedDB = () => {
   return (
     <div className="flex flex-col gap-4">
-      <button onClick={() => getIDB("test", "test1", "key1", "ff")}>
+      <button onClick={() => getIndexedDB("test", "test1", "key1", "ff")}>
         open idb
       </button>
       <button
         onClick={() =>
-          insertIDB("test", "test1", "key1", { a: "a", key1: "ff" })
+          insertIndexedDB("test", "test1", "key1", { a: "a", key1: "ff" })
         }
       >
         insert idb
       </button>
       <button
         onClick={() =>
-          updateIDB("test", "test1", "key1", { a: "b", key1: "ff" })
+          updateIndexedDB("test", "test1", "key1", { a: "b", key1: "ff" })
         }
       >
         update idb
