@@ -26,6 +26,8 @@ import { ThemeProvider } from "./modules/theme";
 
 import { useForm } from "react-hook-form";
 
+// import { TestSuspense, HoldComponent } from "./modules/SUSPENSE_EXAMPLE";
+
 function App() {
   console.log("APP");
 
