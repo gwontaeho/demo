@@ -1,21 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const cloneDeep = (item) => {
-  if (item === null || typeof item !== "object") {
-    return item;
-  }
-  if (Array.isArray(item)) {
-    return item.map(cloneDeep);
-  }
-  const obj = {};
-  for (const key in item) {
-    if (item.hasOwnProperty(key)) {
-      obj[key] = cloneDeep(item[key]);
-    }
-  }
-  return obj;
-};
-
 const useFetch = (config = {}) => {
   const {
     fetcher,
