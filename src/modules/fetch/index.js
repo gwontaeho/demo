@@ -83,26 +83,25 @@ const useFetch = (config = {}) => {
     _fetchData();
   }, [_fetchData, _enabled, timeout, interval, ..._key]);
 
+  // Timout
   useEffect(() => {
     if (timeout === undefined) return;
     if (interval !== undefined) return;
-    if (!_enabled) return;
     if (isKeyEqual(_key)) return;
 
     const timeoutId = setTimeout(() => {
-      _.key = [..._key];
       _fetchData();
     }, timeout);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [_fetchData, _enabled, timeout, interval, ..._key]);
+  }, []);
 
+  // Interval
   useEffect(() => {
     if (interval === undefined) return;
     if (timeout !== undefined) return;
-    if (!_enabled) return;
 
     const intervalId = setInterval(() => {
       _fetchData();
@@ -111,7 +110,7 @@ const useFetch = (config = {}) => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [_fetchData, _enabled, timeout, interval]);
+  }, []);
 
   return { data, fetchData };
 };

@@ -34,7 +34,7 @@ function App() {
   return (
     <div className="p-8">
       {/* <SampleControl /> */}
-      {/* <SampleFetch /> */}
+      <SampleFetch />
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
@@ -45,7 +45,7 @@ function App() {
       {/* <SamplePage /> */}
       {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
-      <SampleTheme />
+      {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
     </div>
   );
