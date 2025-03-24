@@ -37,6 +37,8 @@ export const SampleForm = () => {
       select: { label: "select", type: "select" },
       radio: { label: "radio", type: "radio" },
       checkbox: { label: "checkbox", type: "checkbox" },
+      date: { label: "date", type: "date" },
+      time: { label: "time", type: "time" },
     },
     defaultValues: {
       text: "a",
@@ -48,6 +50,13 @@ export const SampleForm = () => {
     },
   });
 
+  const form = useForm({
+    defaultSchema: {
+      text: { label: "text", type: "text" },
+      number: { label: "number", type: "number" },
+    },
+  });
+
   const forceUpdate = useReducer(() => ({}))[1];
   const [show, setShow] = useState(true);
 
@@ -55,30 +64,34 @@ export const SampleForm = () => {
   const number = watch("number");
 
   return (
-    <div>
-      {show && (
-        <Form>
-          <Form.Control {...register("text")} />
-          <Form.Control {...register("number")} />
+    <div className="p-4">
+      <Form>
+        <Form.Control {...register("text")} />
+        <Form.Control {...register("number")} />
+        <Form.Control {...register("textarea")} />
+        <Form.Control {...register("select")} options={options} />
+        <Form.Control {...register("radio")} options={options} />
+        <Form.Control {...register("checkbox")} options={options} />
+        <Form.Control {...register("date")} />
+        <Form.Control {...register("time")} />
+      </Form>
 
-          <Form.Control {...register("textarea")} />
-          <Form.Control {...register("select")} options={options} />
+      <div className="mt-4 text-sm border rounded divide-y [&>div]:flex [&>div]:p-4 [&>div>span]:w-80">
+        <div>
+          <span>define schema</span>
+          <pre>{`const form = useForm({
+  defaultSchema: {
+    text: { label: "text", type: "text" },
+    number: { label: "number", type: "number" },
+  },
+});`}</pre>
+        </div>
 
-          <Form.Control {...register("radio")} options={options} />
-          <Form.Control {...register("checkbox")} options={options} />
-
-          <Form.Label {...getLabel("text")} />
-          <Form.Cells size={6}>
-            <Form.Cells size={6}>
-              <Form.Control type="date" />
-              <Form.Control controlSize={2} type="date" />
-            </Form.Cells>
-            <Form.Control type="date" />
-          </Form.Cells>
-
-          {/* <Form.Control {...register("checkbox")} options={options} /> */}
-        </Form>
-      )}
+        <div>
+          <span>control registration</span>
+          <pre>{`<Form.Control {...register("text")} />`}</pre>
+        </div>
+      </div>
 
       <div>
         <div className="mt-10 grid grid-cols-4 gap-4 [&>button]:p-1 [&>button]:text-left">

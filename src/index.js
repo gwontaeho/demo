@@ -38,8 +38,9 @@ function App() {
 
   return (
     <>
-      {/* <SampleModal /> */}
-      <SampleToast />
+      {/* <SampleForm /> */}
+      <SampleModal />
+      {/* <SampleToast /> */}
 
       {/* <SamplePopup /> */}
       {/* <SampleControl /> */}
@@ -50,7 +51,6 @@ function App() {
       {/* <SampleRouter /> */}
       {/* <SampleApi /> */}
       {/* <SamplePage /> */}
-      {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
