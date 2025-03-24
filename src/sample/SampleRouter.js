@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, Routes, Route, useLocation } from "../modules/router";
+import { useNavigate, Routes, Route, useLocation } from "../module/router";
 
 const Router1 = () => {
   const navigate = useNavigate();

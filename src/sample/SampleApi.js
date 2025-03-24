@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { api } from "../modules/api";
+import { api } from "../module/api";
 
 export const SampleApi = () => {
   useEffect(() => {

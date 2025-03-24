@@ -17,12 +17,12 @@ import { SampleTheme } from "./sample/SampleTheme";
 import { SampleButton } from "./sample/SampleButton";
 import { SampleIndexedDB } from "./sample/SampleIndexedDB";
 
-import { ResourceProvider } from "./modules/resource";
-import { RouterProvider } from "./modules/router";
-import { StoreProvider } from "./modules/store";
-import { ModalProvider } from "./modules/modal";
-import { ToastProvider } from "./modules/toast";
-import { ThemeProvider } from "./modules/theme";
+import { ResourceProvider } from "./module/resource";
+import { RouterProvider } from "./module/router";
+import { StoreProvider } from "./module/store";
+import { ModalProvider } from "./module/modal";
+import { ToastProvider } from "./module/toast";
+import { ThemeProvider } from "./module/theme";
 
 import { useForm } from "react-hook-form";
 

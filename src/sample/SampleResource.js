@@ -1,4 +1,4 @@
-import { useResource } from "../modules/resource";
+import { useResource } from "../module/resource";
 
 export const SampleResource = () => {
   const { getResource } = useResource([{ key: "a" }, { key: "b" }]);

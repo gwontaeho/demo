@@ -1,4 +1,4 @@
-import { Tree, useTree } from "../modules/tree";
+import { Tree, useTree } from "../module/tree";
 
 export const SampleTree = () => {
   const data = [

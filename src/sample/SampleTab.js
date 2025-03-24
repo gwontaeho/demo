@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Tab, useTab } from "../modules/tab";
+import { Tab, useTab } from "../module/tab";
 
 export const SampleTab = () => {
   const { ref, setActive, setHidden, setDisabled } = useTab({

@@ -1,4 +1,4 @@
-import { Button } from "../modules/button";
+import { Button } from "../module/button";
 
 export const SampleButton = () => {
   return (

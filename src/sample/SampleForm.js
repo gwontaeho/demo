@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState, useReducer } from "react";
 
-import { Form, useForm, useControl } from "../modules/form";
-import { Control } from "../modules/control";
+import { Form, useForm, useControl } from "../module/form";
+import { Control } from "../module/control";
 
 const options = [
   { label: "a", value: "a" },

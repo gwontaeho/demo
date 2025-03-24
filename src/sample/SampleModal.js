@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect } from "react";
-import { useModal } from "../modules/modal";
-import { useToast } from "../modules/toast";
+import { useModal } from "../module/modal";
+import { useToast } from "../module/toast";
 
 export const SampleModal = () => {
   console.log("Modal");
