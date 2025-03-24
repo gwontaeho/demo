@@ -5,6 +5,7 @@ import { SampleApi } from "./sample/SampleApi";
 import { SampleForm } from "./sample/SampleForm";
 import { SampleGrid } from "./sample/SampleGrid";
 import { SampleModal } from "./sample/SampleModal";
+import { SampleToast } from "./sample/SampleToast";
 import { SamplePopup } from "./sample/SamplePopup";
 import { SampleRouter } from "./sample/SampleRouter";
 import { SampleTab } from "./sample/SampleTab";
@@ -35,23 +36,25 @@ function App() {
   // console.log(a.register);
 
   return (
-    <div className="p-8">
+    <>
+      <SampleModal />
+      {/* <SampleToast /> */}
+
+      {/* <SamplePopup /> */}
       {/* <SampleControl /> */}
       {/* <SampleFetch /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
       {/* <SampleRouter /> */}
-      {/* <SamplePopup /> */}
       {/* <SampleApi /> */}
-      {/* <SampleModal /> */}
       {/* <SamplePage /> */}
       {/* <SampleForm /> */}
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
-      <SampleIndexedDB />
-    </div>
+      {/* <SampleIndexedDB /> */}
+    </>
   );
 }
 

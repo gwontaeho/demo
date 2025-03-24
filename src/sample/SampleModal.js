@@ -1,31 +1,116 @@
-import { useEffect, useLayoutEffect } from "react";
 import { useModal } from "../module/modal";
-import { useToast } from "../module/toast";
 
 export const SampleModal = () => {
-  console.log("Modal");
-  const { openModal } = useModal();
-  const { openToast } = useToast();
-
-  useEffect(() => {
-    // openModal({ content: <div>qwdqwd</div> });
-  }, []);
-
-  useLayoutEffect(() => {
-    console.log("1");
-    // openModal({ content: <div>qwdqwd</div> });
-  }, []);
+  const { openModal, closeModal } = useModal();
 
   return (
-    <div>
-      <button
-        onClick={() => openModal({ id: "11", content: <div>qwdqwd</div> })}
-      >
-        open
-      </button>
-      <button onClick={() => openToast({ content: <div>qwdqwd</div> })}>
-        open toast
-      </button>
+    <div className="grid p-4 text-sm">
+      <div className="border rounded divide-y [&>div]:flex [&>div]:p-4 [&>div>button]:w-80 [&>div>button]:text-left">
+        <div>openModal()</div>
+
+        <div>
+          <button
+            onClick={() =>
+              openModal({
+                content: <div>Test</div>,
+              })
+            }
+          >
+            open modal with content
+          </button>
+          <pre>{`openModal({
+  content: <div>Test</div>
+})`}</pre>
+        </div>
+
+        <div>
+          <button
+            onClick={() =>
+              openModal({
+                type: "success",
+              })
+            }
+          >
+            open modal with Type
+          </button>
+          <pre>{`openModal({
+  type: "success"
+})`}</pre>
+        </div>
+
+        <div>
+          <button
+            onClick={() =>
+              openModal({
+                content: <div>Test</div>,
+                backdrop: false,
+              })
+            }
+          >
+            open modal without backdrop
+          </button>
+          <pre>{`openModal({
+  content: <div>Test</div>,
+  backdrop: false,
+})`}</pre>
+        </div>
+
+        <div>
+          <button
+            onClick={() =>
+              openModal({
+                id: "test",
+                backdrop: false,
+              })
+            }
+          >
+            open modal with id
+          </button>
+          <pre>{`openModal({
+  id: "test",
+  backdrop: false
+})`}</pre>
+        </div>
+
+        <div>
+          <button
+            onClick={() =>
+              openModal({
+                onOpen: () => {
+                  console.log("open");
+                },
+                onClose: () => {
+                  console.log("close");
+                },
+              })
+            }
+          >
+            open modal with callback
+          </button>
+          <pre>{`openModal({
+  onOpen: () => {
+    console.log("open");
+  },
+  onClose: () => {
+    console.log("close");
+  },
+})`}</pre>
+        </div>
+
+        <div>closeModal()</div>
+
+        <div>
+          <button onClick={() => closeModal()}>close all modal</button>
+          <pre>{`closeModal()`}</pre>
+        </div>
+
+        <div>
+          <button onClick={() => closeModal("test")}>
+            close modal with id
+          </button>
+          <pre>{`closeModal("test")`}</pre>
+        </div>
+      </div>
     </div>
   );
 };

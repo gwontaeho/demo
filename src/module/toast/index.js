@@ -1,7 +1,7 @@
-import { useRef, useState, createContext, useContext, useEffect } from "react";
+import { useState, createContext, useContext, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-const ToastContext = createContext();
+const ToastSetterContext = createContext();
 
 const Toast = (props) => {
   const { id, content } = props;
@@ -20,10 +20,8 @@ const Toast = (props) => {
   );
 };
 
-const ToastContainer = () => {
-  const { initialize } = useContext(ToastContext);
-  const [toasts, setToasts] = useState([]);
-  initialize(setToasts);
+const ToastContainer = (props) => {
+  const { toasts } = props;
   if (!toasts.length) return null;
   return createPortal(
     <div className="fixed right-0 bottom-0 p-4 flex flex-col gap-1">
@@ -36,40 +34,32 @@ const ToastContainer = () => {
 };
 
 const ToastProvider = ({ children }) => {
-  const _toast = useRef(null);
-  if (_toast.current === null) {
-    _toast.current = new (class {
-      #setToasts = null;
-      initialize = (param) => {
-        if (param !== this.#setToasts) {
-          this.#setToasts = param;
-        }
-      };
-      openToast = (params = {}) => {
-        const { id = crypto.randomUUID(), content, type } = params;
-        this.#setToasts?.((prev) => {
+  const [toasts, setToasts] = useState([]);
+  const methods = useMemo(() => {
+    return {
+      openToast: (params = {}) => {
+        const { id = window.crypto.randomUUID(), content, type } = params;
+        setToasts((prev) => {
           const next = prev.filter((item) => item.id !== id);
           next.push({ id, content });
           return next;
         });
-      };
-      closeToast = (id) => {
-        this.#setToasts?.(
-          id ? (prev) => prev.filter((item) => item.id !== id) : []
-        );
-      };
-    })();
-  }
+      },
+      closeToast: (id) => {
+        setToasts(id ? (prev) => prev.filter((item) => item.id !== id) : []);
+      },
+    };
+  }, []);
   return (
-    <ToastContext.Provider value={_toast.current}>
-      <ToastContainer />
+    <ToastSetterContext.Provider value={methods}>
+      <ToastContainer toasts={toasts} />
       {children}
-    </ToastContext.Provider>
+    </ToastSetterContext.Provider>
   );
 };
 
 const useToast = () => {
-  const { openToast, closeToast } = useContext(ToastContext);
+  const { openToast, closeToast } = useContext(ToastSetterContext);
   return { openToast, closeToast };
 };
 
