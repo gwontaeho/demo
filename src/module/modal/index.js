@@ -146,8 +146,8 @@ const ModalContainer = (props) => {
   if (!modals.length) return null;
   return createPortal(
     <>
-      {modals.map((props, index) => {
-        return <Modal key={props.id} index={index} {...props} />;
+      {modals.map((props) => {
+        return <Modal key={props.id} {...props} />;
       })}
     </>,
     document.body
@@ -161,8 +161,11 @@ const ModalProvider = ({ children }) => {
       openModal: (params) => {
         const { id = window.crypto.randomUUID(), ...rest } = params;
         setModals((prev) => {
-          const next = prev.filter((item) => item.id !== id);
+          let next = prev.filter((item) => item.id !== id);
           next.push({ id, ...rest });
+          next = next.map((item, index) => {
+            return { ...item, index };
+          });
           return next;
         });
       },

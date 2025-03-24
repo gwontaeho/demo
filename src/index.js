@@ -1,4 +1,5 @@
 import "./index.css";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { SampleApi } from "./sample/SampleApi";
@@ -61,19 +62,19 @@ function App() {
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  // <StrictMode>
-  <ResourceProvider>
-    <RouterProvider>
-      <StoreProvider>
-        <ThemeProvider>
-          <ModalProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </ModalProvider>
-        </ThemeProvider>
-      </StoreProvider>
-    </RouterProvider>
-  </ResourceProvider>
-  // </StrictMode>
+  <StrictMode>
+    <ResourceProvider>
+      <RouterProvider>
+        <StoreProvider>
+          <ThemeProvider>
+            <ModalProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </ModalProvider>
+          </ThemeProvider>
+        </StoreProvider>
+      </RouterProvider>
+    </ResourceProvider>
+  </StrictMode>
 );
