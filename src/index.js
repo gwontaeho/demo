@@ -15,6 +15,7 @@ import { SampleControl } from "./sample/SampleControl";
 import { SamplePage } from "./sample/SamplePage";
 import { SampleTheme } from "./sample/SampleTheme";
 import { SampleButton } from "./sample/SampleButton";
+import { SampleIndexedDB } from "./sample/SampleIndexedDB";
 
 import { ResourceProvider } from "./modules/resource";
 import { RouterProvider } from "./modules/router";
@@ -34,7 +35,7 @@ function App() {
   return (
     <div className="p-8">
       {/* <SampleControl /> */}
-      <SampleFetch />
+      {/* <SampleFetch /> */}
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
@@ -47,6 +48,7 @@ function App() {
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
+      <SampleIndexedDB />
     </div>
   );
 }
