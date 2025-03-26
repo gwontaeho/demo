@@ -47,7 +47,7 @@ const FormLabel = (props) => {
   return (
     <div
       className={
-        "p-1 flex items-center min-h-8 border-r border-b bg-gray-100" +
+        "text-sm p-1 flex items-center min-h-8 border-r border-b bg-gray-100" +
         (size ? ` ${COL_SPAN[size]}` : "") +
         (required ? " after:content-['*'] after:text-red-600" : "")
       }
@@ -86,7 +86,9 @@ const FormControl = forwardRef((props, ref) => {
 
 const Form = (props) => {
   const { children } = props;
-  return <div className="grid grid-cols-12 border-l border-t">{children}</div>;
+  return (
+    <div className="w-full grid grid-cols-12 border-l border-t">{children}</div>
+  );
 };
 
 // Form.Row = FormRow;

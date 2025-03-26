@@ -1,57 +1,63 @@
 import { useToast } from "../module/toast";
+import { Doc } from "../module/doc-template";
 
 export const SampleToast = () => {
   const { openToast, closeToast } = useToast();
 
   return (
-    <div className="grid p-4 text-sm">
-      <div className="border rounded divide-y [&>div]:flex [&>div]:p-4 [&>div>button]:w-80 [&>div>button]:text-left">
-        <div>openToast()</div>
+    <Doc>
+      <Doc.H1>useToast()</Doc.H1>
 
-        <div>
-          <button
-            onClick={() =>
-              openToast({
-                content: <div>Test</div>,
-              })
-            }
-          >
-            open toast with content
-          </button>
-          <pre>{`openToast({
+      <Doc.Item>
+        <Doc.Desc>usage</Doc.Desc>
+        <Doc.Code>{`const { openToast, closeToast } = useToast();`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.H2># openToast()</Doc.H2>
+
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openToast({
+              content: <div>Test</div>,
+            })
+          }
+        >
+          open toast with content
+        </Doc.Button>
+        <Doc.Code>{`openToast({
   content: <div>Test</div>
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button
-            onClick={() =>
-              openToast({
-                type: "success",
-              })
-            }
-          >
-            open toast with Type
-          </button>
-          <pre>{`openToast({
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openToast({
+              type: "success",
+            })
+          }
+        >
+          open toast with Type
+        </Doc.Button>
+        <Doc.Code>{`openToast({
   type: "success"
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>closeToast()</div>
+      <Doc.H2># closeToast()</Doc.H2>
 
-        <div>
-          <button onClick={() => closeToast()}>close all toast</button>
-          <pre>{`closeToast()`}</pre>
-        </div>
+      <Doc.Item>
+        <Doc.Button onClick={() => closeToast()}>close all toast</Doc.Button>
+        <Doc.Code>{`closeToast()`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button onClick={() => closeToast("test")}>
-            close toast with id
-          </button>
-          <pre>{`closeToast("test")`}</pre>
-        </div>
-      </div>
-    </div>
+      <Doc.Item>
+        <Doc.Button onClick={() => closeToast("test")}>
+          close toast with id
+        </Doc.Button>
+        <Doc.Code>{`closeToast("test")`}</Doc.Code>
+      </Doc.Item>
+    </Doc>
   );
 };

@@ -20,13 +20,15 @@ import { SampleButton } from "./sample/SampleButton";
 import { SampleIndexedDB } from "./sample/SampleIndexedDB";
 
 import { ResourceProvider } from "./module/resource";
-import { RouterProvider } from "./module/router";
+import { Route, RouterProvider } from "./module/router";
 import { StoreProvider } from "./module/store";
 import { ModalProvider } from "./module/modal";
 import { ToastProvider } from "./module/toast";
 import { ThemeProvider } from "./module/theme";
 
 import { useForm } from "react-hook-form";
+
+import { Routes } from "./module/router";
 
 // import { TestSuspense, HoldComponent } from "./modules/SUSPENSE_EXAMPLE";
 
@@ -37,9 +39,11 @@ function App() {
   // console.log(a.register);
 
   return (
-    <>
+    <Routes>
+      <Route path="/" element={<SampleRouter />} />
+      <Route path="/bb" element={<SampleRouter />} />
       {/* <SampleForm /> */}
-      <SampleModal />
+      {/* <SampleModal /> */}
       {/* <SampleToast /> */}
 
       {/* <SamplePopup /> */}
@@ -48,33 +52,32 @@ function App() {
       {/* <SampleResource /> */}
       {/* <SampleTree /> */}
       {/* <SampleTab /> */}
-      {/* <SampleRouter /> */}
       {/* <SampleApi /> */}
       {/* <SamplePage /> */}
       {/* <SampleGrid /> */}
       {/* <SampleTheme /> */}
       {/* <SampleButton /> */}
       {/* <SampleIndexedDB /> */}
-    </>
+    </Routes>
   );
 }
 
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  <StrictMode>
-    <ResourceProvider>
-      <RouterProvider>
-        <StoreProvider>
-          <ThemeProvider>
-            <ModalProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
-            </ModalProvider>
-          </ThemeProvider>
-        </StoreProvider>
-      </RouterProvider>
-    </ResourceProvider>
-  </StrictMode>
+  // <StrictMode>
+  <ResourceProvider>
+    <RouterProvider>
+      <StoreProvider>
+        <ThemeProvider>
+          <ModalProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </ModalProvider>
+        </ThemeProvider>
+      </StoreProvider>
+    </RouterProvider>
+  </ResourceProvider>
+  // </StrictMode>
 );

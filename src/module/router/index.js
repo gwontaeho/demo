@@ -1,4 +1,14 @@
-import { createContext, useContext, useRef, useReducer } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useReducer,
+  useEffect,
+  useMemo,
+  useState,
+  cloneElement,
+  Children,
+} from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -16,144 +26,133 @@ const cloneDeep = (item) => {
   return obj;
 };
 
-const RouterContext = createContext();
-const RouterStateContext = createContext();
-
-const RouterStateProvider = ({ children }) => {
-  const _router = useContext(RouterContext);
-  const forceUpdate = useReducer(() => ({}), {})[1];
-  _router.initialize(forceUpdate);
-  return (
-    <RouterStateContext.Provider value={{}}>
-      {children}
-    </RouterStateContext.Provider>
-  );
-};
+const RouterValueContext = createContext();
+const RouterSetterContext = createContext();
+const RouteContext = createContext();
 
 const RouterProvider = ({ children }) => {
-  const _router = useRef(
-    new (class {
-      #params = {};
-      #renderRouter = null;
-      #onPopstate = null;
+  const [pathname, setPathname] = useState(window.location.pathname);
+  const [search, setSearch] = useState(window.location.search);
+  const _ = useRef({ params: {} }).current;
 
-      initialize = (forceUpdate) => {
-        if (this.#renderRouter !== forceUpdate) {
-          if (this.#onPopstate) {
-            window.removeEventListener("popstate", this.#onPopstate);
-          }
-          this.#renderRouter = forceUpdate;
-          this.#onPopstate = () => {
-            this.setParams({});
-            this.#renderRouter();
-          };
-          window.addEventListener("popstate", this.#onPopstate);
-        }
-      };
+  useEffect(() => {
+    const handlePopstate = () => {
+      _.params = {};
+      setPathname(window.location.pathname);
+      setSearch(window.location.search);
+    };
 
-      getLocation = () => {
-        return cloneDeep({
-          pathname: window.location.pathname,
-          params: this.#params,
-          searchParams: Object.fromEntries(
-            new URLSearchParams(window.location.search).entries()
-          ),
-        });
-      };
+    window.addEventListener("popstate", handlePopstate);
 
-      setParams = (params) => {
-        this.#params = params;
-      };
+    return () => {
+      return window.removeEventListener("popstate", handlePopstate);
+    };
+  }, []);
 
-      navigate = (to) => {
+  const routerContextValue = useMemo(() => {
+    return { pathname, search, params: _.params };
+  }, [pathname, search]);
+
+  const routerContextSetter = useMemo(() => {
+    return {
+      setParams: (params) => {
+        _.params = params;
+      },
+      navigate: (to) => {
+        _.params = {};
         window.history.pushState({}, "", to);
-        this.#onPopstate();
-      };
-    })()
-  ).current;
-  console.log("provider");
+        const [pathname, search] = to.split("?");
+        setPathname(pathname || "/");
+        setSearch(search ? "?" + search : "");
+      },
+    };
+  }, []);
 
   return (
-    <RouterContext.Provider value={_router}>
-      <RouterStateProvider>{children}</RouterStateProvider>
-    </RouterContext.Provider>
+    <RouterValueContext.Provider value={routerContextValue}>
+      <RouterSetterContext.Provider value={routerContextSetter}>
+        {children}
+      </RouterSetterContext.Provider>
+    </RouterValueContext.Provider>
   );
 };
 
 const useNavigate = () => {
-  const _router = useContext(RouterContext);
-  return _router.navigate;
+  const { navigate } = useContext(RouterSetterContext);
+  return navigate;
 };
 
-const useLocation = () => {
-  useContext(RouterStateContext);
-  const _router = useContext(RouterContext);
-  return _router.getLocation();
-};
+const useLocation = () => {};
 
-const Routes = ({ children }) => {
-  useContext(RouterStateContext);
-  const _router = useContext(RouterContext);
-  const location = _router.getLocation();
+const useParams = () => {};
+const useSearchParams = () => {};
 
-  const child = children.find((child) => {
-    const { path } = child.props;
-    const pathname = location.pathname;
+const Routes = (props) => {
+  const { children } = props;
 
-    if (path === pathname) {
-      return true;
-    }
+  const { pathname } = useContext(RouterValueContext);
+  const { setParams } = useContext(RouterSetterContext);
 
-    const ps = path.split("/");
-    const pns = pathname.split("/");
+  console.log(children);
 
-    if (ps.length === pns.length) {
-      const params = {};
-      for (let i = 0; i < ps.length; i++) {
-        if (ps[i] !== pns[i]) {
-          if (ps.length - 1 === i && ps[i] === "*") {
-            continue;
-          } else if (!ps[i].startsWith(":")) {
-            return false;
-          } else {
-            params[ps[i].slice(1)] = pns[i];
-          }
-        }
-      }
-      _router.setParams(params);
-      return true;
-    } else {
-      if (ps[ps.length - 1] !== "*") {
-        return false;
-      } else {
-        const params = {};
-        for (let i = 0; i < ps.length; i++) {
-          if (ps[i] !== pns[i]) {
-            if (ps.length - 1 === i) {
-              continue;
-            } else if (!ps[i].startsWith(":")) {
-              return false;
-            } else {
-              params[ps[i].slice(1)] = pns[i];
-            }
-          }
-        }
-        _router.setParams(params);
-        return true;
-      }
-    }
-  });
+  // const child = (Array.isArray(children) ? children : [children]).find(
+  //   (child) => {
+  //     const { path } = child.props;
 
-  return <>{child}</>;
+  //     if (path === undefined) return false;
+  //     if (path === pathname) return true;
+
+  //     const p1 = path.split("/");
+  //     const p2 = pathname.split("/");
+
+  //     if (p1.length > p2.length) return false;
+
+  //     if (p1.length === p2.length) {
+  //       const params = {};
+  //       for (let i = 0; i < p1.length; i++) {
+  //         if (p1[i] === p2[i]) continue;
+  //         if (p1[i].startsWith(":")) {
+  //           params[p1[i].slice(1)] = p2[i];
+  //           continue;
+  //         }
+  //         if (p1.length - 1 === i && p1[i] === "*") continue;
+  //         return false;
+  //       }
+  //       setParams(params);
+  //       return true;
+  //     } else {
+  //       const params = {};
+  //       if (p1[p1.length - 1] !== "*") return false;
+  //       for (let i = 0; i < p1.length - 1; i++) {
+  //         if (p1[i] === p2[i]) continue;
+  //         if (p1[i].startsWith(":")) {
+  //           params[p1[i].slice(1)] = p2[i];
+  //           continue;
+  //         }
+  //         return false;
+  //       }
+  //       setParams(params);
+  //       return true;
+  //     }
+  //   }
+  // );
+
+  return <>{children}</>;
 };
 
 const Route = (props) => {
-  const { element } = props;
-  return element;
-};
+  const { children, path: parentPath = "/", element } = props;
 
-const Link = ({ children }) => {
-  return <a>{children}</a>;
+  console.log(element);
+
+  return (
+    element ??
+    Children.map(children, (child) => {
+      const path = (parentPath === "/" ? "" : parentPath) + child.props.path;
+      return cloneElement(child, { path });
+    }) ??
+    null
+  );
 };
 
 export { RouterProvider, Routes, Route, useNavigate, useLocation };

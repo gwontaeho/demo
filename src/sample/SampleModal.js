@@ -1,116 +1,125 @@
 import { useModal } from "../module/modal";
+import { Doc } from "../module/doc-template";
 
 export const SampleModal = () => {
   const { openModal, closeModal } = useModal();
 
   return (
-    <div className="grid p-4 text-sm">
-      <div className="border rounded divide-y [&>div]:flex [&>div]:p-4 [&>div>button]:w-80 [&>div>button]:text-left">
-        <div>openModal()</div>
+    <Doc>
+      <Doc.H1>openModal()</Doc.H1>
 
-        <div>
-          <button
-            onClick={() =>
-              openModal({
-                content: <div>Test</div>,
-              })
-            }
-          >
-            open modal with content
-          </button>
-          <pre>{`openModal({
+      <Doc.Item>
+        <Doc.Desc>usage</Doc.Desc>
+        <Doc.Code>{`const { openModal, closeModal } = useModal();`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.H2># openModal()</Doc.H2>
+
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              content: <div>Test</div>,
+            })
+          }
+        >
+          open modal with content
+        </Doc.Button>
+
+        <Doc.Code lang="jsx">
+          {`openModal({
   content: <div>Test</div>
-})`}</pre>
-        </div>
+})`}
+        </Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button
-            onClick={() =>
-              openModal({
-                type: "success",
-              })
-            }
-          >
-            open modal with Type
-          </button>
-          <pre>{`openModal({
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              type: "success",
+            })
+          }
+        >
+          open modal with Type
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`openModal({
   type: "success"
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button
-            onClick={() =>
-              openModal({
-                content: <div>Test</div>,
-                backdrop: false,
-              })
-            }
-          >
-            open modal without backdrop
-          </button>
-          <pre>{`openModal({
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              content: <div>Test</div>,
+              backdrop: false,
+            })
+          }
+        >
+          open modal without backdrop
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`openModal({
   content: <div>Test</div>,
   backdrop: false,
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button
-            onClick={() =>
-              openModal({
-                id: "test",
-                backdrop: false,
-              })
-            }
-          >
-            open modal with id
-          </button>
-          <pre>{`openModal({
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              id: "test",
+              backdrop: false,
+            })
+          }
+        >
+          open modal with id
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`openModal({
   id: "test",
   backdrop: false
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button
-            onClick={() =>
-              openModal({
-                onOpen: () => {
-                  console.log("open");
-                },
-                onClose: () => {
-                  console.log("close");
-                },
-              })
-            }
-          >
-            open modal with callback
-          </button>
-          <pre>{`openModal({
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              onOpen: () => {
+                console.log("open");
+              },
+              onClose: () => {
+                console.log("close");
+              },
+            })
+          }
+        >
+          open modal with callback
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`openModal({
   onOpen: () => {
     console.log("open");
   },
   onClose: () => {
     console.log("close");
   },
-})`}</pre>
-        </div>
+})`}</Doc.Code>
+      </Doc.Item>
 
-        <div>closeModal()</div>
+      <Doc.H2># closeModal()</Doc.H2>
 
-        <div>
-          <button onClick={() => closeModal()}>close all modal</button>
-          <pre>{`closeModal()`}</pre>
-        </div>
+      <Doc.Item>
+        <Doc.Button onClick={() => closeModal()}>close all modal</Doc.Button>
+        <Doc.Code lang="jsx">{`closeModal()`}</Doc.Code>
+      </Doc.Item>
 
-        <div>
-          <button onClick={() => closeModal("test")}>
-            close modal with id
-          </button>
-          <pre>{`closeModal("test")`}</pre>
-        </div>
-      </div>
-    </div>
+      <Doc.Item>
+        <Doc.Button onClick={() => closeModal("test")}>
+          close modal with id
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`closeModal("test")`}</Doc.Code>
+      </Doc.Item>
+    </Doc>
   );
 };

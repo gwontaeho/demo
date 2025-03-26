@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState, useReducer } from "react";
-
+import { Doc } from "../module/doc-template";
 import { Form, useForm, useControl } from "../module/form";
 import { Control } from "../module/control";
 
@@ -8,7 +8,11 @@ const options = [
   { label: "b", value: "b" },
 ];
 
+const schema = {};
+
 export const SampleForm = () => {
+  const [values, setValues] = useState("");
+
   const {
     register,
     setValue,
@@ -51,10 +55,7 @@ export const SampleForm = () => {
   });
 
   const form = useForm({
-    defaultSchema: {
-      text: { label: "text", type: "text" },
-      number: { label: "number", type: "number" },
-    },
+    defaultSchema: schema,
   });
 
   const forceUpdate = useReducer(() => ({}))[1];
@@ -64,34 +65,82 @@ export const SampleForm = () => {
   const number = watch("number");
 
   return (
-    <div className="p-4">
-      <Form>
-        <Form.Control {...register("text")} />
-        <Form.Control {...register("number")} />
-        <Form.Control {...register("textarea")} />
-        <Form.Control {...register("select")} options={options} />
-        <Form.Control {...register("radio")} options={options} />
-        <Form.Control {...register("checkbox")} options={options} />
-        <Form.Control {...register("date")} />
-        <Form.Control {...register("time")} />
-      </Form>
+    <Doc>
+      <Doc.H1>form</Doc.H1>
 
-      <div className="mt-4 text-sm border rounded divide-y [&>div]:flex [&>div]:p-4 [&>div>span]:w-80">
-        <div>
-          <span>define schema</span>
-          <pre>{`const form = useForm({
-  defaultSchema: {
-    text: { label: "text", type: "text" },
-    number: { label: "number", type: "number" },
-  },
-});`}</pre>
-        </div>
+      <Doc.H2># useForm()</Doc.H2>
 
-        <div>
-          <span>control registration</span>
-          <pre>{`<Form.Control {...register("text")} />`}</pre>
+      <Doc.Item>
+        <Doc.Desc>schema</Doc.Desc>
+        <Doc.Code>{`const schema = {
+  text: { label: "text", type: "text" },
+  number: { label: "number", type: "number" },
+};`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Desc>usage</Doc.Desc>
+        <Doc.Code>{`const form = useForm({
+  defaultSchema: schema,
+});`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.H2># {`<Form />`}</Doc.H2>
+
+      <Doc.Item>
+        <Doc.Desc>control registration</Doc.Desc>
+        <div className="flex flex-col flex-1">
+          <Doc.Code>{`<Form>
+  <Form.Control {...register("text")} />
+  <Form.Control {...register("number")} />
+  <Form.Control {...register("textarea")} />
+  <Form.Control {...register("select")} options={options} />
+  <Form.Control {...register("radio")} options={options} />
+  <Form.Control {...register("checkbox")} options={options} />
+  <Form.Control {...register("date")} />
+  <Form.Control {...register("time")} />
+</Form>`}</Doc.Code>
+          <Form>
+            <Form.Control {...register("text")} />
+            <Form.Control {...register("number")} />
+            <Form.Control {...register("textarea")} />
+            <Form.Control {...register("select")} options={options} />
+            <Form.Control {...register("radio")} options={options} />
+            <Form.Control {...register("checkbox")} options={options} />
+            <Form.Control {...register("date")} />
+            <Form.Control {...register("time")} />
+          </Form>
         </div>
-      </div>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button
+          onClick={() => {
+            console.log(getValues());
+            setValues(getValues());
+          }}
+        >
+          get all values
+        </Doc.Button>
+        <div className="flex flex-col flex-1">
+          <Doc.Code>{`getValues()`}</Doc.Code>
+          <div className="text-xs">{JSON.stringify(values)}</div>
+        </div>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setEditable(true)}>
+          set editable "true"
+        </Doc.Button>
+        <Doc.Code>{`setEditable(true)`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setEditable(false)}>
+          set editable "false"
+        </Doc.Button>
+        <Doc.Code>{`setEditable(false)`}</Doc.Code>
+      </Doc.Item>
 
       <div>
         <div className="mt-10 grid grid-cols-4 gap-4 [&>button]:p-1 [&>button]:text-left">
@@ -126,11 +175,9 @@ export const SampleForm = () => {
           >
             setSchema2
           </button>
-          <button onClick={() => setEditable(true)}>setEditable true</button>
-          <button onClick={() => setEditable(false)}>setEditable false</button>
         </div>
       </div>
-    </div>
+    </Doc>
   );
 };
 

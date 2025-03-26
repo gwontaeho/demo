@@ -4,12 +4,12 @@ import { useNavigate, Routes, Route, useLocation } from "../module/router";
 const Router1 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
 
   return (
     <div>
       <div>111</div>
-      <button onClick={() => navigate("/aa?tt=44")}>go 2</button>
+      <button onClick={() => navigate("/aa?tt=44")}>go /aa?tt=44</button>
       <button onClick={() => navigate("?tt=3")}>add query</button>
     </div>
   );
@@ -18,7 +18,7 @@ const Router1 = () => {
 const Router2 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
 
   return (
     <div>
@@ -33,7 +33,7 @@ const Router2 = () => {
 const Router3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
 
   return (
     <div>
@@ -47,7 +47,7 @@ const Router3 = () => {
 const Router4 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
 
   return (
     <div>
@@ -62,7 +62,7 @@ const Router4 = () => {
 const Router5 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
 
   useEffect(() => {}, []);
 
@@ -77,7 +77,6 @@ const Router5 = () => {
 
 const Test = () => {
   let navigate = useNavigate();
-  navigate = "a";
   return (
     <div>
       <div
@@ -108,16 +107,12 @@ const Test2 = () => {
 
 export const SampleRouter = () => {
   return (
-    <div>
-      <Test />
-      <Test2 />
-      <Routes>
-        <Route path="/" element={<Router1 />} />
-        <Route path="/aa" element={<Router2 />} />
-        <Route path="/aa/:id" element={<Router3 />} />
-        <Route path="/aa/:id/bb/:test/44" element={<Router5 />} />
-        <Route path="/aa/:id/*" element={<Router4 />} />
-      </Routes>
-    </div>
+    <Route>
+      <Route path="/" element={<Router1 />} />
+      <Route path="/aa" element={<Router2 />} />
+      <Route path="/aa/:id" element={<Router3 />} />
+      <Route path="/aa/:id/bb/:test/44" element={<Router5 />} />
+      <Route path="/aa/:id/*" element={<Router4 />} />
+    </Route>
   );
 };
