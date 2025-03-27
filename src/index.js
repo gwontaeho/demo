@@ -2,82 +2,38 @@ import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { SampleApi } from "./sample/SampleApi";
-import { SampleForm } from "./sample/SampleForm";
-import { SampleGrid } from "./sample/SampleGrid";
-import { SampleModal } from "./sample/SampleModal";
-import { SampleToast } from "./sample/SampleToast";
-import { SamplePopup } from "./sample/SamplePopup";
-import { SampleRouter } from "./sample/SampleRouter";
-import { SampleTab } from "./sample/SampleTab";
-import { SampleTree } from "./sample/SampleTree";
-import { SampleResource } from "./sample/SampleResource";
-import { SampleFetch } from "./sample/SampleFetch";
-import { SampleControl } from "./sample/SampleControl";
-import { SamplePage } from "./sample/SamplePage";
-import { SampleTheme } from "./sample/SampleTheme";
-import { SampleButton } from "./sample/SampleButton";
-import { SampleIndexedDB } from "./sample/SampleIndexedDB";
-
 import { ResourceProvider } from "./module/resource";
-import { Route, RouterProvider } from "./module/router";
+import { RouterProvider } from "./module/router";
 import { StoreProvider } from "./module/store";
 import { ModalProvider } from "./module/modal";
 import { ToastProvider } from "./module/toast";
 import { ThemeProvider } from "./module/theme";
 
-import { useForm } from "react-hook-form";
+import { Router } from "./module/router";
+import { sampleRouter } from "./sample/router";
 
-import { Routes } from "./module/router";
-
-// import { TestSuspense, HoldComponent } from "./modules/SUSPENSE_EXAMPLE";
+const router = [sampleRouter];
 
 function App() {
-  console.log("APP");
-
-  const a = useForm();
-  // console.log(a.register);
-
-  return (
-    <Routes>
-      <Route path="/" element={<SampleRouter />} />
-      <Route path="/bb" element={<SampleRouter />} />
-      {/* <SampleForm /> */}
-      {/* <SampleModal /> */}
-      {/* <SampleToast /> */}
-
-      {/* <SamplePopup /> */}
-      {/* <SampleControl /> */}
-      {/* <SampleFetch /> */}
-      {/* <SampleResource /> */}
-      {/* <SampleTree /> */}
-      {/* <SampleTab /> */}
-      {/* <SampleApi /> */}
-      {/* <SamplePage /> */}
-      {/* <SampleGrid /> */}
-      {/* <SampleTheme /> */}
-      {/* <SampleButton /> */}
-      {/* <SampleIndexedDB /> */}
-    </Routes>
-  );
+  return <Router router={router} />;
 }
 
 const domNode = document.getElementById("root");
 const root = createRoot(domNode);
 root.render(
-  // <StrictMode>
-  <ResourceProvider>
-    <RouterProvider>
-      <StoreProvider>
-        <ThemeProvider>
-          <ModalProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </ModalProvider>
-        </ThemeProvider>
-      </StoreProvider>
-    </RouterProvider>
-  </ResourceProvider>
-  // </StrictMode>
+  <StrictMode>
+    <ResourceProvider>
+      <RouterProvider>
+        <StoreProvider>
+          <ThemeProvider>
+            <ModalProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </ModalProvider>
+          </ThemeProvider>
+        </StoreProvider>
+      </RouterProvider>
+    </ResourceProvider>
+  </StrictMode>
 );

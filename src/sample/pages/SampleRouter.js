@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, Routes, Route, useLocation } from "../module/router";
+import { useNavigate, useLocation } from "../../module/router";
 
 const Router1 = () => {
   const navigate = useNavigate();
@@ -106,13 +106,5 @@ const Test2 = () => {
 };
 
 export const SampleRouter = () => {
-  return (
-    <Route>
-      <Route path="/" element={<Router1 />} />
-      <Route path="/aa" element={<Router2 />} />
-      <Route path="/aa/:id" element={<Router3 />} />
-      <Route path="/aa/:id/bb/:test/44" element={<Router5 />} />
-      <Route path="/aa/:id/*" element={<Router4 />} />
-    </Route>
-  );
+  return <div></div>;
 };

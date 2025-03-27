@@ -1,5 +1,5 @@
-import { useModal } from "../module/modal";
-import { Doc } from "../module/doc-template";
+import { useModal } from "../../module/modal";
+import { Doc } from "../doc-template";
 
 export const SampleModal = () => {
   const { openModal, closeModal } = useModal();

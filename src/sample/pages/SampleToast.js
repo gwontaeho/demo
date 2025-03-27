@@ -1,5 +1,5 @@
-import { useToast } from "../module/toast";
-import { Doc } from "../module/doc-template";
+import { useToast } from "../../module/toast";
+import { Doc } from "../doc-template";
 
 export const SampleToast = () => {
   const { openToast, closeToast } = useToast();

@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef, useReducer } from "react";
-import { useGrid } from "../module/grid";
-import { Grid } from "../module/grid";
+import { useGrid } from "../../module/grid";
+import { Grid } from "../../module/grid";
 
-import utils from "../.temp/utils";
-import { cloneDeep } from "../module/grid/utils/utils";
+import utils from "../../.temp/utils";
+import { cloneDeep } from "../../module/grid/utils/utils";
 
 export const SampleGrid = () => {
   const {

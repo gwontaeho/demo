@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetch } from "../module/fetch";
+import { useFetch } from "../../module/fetch";
 
 export const SampleFetch = () => {
   const [test, setTest] = useState(0);

@@ -1,4 +1,4 @@
-import { Highlight } from "../highlight";
+import { Highlight } from "../../module/highlight";
 
 const Doc = (props) => {
   const { children } = props;

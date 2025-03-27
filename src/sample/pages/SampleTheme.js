@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useTheme } from "../module/theme";
-import { useToggleTheme } from "../module/theme";
+import { useTheme } from "../../module/theme";
+import { useToggleTheme } from "../../module/theme";
 
 export const SampleTheme = () => {
   const [test, setTest] = useState(0);

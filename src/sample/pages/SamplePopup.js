@@ -1,4 +1,4 @@
-import { usePopup } from "../module/popup";
+import { usePopup } from "../../module/popup";
 
 export const SamplePopup = () => {
   const { openPopup, closePopup, postMessageToOpener } = usePopup();

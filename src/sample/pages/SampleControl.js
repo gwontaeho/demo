@@ -1,4 +1,4 @@
-import { Control } from "../module/control";
+import { Control } from "../../module/control";
 
 const options = [
   { label: "a", value: "a" },
