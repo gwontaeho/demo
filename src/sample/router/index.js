@@ -18,7 +18,7 @@ import { SampleButton } from "../pages/SampleButton";
 import { SampleIndexedDB } from "../pages/SampleIndexedDB";
 
 export const sampleRouter = {
-  path: "/doc",
+  path: "/docs",
   Component: SampleLayout,
   children: [
     { path: "/modal", Component: SampleModal },

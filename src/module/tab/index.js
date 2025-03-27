@@ -1,4 +1,4 @@
-import { useRef, useState, forwardRef, useEffect } from "react";
+import { useRef, useState, forwardRef, useEffect, useMemo } from "react";
 
 const cloneDeep = (item) => {
   if (item === null || typeof item !== "object") {
@@ -16,42 +16,46 @@ const cloneDeep = (item) => {
   return obj;
 };
 
+const defaultTabData = {
+  active: 0,
+  name: [],
+  hidden: [],
+  disabled: [],
+};
+
 const useTab = (params = {}) => {
   const { defaultSchema } = params;
 
   const _data = useRef(null);
-  _data.current ??= (() => {
-    let active = 0;
-    let name = [];
-    let hidden = [];
-    let disabled = [];
+
+  if (_data.current === null) {
+    _data.current = cloneDeep(defaultTabData);
+
     if (defaultSchema) {
       defaultSchema.forEach((item, index) => {
-        if (item.active) active = index;
-        if (item.name) name.push(item.name);
-        if (item.hidden) hidden.push(index);
-        if (item.disabled) disabled.push(index);
+        if (item.active) _data.current.active = index;
+        if (item.name) _data.current.name[index] = item.name;
+        if (item.hidden) _data.current.hidden.push(index);
+        if (item.disabled) _data.current.disabled.push(index);
       });
     }
-    return { name, active, hidden, disabled };
-  })();
+  }
 
-  const _tab = useRef(null);
+  const _tabMethods = useRef(null);
+
   const _useTab = useRef({
     ref: (param) => {
-      if (param === undefined) {
-        return _data.current;
-      }
-      _tab.current = { ...param };
+      if (param === undefined) return _data.current;
+      _tabMethods.current = { ...param };
     },
     setActive: (...params) => {
-      _tab.current?.setActive?.(...params);
+      _tabMethods.current?.setActive?.(...params);
     },
     setHidden: (...params) => {
-      _tab.current?.setHidden?.(...params);
+      _tabMethods.current?.setHidden?.(...params);
     },
     setDisabled: (...params) => {
-      _tab.current?.setDisabled?.(...params);
+      _tabMethods.current?.setDisabled?.(...params);
     },
   });
 
@@ -62,20 +66,23 @@ const Tab = forwardRef((props, ref) => {
   const { children } = props;
 
   const _data = useRef(null);
-  if (_data.current === null && typeof ref === "function") {
-    _data.current = ref();
+  if (_data.current === null) {
+    if (typeof ref === "function") {
+      _data.current = ref();
+    } else {
+      _data.current = cloneDeep(defaultTabData);
+      _data.current.name = children.map(({ props: { name = "" } }) => name);
+    }
   }
 
+  const [names] = useState(_data.current.name);
   const [activeItem, setActiveItem] = useState(_data.current.active);
   const [hiddenItems, setHiddenItems] = useState(_data.current.hidden);
   const [disabledItems, setDisabledItems] = useState(_data.current.disabled);
 
-  const [schema] = useState(
-    () => _data.current.name ?? children.map(({ props: { name = "" } }) => name)
-  );
+  const _keyBase = useMemo(() => crypto.randomUUID(), []);
 
-  const _tab = useRef({
-    key: crypto.randomUUID(),
+  const _tabMethods = useRef({
     setActive: (index) => {
       _data.current.active = index;
       setActiveItem(index);
@@ -108,7 +115,7 @@ const Tab = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (typeof ref === "function") {
-      const { key, ...rest } = _tab.current;
+      const { key, ...rest } = _tabMethods.current;
       ref(rest);
     }
   }, []);
@@ -118,7 +125,7 @@ const Tab = forwardRef((props, ref) => {
   return (
     <div>
       <div role="tablist" className="border-b">
-        {schema.map((name, index) => {
+        {names.map((name, index) => {
           if (hiddenItems.includes(index)) return null;
           const active = activeItem === index;
           const disabled = disabledItems.includes(index);
@@ -127,8 +134,8 @@ const Tab = forwardRef((props, ref) => {
               role="tab"
               type="button"
               disabled={disabled}
-              key={`${_tab.current.key}:${index}`}
-              onClick={() => _tab.current.setActive(index)}
+              key={`${_keyBase}:${index}`}
+              onClick={() => _tabMethods.current.setActive(index)}
               className={
                 "rounded-t border border-b-2 h-8 px-4" +
                 (active ? " border-black" : " border-transparent") +

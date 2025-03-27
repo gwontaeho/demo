@@ -53,6 +53,23 @@ export const SampleModal = () => {
           onClick={() =>
             openModal({
               content: <div>Test</div>,
+              closeOnBackdropClick: false,
+            })
+          }
+        >
+          closeOnBackdropClick=false
+        </Doc.Button>
+        <Doc.Code lang="jsx">{`openModal({
+  content: <div>Test</div>,
+  closeOnBackdropClick: false,
+})`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button
+          onClick={() =>
+            openModal({
+              content: <div>Test</div>,
               backdrop: false,
             })
           }

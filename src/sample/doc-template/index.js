@@ -45,7 +45,7 @@ const Button = (props) => {
 const Code = (props) => {
   const { children } = props;
   return (
-    <div className="text-sm flex-1">
+    <div className="text-xs flex-1">
       <Highlight lang="jsx">{children}</Highlight>
     </div>
   );

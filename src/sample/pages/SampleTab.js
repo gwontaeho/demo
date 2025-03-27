@@ -1,16 +1,102 @@
 import { useState } from "react";
 import { Tab, useTab } from "../../module/tab";
+import { Doc } from "../doc-template";
+
+const schema = [
+  { name: "tab 1" },
+  { name: "tab 2", disabled: true },
+  { name: "tab 3" },
+];
 
 export const SampleTab = () => {
   const { ref, setActive, setHidden, setDisabled } = useTab({
-    defaultSchema: [
-      { name: "aaa" },
-      { name: "bb", disabled: true },
-      { name: "cc" },
-    ],
+    defaultSchema: schema,
   });
 
   const [test, setTest] = useState(true);
+
+  return (
+    <Doc>
+      <Doc.H1>tab</Doc.H1>
+
+      <Doc.H2>useTab()</Doc.H2>
+
+      <Doc.Item>
+        <Doc.Desc>schema</Doc.Desc>
+        <Doc.Code>{`const schema = [
+  { name: "tab 1" },
+  { name: "tab 2", disabled: true },
+  { name: "tab 3" },
+]`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Desc>usage</Doc.Desc>
+        <Doc.Code>{`const tab = useTab({
+  defaultSchema: schema,
+})`}</Doc.Code>
+      </Doc.Item>
+
+      <Doc.H2>{`<Tab />`}</Doc.H2>
+
+      <Doc.Item>
+        <Doc.Desc>usage</Doc.Desc>
+        <div className="flex flex-col flex-1">
+          <Doc.Code>{`const Sample = () => {
+  const { ref, setActive, setHidden, setDisabled } = useTab({
+    defaultSchema: schema,
+  });
+
+  return (
+    <Tab ref={ref}>
+      <Tab.Panel>Panel 1</Tab.Panel>
+      <Tab.Panel>Panel 2</Tab.Panel>
+      <Tab.Panel>Panel 3</Tab.Panel>
+    </Tab>
+  );
+}`}</Doc.Code>
+          <Tab ref={ref}>
+            <Tab.Panel>Panel 1</Tab.Panel>
+            <Tab.Panel>Panel 2</Tab.Panel>
+            <Tab.Panel>Panel 3</Tab.Panel>
+          </Tab>
+        </div>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setActive(2)}>setActive=2</Doc.Button>
+        <Doc.Code>setActive(2)</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setHidden(0, true)}>
+          setHidden=0,true
+        </Doc.Button>
+        <Doc.Code>setHidden(0, true)</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setHidden(0, false)}>
+          setHidden=0,false
+        </Doc.Button>
+        <Doc.Code>setHidden(0, false)</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setDisabled(1, true)}>
+          setDisabled=1,true
+        </Doc.Button>
+        <Doc.Code>setDisabled(1, true)</Doc.Code>
+      </Doc.Item>
+
+      <Doc.Item>
+        <Doc.Button onClick={() => setDisabled(1, false)}>
+          setDisabled=1,false
+        </Doc.Button>
+        <Doc.Code>setDisabled(1, false)</Doc.Code>
+      </Doc.Item>
+    </Doc>
+  );
 
   return (
     <div className="flex flex-col gap-10">

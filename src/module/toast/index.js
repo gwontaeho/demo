@@ -27,7 +27,7 @@ const ToastContainer = (props) => {
   const { toasts } = props;
   if (!toasts.length) return null;
   return createPortal(
-    <div className="fixed right-0 bottom-0 p-4 flex flex-col gap-1">
+    <div className="fixed right-0 bottom-0 p-4 flex flex-col gap-2">
       {toasts.map((props) => {
         return <Toast key={props.id} {...props} />;
       })}
