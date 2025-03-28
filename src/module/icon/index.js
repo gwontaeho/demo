@@ -1,15 +1,28 @@
-import { Search } from "./components/Search";
+import { cloneElement } from "react";
 
+import { Search } from "./components/Search";
+import { Right } from "./components/Right";
+
+const icons = {
+  search: <Search />,
+  right: <Right />,
+};
+
+/**
+ * @typedef {Object} IconProps
+ * @property {keyof typeof icons} [name]
+ */
+
+/**
+ *
+ * @param {IconProps} props
+ * @returns
+ */
 const Icon = (props) => {
   const { name } = props;
-  const properties = { className: "size-3" };
+  const icon = icons[name];
 
-  switch (name) {
-    case "search":
-      return <Search {...properties} />;
-    default:
-      return null;
-  }
+  return icon ? cloneElement(icons[name], { className: "size-3" }) : null;
 };
 
 export { Icon };

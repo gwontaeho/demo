@@ -7,12 +7,17 @@ const Doc = (props) => {
 
 const H1 = (props) => {
   const { children } = props;
-  return <h1 className="p-4 text-lg">{children}</h1>;
+  return <h1 className="px-4 py-8 text-lg bg-gray-100">{children}</h1>;
 };
 
 const H2 = (props) => {
   const { children } = props;
-  return <h2 className="p-4 bg-gray-50">{children}</h2>;
+  return <h2 className="px-4 py-6 bg-gray-50">{children}</h2>;
+};
+
+const H3 = (props) => {
+  const { children } = props;
+  return <h3 className="p-4 text-sm bg-gray-50">{children}</h3>;
 };
 
 const Item = (props) => {
@@ -21,6 +26,15 @@ const Item = (props) => {
     <div className={"flex p-4" + (className ? ` ${className}` : "")}>
       {children}
     </div>
+  );
+};
+
+const Table = (props) => {
+  const { children } = props;
+  return (
+    <table className="border flex-1 text-xs [&_tr]:h-12 [&_td]:p-2 [&_th]:p-2 [&_th]:text-left even:[&>tbody>tr]:bg-gray-50">
+      {children}
+    </table>
   );
 };
 
@@ -51,11 +65,19 @@ const Code = (props) => {
   );
 };
 
+const Result = (props) => {
+  const { children } = props;
+  return <div className="flex items-center justify-center p-4">{children}</div>;
+};
+
 Doc.H1 = H1;
 Doc.H2 = H2;
+Doc.H3 = H3;
 Doc.Item = Item;
 Doc.Desc = Desc;
+Doc.Table = Table;
 Doc.Button = Button;
 Doc.Code = Code;
+Doc.Result = Result;
 
 export { Doc };

@@ -6,14 +6,16 @@ export const SampleModal = () => {
 
   return (
     <Doc>
-      <Doc.H1>openModal()</Doc.H1>
+      <Doc.H1>modal</Doc.H1>
+
+      <Doc.H2># useModal()</Doc.H2>
 
       <Doc.Item>
         <Doc.Desc>usage</Doc.Desc>
         <Doc.Code>{`const { openModal, closeModal } = useModal();`}</Doc.Code>
       </Doc.Item>
 
-      <Doc.H2># openModal()</Doc.H2>
+      <Doc.H3>openModal()</Doc.H3>
 
       <Doc.Item>
         <Doc.Button
@@ -124,7 +126,7 @@ export const SampleModal = () => {
 })`}</Doc.Code>
       </Doc.Item>
 
-      <Doc.H2># closeModal()</Doc.H2>
+      <Doc.H3>closeModal()</Doc.H3>
 
       <Doc.Item>
         <Doc.Button onClick={() => closeModal()}>close all modal</Doc.Button>

@@ -1,16 +1,34 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
+/**
+ * @typedef {Object} UseFetchConfig
+ * @property {Function} [fetcher]
+ * @property {Function} [formatter]
+ * @property {Function} [onSuccess]
+ * @property {Function} [onError]
+ * @property {boolean} [enabled]
+ * @property {boolean} [enabledTimeout]
+ * @property {boolean} [enabledInterval]
+ * @property {number} [timeout]
+ * @property {number} [interval]
+ * @property {any[]} [key]
+ */
+
+/**
+ * @param {UseFetchConfig} config
+ * @returns
+ */
 const useFetch = (config = {}) => {
   const {
     fetcher,
     formatter,
-    enabled,
-    enabledInterval,
-    enabledTimeout,
-    timeout,
-    interval,
     onSuccess,
     onError,
+    enabled,
+    enabledTimeout,
+    enabledInterval,
+    timeout,
+    interval,
     key,
   } = config;
 

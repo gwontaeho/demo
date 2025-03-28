@@ -19,7 +19,7 @@ export const SampleTab = () => {
     <Doc>
       <Doc.H1>tab</Doc.H1>
 
-      <Doc.H2>useTab()</Doc.H2>
+      <Doc.H2># useTab()</Doc.H2>
 
       <Doc.Item>
         <Doc.Desc>schema</Doc.Desc>
@@ -37,7 +37,25 @@ export const SampleTab = () => {
 })`}</Doc.Code>
       </Doc.Item>
 
-      <Doc.H2>{`<Tab />`}</Doc.H2>
+      <Doc.H2>{`# <Tab />`}</Doc.H2>
+      <Doc.H3>{`properties`}</Doc.H3>
+
+      <Doc.Item>
+        <Doc.Table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ref</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </Doc.Table>
+      </Doc.Item>
 
       <Doc.Item>
         <Doc.Desc>usage</Doc.Desc>
@@ -63,10 +81,14 @@ export const SampleTab = () => {
         </div>
       </Doc.Item>
 
+      <Doc.H3>{`setActive()`}</Doc.H3>
+
       <Doc.Item>
         <Doc.Button onClick={() => setActive(2)}>setActive=2</Doc.Button>
         <Doc.Code>setActive(2)</Doc.Code>
       </Doc.Item>
+
+      <Doc.H3>{`setHidden()`}</Doc.H3>
 
       <Doc.Item>
         <Doc.Button onClick={() => setHidden(0, true)}>
@@ -81,6 +103,8 @@ export const SampleTab = () => {
         </Doc.Button>
         <Doc.Code>setHidden(0, false)</Doc.Code>
       </Doc.Item>
+
+      <Doc.H3>{`setDisabled()`}</Doc.H3>
 
       <Doc.Item>
         <Doc.Button onClick={() => setDisabled(1, true)}>

@@ -16,19 +16,27 @@ import { SamplePage } from "../pages/SamplePage";
 import { SampleTheme } from "../pages/SampleTheme";
 import { SampleButton } from "../pages/SampleButton";
 import { SampleIndexedDB } from "../pages/SampleIndexedDB";
+import { SampleIcon } from "../pages/SampleIcon";
 
 export const sampleRouter = {
   path: "/docs",
   Component: SampleLayout,
   children: [
-    { path: "/modal", Component: SampleModal },
-    { path: "/toast", Component: SampleToast },
-    { path: "/form", Component: SampleForm },
-    { path: "/popup", Component: SamplePopup },
-    { path: "/tab", Component: SampleTab },
-    { path: "/fetch", Component: SampleFetch },
-    { path: "/button", Component: SampleButton },
-    { path: "/theme", Component: SampleTheme },
-    { path: "/control", Component: SampleControl },
+    { name: "", path: "/button", Component: SampleButton },
+    { name: "", path: "/modal", Component: SampleModal },
+    { name: "", path: "/toast", Component: SampleToast },
+    { name: "", path: "/popup", Component: SamplePopup },
+    { name: "", path: "/tab", Component: SampleTab },
+    { name: "", path: "/form", Component: SampleForm },
+    { name: "", path: "/fetch", Component: SampleFetch },
+    { name: "", path: "/theme", Component: SampleTheme },
+    { name: "", path: "/control", Component: SampleControl },
+    { name: "", path: "/api", Component: SampleApi },
+    { name: "", path: "/grid", Component: SampleGrid },
+    { name: "", path: "/router", Component: SampleRouter },
+    { name: "", path: "/resouce", Component: SampleResource },
+    { name: "", path: "/tree", Component: SampleTree },
+    { name: "", path: "/page", Component: SamplePage },
+    { name: "", path: "/icon", Component: SampleIcon },
   ],
 };
