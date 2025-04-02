@@ -102,7 +102,7 @@ const Outlet = () => {
 };
 
 const Router = (props) => {
-  console.log("=== router !! ");
+  // console.log("=== router !! ");
   const { pathname } = useContext(RouterValueContext);
   const { setRouter } = useContext(RouterMethodContext);
 

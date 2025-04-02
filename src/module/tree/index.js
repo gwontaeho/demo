@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { Icon } from "../icon";
 
 const useTree = () => {
@@ -15,9 +15,16 @@ const useTree = () => {
 };
 
 const TreeItem = (props) => {
-  const { label, children, expanded } = props;
-
-  const [open, setOpen] = useState(false);
+  const {
+    flat,
+    itemKey,
+    label,
+    children,
+    expanded,
+    checked,
+    toggleExpanded,
+    toggleChecked,
+  } = props;
 
   return (
     <li
@@ -26,26 +33,44 @@ const TreeItem = (props) => {
       }}
     >
       <div className="p-1 flex items-center gap-1 cursor-pointer hover:bg-gray-50">
-        <div className="w-5 h-5">
+        <div className="w-5 h-5 flex items-center justify-center">
           {children && (
             <button
               type="button"
               className="p-1 rounded-full hover:bg-gray-100"
               onClick={(event) => {
                 event.stopPropagation();
-                setOpen((prev) => !prev);
+                toggleExpanded(itemKey);
               }}
             >
               <Icon name="right" />
             </button>
           )}
         </div>
+
+        <div className="w-5 h-5 flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={checked.has(itemKey)}
+            onChange={() => toggleChecked(itemKey)}
+          />
+        </div>
         <span className="text-sm">{label}</span>
       </div>
-      {children && open && (
+      {children && expanded.has(itemKey) && (
         <ul className="px-2">
           {children.map((item) => {
-            return <TreeItem {...item} />;
+            return (
+              <TreeItem
+                {...item}
+                flat={flat}
+                itemKey={item.key}
+                expanded={expanded}
+                checked={checked}
+                toggleExpanded={toggleExpanded}
+                toggleChecked={toggleChecked}
+              />
+            );
           })}
         </ul>
       )}
@@ -56,19 +81,62 @@ const TreeItem = (props) => {
 const Tree = (props) => {
   const { data } = props;
 
-  const [expanded, setExpanded] = useState([]);
-  const [checked, setChecked] = useState([]);
+  const list = useMemo(() => data, []);
+  const flat = useMemo(() => {
+    const flat = (ary, parent = []) => {
+      return ary.reduce((prev, curr) => {
+        const item = { ...curr };
+        item.parent = parent;
+        if (item.children) {
+          const result = flat(item.children, [...parent, item.key]);
+          prev.push(...result);
+        }
+        prev.push(item);
+        return prev;
+      }, []);
+    };
+    return flat(list);
+  }, []);
+
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [checked, setChecked] = useState(() => new Set());
+
+  const toggleExpanded = (key) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const toggleChecked = (key) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   return (
     <ul>
-      {data.map((item) => {
+      {list.map((item) => {
         return (
           <TreeItem
+            {...item}
+            flat={flat}
+            itemKey={item.key}
             expanded={expanded}
             checked={checked}
-            setExpanded={setExpanded}
-            setChecked={setChecked}
-            {...item}
+            toggleExpanded={toggleExpanded}
+            toggleChecked={toggleChecked}
           />
         );
       })}
