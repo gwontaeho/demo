@@ -16,15 +16,17 @@ const useTree = () => {
 
 const TreeItem = (props) => {
   const {
-    flat,
+    flatList,
     itemKey,
     label,
     children,
-    expanded,
-    checked,
+    expandedKeys,
+    checkedKeys,
     toggleExpanded,
     toggleChecked,
   } = props;
+
+  const checked = checkedKeys.has(itemKey);
 
   return (
     <li
@@ -51,22 +53,22 @@ const TreeItem = (props) => {
         <div className="w-5 h-5 flex items-center justify-center">
           <input
             type="checkbox"
-            checked={checked.has(itemKey)}
+            checked={checked}
             onChange={() => toggleChecked(itemKey)}
           />
         </div>
         <span className="text-sm">{label}</span>
       </div>
-      {children && expanded.has(itemKey) && (
+      {children && expandedKeys.has(itemKey) && (
         <ul className="px-2">
           {children.map((item) => {
             return (
               <TreeItem
                 {...item}
-                flat={flat}
+                flatList={flatList}
                 itemKey={item.key}
-                expanded={expanded}
-                checked={checked}
+                expandedKeys={expandedKeys}
+                checkedKeys={checkedKeys}
                 toggleExpanded={toggleExpanded}
                 toggleChecked={toggleChecked}
               />
@@ -82,27 +84,37 @@ const Tree = (props) => {
   const { data } = props;
 
   const list = useMemo(() => data, []);
-  const flat = useMemo(() => {
-    const flat = (ary, parent = []) => {
+  const flatList = useMemo(() => {
+    const flat = (ary, parent, parentKeys = []) => {
       return ary.reduce((prev, curr) => {
         const item = { ...curr };
         item.parent = parent;
+        item.parentKeys = parentKeys;
         if (item.children) {
-          const result = flat(item.children, [...parent, item.key]);
+          const result = flat(item.children, item, [...parentKeys, item.key]);
           prev.push(...result);
         }
         prev.push(item);
         return prev;
       }, []);
     };
-    return flat(list);
+
+    return flat(list).reduce((prev, curr, idx, ary) => {
+      curr.childKeys = ary
+        .filter((item) => item.parentKeys.includes(curr.key))
+        .map((item) => item.key);
+      prev.push(curr);
+      return prev;
+    }, []);
   }, []);
 
-  const [expanded, setExpanded] = useState(() => new Set());
-  const [checked, setChecked] = useState(() => new Set());
+  console.log(flatList);
+
+  const [expandedKeys, setExpandedKeys] = useState(() => new Set());
+  const [checkedKeys, setCheckedKeys] = useState(() => new Set());
 
   const toggleExpanded = (key) => {
-    setExpanded((prev) => {
+    setExpandedKeys((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
         next.delete(key);
@@ -114,13 +126,33 @@ const Tree = (props) => {
   };
 
   const toggleChecked = (key) => {
-    setChecked((prev) => {
+    const target = flatList.find((item) => item.key === key);
+
+    setCheckedKeys((prev) => {
       const next = new Set(prev);
+
       if (next.has(key)) {
         next.delete(key);
+        target.childKeys.forEach((childKey) => {
+          next.delete(childKey);
+        });
       } else {
         next.add(key);
+        target.childKeys.forEach((childKey) => {
+          next.add(childKey);
+        });
       }
+
+      (function checkParent(parent) {
+        if (!parent) return;
+        if (parent.childKeys.every((childKey) => next.has(childKey))) {
+          next.add(parent.key);
+        } else {
+          next.delete(parent.key);
+        }
+        checkParent(parent.parent);
+      })(target.parent);
+
       return next;
     });
   };
@@ -131,10 +163,10 @@ const Tree = (props) => {
         return (
           <TreeItem
             {...item}
-            flat={flat}
+            flatList={flatList}
             itemKey={item.key}
-            expanded={expanded}
-            checked={checked}
+            expandedKeys={expandedKeys}
+            checkedKeys={checkedKeys}
             toggleExpanded={toggleExpanded}
             toggleChecked={toggleChecked}
           />

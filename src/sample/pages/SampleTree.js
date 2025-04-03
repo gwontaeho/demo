@@ -10,7 +10,15 @@ export const SampleTree = () => {
       label: "a",
       children: [
         { key: "a-1", label: "a-1" },
-        { key: "a-2", label: "a-2" },
+        {
+          key: "a-2",
+          label: "a-2",
+          children: [
+            { key: "a-2-1", label: "a-2-1" },
+            { key: "a-2-2", label: "a-2-2" },
+            { key: "a-2-3", label: "a-2-3" },
+          ],
+        },
         { key: "a-3", label: "a-3" },
         { key: "a-4", label: "a-4" },
         { key: "a-5", label: "a-5" },
