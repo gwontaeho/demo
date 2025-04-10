@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useCallback, forwardRef } from "react";
 import { Icon } from "../icon";
 
 const useTree = () => {
@@ -80,7 +80,7 @@ const TreeItem = (props) => {
   );
 };
 
-const Tree = (props) => {
+const Tree = forwardRef((props, ref) => {
   const { data } = props;
 
   const list = useMemo(() => data, []);
@@ -98,7 +98,6 @@ const Tree = (props) => {
         return prev;
       }, []);
     };
-
     return flat(list).reduce((prev, curr, idx, ary) => {
       curr.childKeys = ary
         .filter((item) => item.parentKeys.includes(curr.key))
@@ -113,7 +112,7 @@ const Tree = (props) => {
   const [expandedKeys, setExpandedKeys] = useState(() => new Set());
   const [checkedKeys, setCheckedKeys] = useState(() => new Set());
 
-  const toggleExpanded = (key) => {
+  const toggleExpanded = useCallback((key) => {
     setExpandedKeys((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
@@ -123,14 +122,12 @@ const Tree = (props) => {
       }
       return next;
     });
-  };
+  }, []);
 
-  const toggleChecked = (key) => {
-    const target = flatList.find((item) => item.key === key);
-
+  const toggleChecked = useCallback((key) => {
     setCheckedKeys((prev) => {
       const next = new Set(prev);
-
+      const target = flatList.find((item) => item.key === key);
       if (next.has(key)) {
         next.delete(key);
         target.childKeys.forEach((childKey) => {
@@ -142,7 +139,6 @@ const Tree = (props) => {
           next.add(childKey);
         });
       }
-
       (function checkParent(parent) {
         if (!parent) return;
         if (parent.childKeys.every((childKey) => next.has(childKey))) {
@@ -152,10 +148,11 @@ const Tree = (props) => {
         }
         checkParent(parent.parent);
       })(target.parent);
-
       return next;
     });
-  };
+  }, []);
+
+  const getChecked = useCallback(() => {}, []);
 
   return (
     <ul>
@@ -174,6 +171,6 @@ const Tree = (props) => {
       })}
     </ul>
   );
-};
+});
 
 export { Tree, useTree };
