@@ -68,15 +68,15 @@ const Test = () => {
 
       <div className="mt-20 flex flex-col gap-2">
         {rooms.map((item, index) => {
-          const [key, value] = item;
+          const { roomId, name, max } = item;
           return (
             <div
               key={index + "room"}
               onClick={() => {
-                setRoom(key);
+                setRoom(roomId);
               }}
             >
-              {value.name}
+              {name}
             </div>
           );
         })}
@@ -94,6 +94,7 @@ const Room = (props) => {
     return getRandomUser();
   }, []);
 
+  const [roomInfo, setRoomInfo] = useState(null);
   const [users, setUsers] = useState(() => new Set());
   const [text, setText] = useState("");
 
@@ -101,20 +102,20 @@ const Room = (props) => {
     return io("http://localhost:3000");
   }, []);
 
+  console.log(roomInfo);
+
   useEffect(() => {
     socket.on("connect", () => {
       socket.emit("join", { roomId, userId });
     });
 
-    socket.on("deleted", () => {
-      console.log("deleted!");
+    socket.on("roomInfo", (data) => {
+      const { users, room } = data;
+      setRoomInfo(room);
+      setUsers(new Set(users));
     });
 
-    socket.on("users", (data) => {
-      setUsers(new Set(data));
-    });
-
-    socket.on("joinRoom", (data) => {
+    socket.on("userJoin", (data) => {
       setUsers((prev) => {
         const next = new Set(prev);
         next.add(data);
@@ -122,16 +123,26 @@ const Room = (props) => {
       });
     });
 
-    socket.on("chat", (message) => {
-      console.log(message);
-    });
-
-    socket.on("leaveRoom", (data) => {
+    socket.on("userLeave", (data) => {
       setUsers((prev) => {
         const next = new Set(prev);
         next.delete(data);
         return next;
       });
+    });
+
+    socket.on("start", (data) => {
+      console.log(data);
+    });
+
+    socket.on("changeTurn", (data) => {
+      console.log(data.turn);
+    });
+
+    socket.on("error", () => {});
+
+    socket.on("chat", (message) => {
+      console.log(message);
     });
 
     return () => {
@@ -162,6 +173,15 @@ const Room = (props) => {
           submit
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          socket.emit("start");
+        }}
+      >
+        start
+      </button>
     </div>
   );
 };
